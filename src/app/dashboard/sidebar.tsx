@@ -17,11 +17,17 @@ import {
   LogOut,
   Settings,
   BarChart3,
+  Network,
+  Folder,
+  Building2,
+  CalendarClock,
+  ClipboardList,
+  History,
   Menu,
   X,
   type LucideIcon,
 } from "lucide-react";
-import type { NavIcon, NavTab, UserRole } from "@/lib/auth/roles";
+import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
 import SignOutButton from "./sign-out-button";
 
 const ICONS: Record<NavIcon, LucideIcon> = {
@@ -38,6 +44,12 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   "log-out": LogOut,
   settings: Settings,
   "bar-chart": BarChart3,
+  sitemap: Network,
+  folder: Folder,
+  building: Building2,
+  "calendar-clock": CalendarClock,
+  "clipboard-list": ClipboardList,
+  history: History,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {
@@ -47,47 +59,75 @@ const ROLE_LABEL: Record<UserRole, string> = {
   employee: "Employee",
 };
 
+const GROUP_ORDER: NavGroup[] = ["Overview", "People", "Workforce", "Payroll & Compliance", "Insights", "Admin"];
+
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
   return pathname === href || pathname.startsWith(href + "/");
+}
+
+function groupTabs(tabs: NavTab[]): { group: NavGroup; tabs: NavTab[] }[] {
+  return GROUP_ORDER.map((group) => ({ group, tabs: tabs.filter((t) => t.group === group) })).filter(
+    (g) => g.tabs.length > 0
+  );
 }
 
 export default function Sidebar({
   tabs,
   role,
   displayName,
+  leavePendingCount = 0,
 }: {
   tabs: NavTab[];
   role: UserRole;
   displayName: string;
+  leavePendingCount?: number;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const grouped = groupTabs(tabs);
 
   const navLinks = (onNavigate?: () => void) => (
-    <nav className="flex-1 overflow-y-auto thin-scrollbar px-3 py-4 space-y-0.5">
-      {tabs.map((t) => {
-        const Icon = ICONS[t.icon];
-        const active = isActive(pathname, t.href);
-        return (
-          <Link
-            key={t.key}
-            href={t.href}
-            onClick={onNavigate}
-            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              active
-                ? "bg-white/10 text-white"
-                : "text-[var(--sidebar-text)] hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            {active && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r bg-accent-400" />
-            )}
-            <Icon size={18} strokeWidth={2} className={active ? "text-accent-400" : "text-[var(--sidebar-text)] group-hover:text-white"} />
-            <span className="truncate">{t.label}</span>
-          </Link>
-        );
-      })}
+    <nav className="flex-1 overflow-y-auto thin-scrollbar px-3 py-4 space-y-4">
+      {grouped.map(({ group, tabs: groupTabsList }) => (
+        <div key={group}>
+          {group !== "Overview" && (
+            <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--sidebar-text)]/70">
+              {group}
+            </p>
+          )}
+          <div className="space-y-0.5">
+            {groupTabsList.map((t) => {
+              const Icon = ICONS[t.icon];
+              const active = isActive(pathname, t.href);
+              const badge = t.key === "leave" && leavePendingCount > 0 ? leavePendingCount : 0;
+              return (
+                <Link
+                  key={t.key}
+                  href={t.href}
+                  onClick={onNavigate}
+                  className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-white/10 text-white"
+                      : "text-[var(--sidebar-text)] hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {active && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r bg-accent-400" />
+                  )}
+                  <Icon size={18} strokeWidth={2} className={active ? "text-accent-400" : "text-[var(--sidebar-text)] group-hover:text-white"} />
+                  <span className="truncate flex-1">{t.label}</span>
+                  {badge > 0 && (
+                    <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-accent-500 text-[10px] font-semibold text-white flex items-center justify-center">
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 
@@ -114,7 +154,7 @@ export default function Sidebar({
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="relative w-64 bg-[var(--sidebar-bg)] h-full flex flex-col">
+          <div className="relative w-72 bg-[var(--sidebar-bg)] h-full flex flex-col">
             <div className="flex items-center justify-between px-4 py-4 border-b border-[var(--sidebar-border)]">
               <span className="text-white font-semibold text-sm tracking-tight">HRMS</span>
               <button onClick={() => setMobileOpen(false)} className="text-[var(--sidebar-text)] hover:text-white">

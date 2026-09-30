@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createEmployee, updateEmployeeCompliance } from "./actions";
+import { createEmployee, updateEmployee } from "./actions";
 
 function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
@@ -18,14 +18,15 @@ function casualConversionFlag(dateOfHire: string): string | null {
 export default async function EmployeesPage() {
   const supabase = await createClient();
 
-  const [{ data: employees }, { data: appUser }] = await Promise.all([
-    supabase.from("employees").select("*").order("name"),
+  const [{ data: employees }, { data: appUser }, { data: branches }] = await Promise.all([
+    supabase.from("employees").select("*, branches(name)").order("name"),
     (async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       return supabase.from("app_users").select("role").eq("id", user!.id).maybeSingle();
     })(),
+    supabase.from("branches").select("id, name").order("name"),
   ]);
 
   const canEdit = appUser?.role === "admin" || appUser?.role === "hr";
@@ -42,6 +43,7 @@ export default async function EmployeesPage() {
               <th className="px-4 py-2 font-medium">Name</th>
               <th className="px-4 py-2 font-medium">Department</th>
               <th className="px-4 py-2 font-medium">Job Title</th>
+              <th className="px-4 py-2 font-medium">Branch</th>
               <th className="px-4 py-2 font-medium">Type</th>
               <th className="px-4 py-2 font-medium">Status</th>
               <th className="px-4 py-2 font-medium">Compliance</th>
@@ -54,12 +56,14 @@ export default async function EmployeesPage() {
               const onProbation = e.probation_end_date && e.probation_end_date >= today;
               const casualFlag =
                 e.employment_type === "Casual" ? casualConversionFlag(e.date_of_hire) : null;
+              const branchName = (e.branches as unknown as { name: string } | null)?.name;
               return (
                 <tr key={e.id} className="border-t border-neutral-100 align-top">
                   <td className="px-4 py-2">{e.staff_no}</td>
                   <td className="px-4 py-2">{e.name}</td>
                   <td className="px-4 py-2">{e.department}</td>
                   <td className="px-4 py-2">{e.job_title}</td>
+                  <td className="px-4 py-2">{branchName ?? "—"}</td>
                   <td className="px-4 py-2">{e.employment_type}</td>
                   <td className="px-4 py-2">{e.status}</td>
                   <td className="px-4 py-2 space-y-1">
@@ -88,11 +92,72 @@ export default async function EmployeesPage() {
                   {canEdit && (
                     <td className="px-4 py-2">
                       <details>
-                        <summary className="text-xs text-blue-600 cursor-pointer">Edit</summary>
+                        <summary className="text-xs text-brand-600 hover:text-brand-700 cursor-pointer">Edit</summary>
                         <form
-                          action={updateEmployeeCompliance.bind(null, e.id)}
-                          className="mt-2 flex flex-col gap-2 text-xs w-48"
+                          action={updateEmployee.bind(null, e.id)}
+                          className="mt-2 flex flex-col gap-2 text-xs w-56"
                         >
+                          <label className="text-neutral-500">
+                            Department
+                            <input
+                              name="department"
+                              defaultValue={e.department}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Job title
+                            <input
+                              name="job_title"
+                              defaultValue={e.job_title}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Employment type
+                            <select
+                              name="employment_type"
+                              defaultValue={e.employment_type}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            >
+                              <option>Permanent</option>
+                              <option>Contract</option>
+                              <option>Casual</option>
+                              <option>Intern</option>
+                            </select>
+                          </label>
+                          <label className="text-neutral-500">
+                            Reports to
+                            <select
+                              name="reporting_manager_id"
+                              defaultValue={e.reporting_manager_id ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            >
+                              <option value="">— none —</option>
+                              {(employees ?? [])
+                                .filter((m) => m.id !== e.id)
+                                .map((m) => (
+                                  <option key={m.id} value={m.id}>
+                                    {m.name}
+                                  </option>
+                                ))}
+                            </select>
+                          </label>
+                          <label className="text-neutral-500">
+                            Branch
+                            <select
+                              name="branch_id"
+                              defaultValue={e.branch_id ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            >
+                              <option value="">— none —</option>
+                              {(branches ?? []).map((b) => (
+                                <option key={b.id} value={b.id}>
+                                  {b.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
                           <label className="text-neutral-500">
                             Probation ends
                             <input
@@ -111,7 +176,7 @@ export default async function EmployeesPage() {
                               className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
                             />
                           </label>
-                          <button type="submit" className="bg-neutral-200 rounded px-3 py-1">
+                          <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
                             Save
                           </button>
                         </form>
@@ -123,7 +188,7 @@ export default async function EmployeesPage() {
             })}
             {(!employees || employees.length === 0) && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={9} className="px-4 py-6 text-center text-neutral-400">
                   No employees yet.
                 </td>
               </tr>
@@ -147,6 +212,22 @@ export default async function EmployeesPage() {
               <option>Intern</option>
             </select>
             <input name="date_of_hire" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <select name="reporting_manager_id" defaultValue="" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+              <option value="">Reports to (optional)</option>
+              {(employees ?? []).map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <select name="branch_id" defaultValue="" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+              <option value="">Branch (optional)</option>
+              {(branches ?? []).map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
             <label className="text-xs text-neutral-500 flex flex-col gap-1">
               Probation ends (defaults to hire date + 6 months)
               <input name="probation_end_date" type="date" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />

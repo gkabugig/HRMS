@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { TABS_BY_ROLE, type UserRole } from "@/lib/auth/roles";
+import { tabsForRole, DEFAULT_VISIBLE_MODULES, type UserRole } from "@/lib/auth/roles";
 import SignOutButton from "./sign-out-button";
 import Sidebar from "./sidebar";
 
@@ -35,12 +35,32 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const role = appUser.role as UserRole;
-  const tabs = TABS_BY_ROLE[role];
+
+  const [{ data: permRows }, { count: pendingLeaveCount }] = await Promise.all([
+    supabase
+      .from("role_module_permissions")
+      .select("module_key, can_view")
+      .eq("org_id", appUser.org_id)
+      .eq("role", role),
+    // RLS already scopes this to "my team" for a manager and "my own" for an
+    // employee, so the same query gives each role the right number.
+    supabase
+      .from("leave_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "Pending"),
+  ]);
+
+  const visible =
+    permRows && permRows.length > 0
+      ? new Set(permRows.filter((r) => r.can_view).map((r) => r.module_key))
+      : new Set(DEFAULT_VISIBLE_MODULES[role]);
+
+  const tabs = tabsForRole(role, visible);
   const displayName = user.email?.split("@")[0] ?? "User";
 
   return (
     <div className="min-h-screen bg-[var(--surface-muted)]">
-      <Sidebar tabs={tabs} role={role} displayName={displayName} />
+      <Sidebar tabs={tabs} role={role} displayName={displayName} leavePendingCount={pendingLeaveCount ?? 0} />
       <main className="lg:pl-64">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
       </main>

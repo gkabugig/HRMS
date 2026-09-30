@@ -20,51 +20,87 @@ export type NavIcon =
   | "gavel"
   | "log-out"
   | "settings"
-  | "bar-chart";
+  | "bar-chart"
+  | "sitemap"
+  | "folder"
+  | "building"
+  | "calendar-clock"
+  | "clipboard-list"
+  | "history";
 
-export type NavTab = { key: string; label: string; href: string; icon: NavIcon };
+export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
-export const TABS_BY_ROLE: Record<UserRole, NavTab[]> = {
-  admin: [
-    { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard" },
-    { key: "employees", label: "Employees", href: "/dashboard/employees", icon: "users" },
-    { key: "recruitment", label: "Recruitment", href: "/dashboard/recruitment", icon: "briefcase" },
-    { key: "attendance", label: "Attendance", href: "/dashboard/attendance", icon: "clock" },
-    { key: "leave", label: "Leave", href: "/dashboard/leave", icon: "calendar-days" },
-    { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: "wallet" },
-    { key: "performance", label: "Performance", href: "/dashboard/performance", icon: "target" },
-    { key: "ld", label: "L&D", href: "/dashboard/ld", icon: "graduation-cap" },
-    { key: "compliance", label: "Compliance", href: "/dashboard/compliance", icon: "shield-check" },
-    { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary", icon: "gavel" },
-    { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding", icon: "log-out" },
-    { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart" },
-    { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
-  ],
-  hr: [
-    { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard" },
-    { key: "employees", label: "Employees", href: "/dashboard/employees", icon: "users" },
-    { key: "recruitment", label: "Recruitment", href: "/dashboard/recruitment", icon: "briefcase" },
-    { key: "attendance", label: "Attendance", href: "/dashboard/attendance", icon: "clock" },
-    { key: "leave", label: "Leave", href: "/dashboard/leave", icon: "calendar-days" },
-    { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: "wallet" },
-    { key: "performance", label: "Performance", href: "/dashboard/performance", icon: "target" },
-    { key: "ld", label: "L&D", href: "/dashboard/ld", icon: "graduation-cap" },
-    { key: "compliance", label: "Compliance", href: "/dashboard/compliance", icon: "shield-check" },
-    { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary", icon: "gavel" },
-    { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding", icon: "log-out" },
-    { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart" },
-  ],
-  manager: [
-    { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard" },
-    { key: "attendance", label: "Team Attendance", href: "/dashboard/attendance", icon: "clock" },
-    { key: "leave", label: "Team Leave", href: "/dashboard/leave", icon: "calendar-days" },
-    { key: "performance", label: "Team Performance", href: "/dashboard/performance", icon: "target" },
-    { key: "disciplinary", label: "Team Disciplinary", href: "/dashboard/disciplinary", icon: "gavel" },
-  ],
-  employee: [
-    { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard" },
-    { key: "leave", label: "My Leave", href: "/dashboard/leave", icon: "calendar-days" },
-    { key: "payroll", label: "My Payslips", href: "/dashboard/payroll", icon: "wallet" },
-    { key: "performance", label: "My Appraisals", href: "/dashboard/performance", icon: "target" },
-  ],
+export type NavTab = {
+  key: string;
+  label: string;
+  href: string;
+  icon: NavIcon;
+  group: NavGroup;
 };
+
+// The full catalog of modules the app can show in the sidebar. Per-role
+// visibility is normally decided at request time from the
+// role_module_permissions table (see dashboard/layout.tsx) so an admin can
+// tune it from Settings; DEFAULT_VISIBLE_MODULES below is only the fallback
+// used if that table has no rows yet for an org (fresh install) or the
+// fetch fails, and mirrors the seed in
+// supabase/migrations/0014_role_module_permissions.sql exactly.
+export const ALL_MODULES: NavTab[] = [
+  { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard", group: "Overview" },
+
+  { key: "employees", label: "Employees", href: "/dashboard/employees", icon: "users", group: "People" },
+  { key: "recruitment", label: "Recruitment", href: "/dashboard/recruitment", icon: "briefcase", group: "People" },
+  { key: "organogram", label: "Organogram", href: "/dashboard/organogram", icon: "sitemap", group: "People" },
+  { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding", icon: "log-out", group: "People" },
+
+  { key: "attendance", label: "Attendance", href: "/dashboard/attendance", icon: "clock", group: "Workforce" },
+  { key: "leave", label: "Leave", href: "/dashboard/leave", icon: "calendar-days", group: "Workforce" },
+  { key: "assignments", label: "Assignments", href: "/dashboard/assignments", icon: "clipboard-list", group: "Workforce" },
+  { key: "performance", label: "Performance", href: "/dashboard/performance", icon: "target", group: "Workforce" },
+  { key: "ld", label: "L&D", href: "/dashboard/ld", icon: "graduation-cap", group: "Workforce" },
+  { key: "shifts", label: "Shifts", href: "/dashboard/shifts", icon: "calendar-clock", group: "Workforce" },
+
+  { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: "wallet", group: "Payroll & Compliance" },
+  { key: "compliance", label: "Compliance", href: "/dashboard/compliance", icon: "shield-check", group: "Payroll & Compliance" },
+  { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary", icon: "gavel", group: "Payroll & Compliance" },
+  { key: "documents", label: "Documents", href: "/dashboard/documents", icon: "folder", group: "Payroll & Compliance" },
+
+  { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart", group: "Insights" },
+  { key: "audit-log", label: "Audit Log", href: "/dashboard/audit-log", icon: "history", group: "Insights" },
+
+  { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
+  { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
+];
+
+export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
+  admin: ALL_MODULES.map((m) => m.key),
+  hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
+  manager: ["dashboard", "attendance", "leave", "assignments", "performance", "disciplinary"],
+  employee: ["dashboard", "leave", "payroll", "performance", "documents", "assignments"],
+};
+
+// Role-specific labels for a handful of shared modules (managers/employees
+// see "Team X" / "My X" instead of the HR-facing name).
+export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> = {
+  manager: {
+    attendance: "Team Attendance",
+    leave: "Team Leave",
+    performance: "Team Performance",
+    disciplinary: "Team Disciplinary",
+    assignments: "Team Assignments",
+  },
+  employee: {
+    leave: "My Leave",
+    payroll: "My Payslips",
+    performance: "My Appraisals",
+    documents: "My Documents",
+    assignments: "My Assignments",
+  },
+};
+
+export function tabsForRole(role: UserRole, visibleModuleKeys: Set<string>): NavTab[] {
+  const overrides = LABEL_OVERRIDES[role] ?? {};
+  return ALL_MODULES.filter((m) => visibleModuleKeys.has(m.key)).map((m) =>
+    overrides[m.key] ? { ...m, label: overrides[m.key] } : m
+  );
+}

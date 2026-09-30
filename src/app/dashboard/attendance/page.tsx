@@ -1,24 +1,35 @@
 import { createClient } from "@/lib/supabase/server";
 import { recordAttendance } from "./actions";
 
-const EXPECTED_START = "08:00";
-const GRACE_MINUTES = 15;
-const STANDARD_HOURS_PER_DAY = 8;
+// Fallback when an employee has no shift assigned (Working Schedule module) —
+// same default this app used before shifts existed.
+const DEFAULT_START = "08:00";
+const DEFAULT_GRACE_MINUTES = 15;
+const DEFAULT_STANDARD_HOURS = 8;
 
-function isLate(clockIn: string | null): boolean {
+type Shift = { start_time: string; end_time: string; grace_minutes: number };
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function standardHoursFor(shift: Shift | undefined): number {
+  if (!shift) return DEFAULT_STANDARD_HOURS;
+  const mins = toMinutes(shift.end_time) - toMinutes(shift.start_time);
+  return mins > 0 ? Math.round((mins / 60) * 100) / 100 : DEFAULT_STANDARD_HOURS;
+}
+
+function isLate(clockIn: string | null, shift: Shift | undefined): boolean {
   if (!clockIn) return false;
-  const [eh, em] = EXPECTED_START.split(":").map(Number);
-  const [ah, am] = clockIn.split(":").map(Number);
-  const expectedMinutes = eh * 60 + em + GRACE_MINUTES;
-  const actualMinutes = ah * 60 + am;
-  return actualMinutes > expectedMinutes;
+  const expectedStart = shift ? shift.start_time : DEFAULT_START;
+  const grace = shift ? shift.grace_minutes : DEFAULT_GRACE_MINUTES;
+  return toMinutes(clockIn) > toMinutes(expectedStart) + grace;
 }
 
 function hoursWorked(clockIn: string | null, clockOut: string | null): number | null {
   if (!clockIn || !clockOut) return null;
-  const [ih, im] = clockIn.split(":").map(Number);
-  const [oh, om] = clockOut.split(":").map(Number);
-  const minutes = oh * 60 + om - (ih * 60 + im);
+  const minutes = toMinutes(clockOut) - toMinutes(clockIn);
   if (minutes <= 0) return null;
   return Math.round((minutes / 60) * 100) / 100;
 }
@@ -27,10 +38,10 @@ function hoursWorked(clockIn: string | null, clockOut: string | null): number | 
 // rest days/public holidays. This flags overtime from logged hours so HR
 // can see it — it doesn't yet feed into payroll (that needs an hourly rate
 // per employee, tracked separately as a bigger follow-on piece of work).
-function overtimeHours(clockIn: string | null, clockOut: string | null): number {
+function overtimeHours(clockIn: string | null, clockOut: string | null, shift: Shift | undefined): number {
   const hours = hoursWorked(clockIn, clockOut);
   if (hours === null) return 0;
-  return Math.max(0, Math.round((hours - STANDARD_HOURS_PER_DAY) * 100) / 100);
+  return Math.max(0, Math.round((hours - standardHoursFor(shift)) * 100) / 100);
 }
 
 // Employment Act s.27: at least one rest day in every 7. Flags any run of 7+
@@ -75,7 +86,7 @@ export default async function AttendancePage() {
   const isHrLike = appUser?.role === "admin" || appUser?.role === "hr";
   const canPickEmployee = isHrLike || appUser?.role === "manager";
 
-  const [{ data: records }, { data: employees }] = await Promise.all([
+  const [{ data: records }, { data: employees }, { data: shiftAssignments }] = await Promise.all([
     supabase
       .from("attendance")
       .select("id, employee_id, work_date, clock_in, clock_out, source, employees(name)")
@@ -84,7 +95,19 @@ export default async function AttendancePage() {
     canPickEmployee
       ? supabase.from("employees").select("id, name").eq("status", "Active").order("name")
       : Promise.resolve({ data: null }),
+    supabase
+      .from("employee_shifts")
+      .select("employee_id, shift_patterns(start_time, end_time, grace_minutes)"),
   ]);
+
+  const shiftByEmployee = new Map<string, Shift>(
+    (shiftAssignments ?? [])
+      .map((a) => {
+        const pattern = a.shift_patterns as unknown as Shift | null;
+        return pattern ? ([a.employee_id, pattern] as const) : null;
+      })
+      .filter((entry): entry is readonly [string, Shift] => entry !== null)
+  );
 
   const restViolations = restDayViolations(
     (records ?? []).map((r) => ({ employee_id: r.employee_id, work_date: r.work_date }))
@@ -117,7 +140,8 @@ export default async function AttendancePage() {
           </thead>
           <tbody>
             {(records ?? []).map((r) => {
-              const overtime = overtimeHours(r.clock_in, r.clock_out);
+              const shift = shiftByEmployee.get(r.employee_id);
+              const overtime = overtimeHours(r.clock_in, r.clock_out, shift);
               return (
                 <tr key={r.id} className="border-t border-neutral-100">
                   {canPickEmployee && (
@@ -130,7 +154,7 @@ export default async function AttendancePage() {
                   <td className="px-4 py-2 font-mono">{r.clock_out ?? "—"}</td>
                   <td className="px-4 py-2 font-mono">{overtime > 0 ? `${overtime}h` : "—"}</td>
                   <td className="px-4 py-2">
-                    {isLate(r.clock_in) && (
+                    {isLate(r.clock_in, shift) && (
                       <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Late</span>
                     )}
                     {!r.clock_out && r.clock_in && (

@@ -28,3 +28,23 @@ export async function updateRates(formData: FormData) {
 
   revalidatePath("/dashboard/settings");
 }
+
+// Toggle a single role/module cell in the Roles & Permissions matrix. This
+// is a UI-visibility layer only (see 0014_role_module_permissions.sql) — it
+// hides/shows a nav item for that role, it does not change what the
+// underlying RLS policies allow that role to read or write.
+export async function toggleModulePermission(formData: FormData) {
+  const supabase = await createClient();
+  const role = String(formData.get("role") || "");
+  const moduleKey = String(formData.get("module_key") || "");
+  const canView = formData.get("can_view") === "true";
+  if (!role || !moduleKey) throw new Error("Missing role or module.");
+
+  const { error } = await supabase.from("role_module_permissions").upsert(
+    { org_id: DEFAULT_ORG_ID, role, module_key: moduleKey, can_view: canView },
+    { onConflict: "org_id,role,module_key" }
+  );
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/settings");
+}
