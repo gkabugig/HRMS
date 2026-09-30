@@ -19,7 +19,8 @@ export type NavIcon =
   | "shield-check"
   | "gavel"
   | "log-out"
-  | "settings";
+  | "settings"
+  | "bar-chart";
 
 export type NavTab = { key: string; label: string; href: string; icon: NavIcon };
 
@@ -36,6 +37,7 @@ export const TABS_BY_ROLE: Record<UserRole, NavTab[]> = {
     { key: "compliance", label: "Compliance", href: "/dashboard/compliance", icon: "shield-check" },
     { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary", icon: "gavel" },
     { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding", icon: "log-out" },
+    { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart" },
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
   ],
   hr: [
@@ -50,6 +52,7 @@ export const TABS_BY_ROLE: Record<UserRole, NavTab[]> = {
     { key: "compliance", label: "Compliance", href: "/dashboard/compliance", icon: "shield-check" },
     { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary", icon: "gavel" },
     { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding", icon: "log-out" },
+    { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart" },
   ],
   manager: [
     { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard" },

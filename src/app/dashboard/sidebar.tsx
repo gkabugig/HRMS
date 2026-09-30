@@ -16,6 +16,7 @@ import {
   Gavel,
   LogOut,
   Settings,
+  BarChart3,
   Menu,
   X,
   type LucideIcon,
@@ -36,6 +37,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   gavel: Gavel,
   "log-out": LogOut,
   settings: Settings,
+  "bar-chart": BarChart3,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {

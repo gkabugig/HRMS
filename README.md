@@ -35,8 +35,13 @@ Next.js (App Router) and Supabase (Postgres + Auth + Row-Level Security).
 - **Offboarding** — HR/admin initiates an exit with a seeded asset-return checklist,
   records the exit interview and final dues, and "Complete offboarding" flips the
   linked employee's status to Terminated (blocked until all assets are returned).
+- **Reports** (HR/admin only) — a single page summarizing workforce, payroll, leave,
+  attendance, compliance, disciplinary/offboarding, and recruitment, each with a
+  one-click CSV export (`src/lib/reports.ts` for the shared CSV/date helpers,
+  `dashboard/reports/export/[report]/route.ts` for the exports). Reads only — no new
+  tables, relies entirely on the RLS already in place for the tables it summarizes.
 
-All six of these were built directly against the live schema and RLS policies in
+All of these were built directly against the live schema and RLS policies in
 `supabase/migrations/0001_schema.sql`/`0002_rls.sql` — no placeholders remain.
 
 ## Employment Act, 2007 compliance
