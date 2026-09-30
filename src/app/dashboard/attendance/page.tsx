@@ -103,7 +103,7 @@ export default async function AttendancePage() {
         </p>
       )}
 
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-neutral-600 text-left">
             <tr>
@@ -158,13 +158,13 @@ export default async function AttendancePage() {
         </table>
       </div>
 
-      <div className="bg-white border border-neutral-200 rounded-lg p-4">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
         <h2 className="text-sm font-semibold text-neutral-900 mb-3">
           {canPickEmployee ? "Record attendance" : "Clock in / out"}
         </h2>
         <form action={recordAttendance} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
           {canPickEmployee && (
-            <select name="employee_id" required className="border border-neutral-300 rounded px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -178,13 +178,13 @@ export default async function AttendancePage() {
             type="date"
             required
             defaultValue={new Date().toISOString().slice(0, 10)}
-            className="border border-neutral-300 rounded px-3 py-2"
+            className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
           />
-          <input name="clock_in" type="time" className="border border-neutral-300 rounded px-3 py-2" />
-          <input name="clock_out" type="time" className="border border-neutral-300 rounded px-3 py-2" />
+          <input name="clock_in" type="time" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+          <input name="clock_out" type="time" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
           <button
             type="submit"
-            className={`bg-neutral-900 text-white rounded py-2 font-medium ${canPickEmployee ? "sm:col-span-4" : "sm:col-span-1"}`}
+            className={`bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium ${canPickEmployee ? "sm:col-span-4" : "sm:col-span-1"}`}
           >
             Save
           </button>

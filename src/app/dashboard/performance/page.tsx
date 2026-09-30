@@ -34,7 +34,7 @@ export default async function PerformancePage() {
         {isHrLike ? "Performance" : appUser?.role === "manager" ? "Team Performance" : "My Performance"}
       </h1>
 
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-neutral-600 text-left">
             <tr>
@@ -65,7 +65,7 @@ export default async function PerformancePage() {
                 </td>
                 <td className="px-4 py-2">{a.final_score ?? "—"}</td>
                 <td className="px-4 py-2 text-right">
-                  <Link href={`/dashboard/performance/${a.id}`} className="text-blue-600 hover:underline">
+                  <Link href={`/dashboard/performance/${a.id}`} className="text-brand-600 hover:text-brand-700 hover:underline">
                     View
                   </Link>
                 </td>
@@ -83,10 +83,10 @@ export default async function PerformancePage() {
       </div>
 
       {canCreate && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Start an appraisal</h2>
           <form action={createAppraisal} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <select name="employee_id" required className="border border-neutral-300 rounded px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -98,9 +98,9 @@ export default async function PerformancePage() {
               name="cycle"
               placeholder="Cycle (e.g. 2026 H1)"
               required
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
-            <button type="submit" className="bg-neutral-900 text-white rounded py-2 font-medium">
+            <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Start appraisal
             </button>
           </form>

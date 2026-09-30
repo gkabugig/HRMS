@@ -30,7 +30,7 @@ export default async function RecruitmentPage() {
     <div className="space-y-6">
       <h1 className="text-lg font-semibold text-neutral-900">Recruitment</h1>
 
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-neutral-600 text-left">
             <tr>
@@ -46,7 +46,7 @@ export default async function RecruitmentPage() {
             {(requisitions ?? []).map((r) => (
               <tr key={r.id} className="border-t border-neutral-100">
                 <td className="px-4 py-2">
-                  <Link href={`/dashboard/recruitment/${r.id}`} className="text-blue-600 hover:underline">
+                  <Link href={`/dashboard/recruitment/${r.id}`} className="text-brand-600 hover:text-brand-700 hover:underline">
                     {r.role}
                   </Link>
                 </td>
@@ -77,14 +77,14 @@ export default async function RecruitmentPage() {
       </div>
 
       {(isHrLike || isManager) && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Raise a requisition</h2>
           <form action={createRequisition} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-            <input name="role" placeholder="Role / Job title" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="department" placeholder="Department" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="headcount" type="number" min={1} defaultValue={1} className="border border-neutral-300 rounded px-3 py-2" />
+            <input name="role" placeholder="Role / Job title" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="department" placeholder="Department" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="headcount" type="number" min={1} defaultValue={1} className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             {isHrLike && (
-              <select name="hiring_manager_id" className="border border-neutral-300 rounded px-3 py-2">
+              <select name="hiring_manager_id" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
                 <option value="">Hiring manager (optional)</option>
                 {(employees ?? []).map((e) => (
                   <option key={e.id} value={e.id}>
@@ -93,7 +93,7 @@ export default async function RecruitmentPage() {
                 ))}
               </select>
             )}
-            <button type="submit" className="sm:col-span-4 bg-neutral-900 text-white rounded py-2 font-medium">
+            <button type="submit" className="sm:col-span-4 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Raise requisition
             </button>
           </form>

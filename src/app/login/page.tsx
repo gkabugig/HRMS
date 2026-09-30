@@ -48,8 +48,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
-      <div className="w-full max-w-sm bg-white border border-neutral-200 rounded-lg shadow-sm p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#0f1424] px-4 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-brand-600/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent-500/20 blur-3xl" />
+      <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-xl shadow-black/20 p-8 relative">
+        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white text-base font-bold shadow-lg shadow-brand-600/30 mb-4">
+          H
+        </div>
         <h1 className="text-xl font-semibold text-neutral-900 mb-1">HRMS</h1>
         <p className="text-sm text-neutral-500 mb-6">
           {mode === "signin" ? "Sign in to continue" : "Create the first admin account"}
@@ -60,7 +65,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-sm text-neutral-700 mb-1">Full name</label>
               <input
-                className="w-full border border-neutral-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -71,7 +76,7 @@ export default function LoginPage() {
             <input
               type="email"
               required
-              className="w-full border border-neutral-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -82,7 +87,7 @@ export default function LoginPage() {
               type="password"
               required
               minLength={6}
-              className="w-full border border-neutral-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -93,14 +98,14 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-neutral-900 text-white rounded py-2 text-sm font-medium disabled:opacity-50"
+            className="w-full bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 text-sm font-medium disabled:opacity-50"
           >
             {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
           </button>
         </form>
 
         <button
-          className="mt-4 text-sm text-neutral-500 underline"
+          className="mt-4 text-sm text-brand-600 hover:text-brand-700 font-medium"
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
         >
           {mode === "signin" ? "First time here? Set up admin account" : "Already have an account? Sign in"}

@@ -47,7 +47,7 @@ export default async function CertificateOfServicePage({
         </p>
       </div>
 
-      <div className="bg-white border border-neutral-200 rounded-lg p-10 print:border-none print:p-0">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-10 print:border-none print:p-0 print:shadow-none">
         <h1 className="text-lg font-semibold text-center mb-8">CERTIFICATE OF SERVICE</h1>
 
         <p className="text-sm leading-7 text-neutral-800">

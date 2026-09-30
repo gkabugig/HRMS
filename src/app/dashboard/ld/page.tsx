@@ -59,7 +59,7 @@ export default async function LearningDevelopmentPage() {
 
       <div>
         <h2 className="text-sm font-semibold text-neutral-900 mb-3">Course catalog</h2>
-        <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-600 text-left">
               <tr>
@@ -88,7 +88,7 @@ export default async function LearningDevelopmentPage() {
                   <td className="px-4 py-2 text-right">
                     {appUser?.employee_id && !myEnrolledCourseIds.has(c.id) && (
                       <form action={enrollSelf.bind(null, c.id)}>
-                        <button type="submit" className="text-xs bg-neutral-900 text-white rounded px-3 py-1">
+                        <button type="submit" className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1">
                           Enroll
                         </button>
                       </form>
@@ -112,24 +112,24 @@ export default async function LearningDevelopmentPage() {
       </div>
 
       {isHrLike && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Add a course</h2>
           <form action={createCourse} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <input name="name" placeholder="Course name" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="provider" placeholder="Provider" className="border border-neutral-300 rounded px-3 py-2" />
-            <select name="mode" className="border border-neutral-300 rounded px-3 py-2">
+            <input name="name" placeholder="Course name" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="provider" placeholder="Provider" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <select name="mode" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Mode</option>
               <option>In-person</option>
               <option>Online</option>
               <option>Blended</option>
             </select>
-            <input name="duration" placeholder="Duration (e.g. 2 days)" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="cost" type="number" step="0.01" placeholder="Cost (KES)" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="validity_months" type="number" placeholder="Validity (months, optional)" className="border border-neutral-300 rounded px-3 py-2" />
+            <input name="duration" placeholder="Duration (e.g. 2 days)" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="cost" type="number" step="0.01" placeholder="Cost (KES)" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="validity_months" type="number" placeholder="Validity (months, optional)" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <label className="flex items-center gap-2 text-sm text-neutral-600">
               <input type="checkbox" name="mandatory" /> Mandatory course
             </label>
-            <button type="submit" className="sm:col-span-3 bg-neutral-900 text-white rounded py-2 font-medium">
+            <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add course
             </button>
           </form>
@@ -140,7 +140,7 @@ export default async function LearningDevelopmentPage() {
         <h2 className="text-sm font-semibold text-neutral-900 mb-3">
           {isHrLike ? "All enrollments" : isManagerLike ? "Team enrollments" : "My enrollments"}
         </h2>
-        <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-600 text-left">
               <tr>
@@ -189,12 +189,12 @@ export default async function LearningDevelopmentPage() {
                               name="completed_on"
                               type="date"
                               defaultValue={new Date().toISOString().slice(0, 10)}
-                              className="border border-neutral-300 rounded px-2 py-1 text-xs"
+                              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 text-xs"
                             />
                             <input
                               name="certificate_note"
                               placeholder="Certificate note"
-                              className="border border-neutral-300 rounded px-2 py-1 text-xs"
+                              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 text-xs"
                             />
                             <button type="submit" className="text-xs bg-green-700 text-white rounded px-3 py-1">
                               Save
@@ -219,10 +219,10 @@ export default async function LearningDevelopmentPage() {
       </div>
 
       {isHrLike && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Enroll an employee</h2>
           <form action={enrollEmployee} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <select name="employee_id" required className="border border-neutral-300 rounded px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -230,7 +230,7 @@ export default async function LearningDevelopmentPage() {
                 </option>
               ))}
             </select>
-            <select name="course_id" required className="border border-neutral-300 rounded px-3 py-2">
+            <select name="course_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select course</option>
               {(courses ?? []).map((c) => (
                 <option key={c.id} value={c.id}>
@@ -238,7 +238,7 @@ export default async function LearningDevelopmentPage() {
                 </option>
               ))}
             </select>
-            <button type="submit" className="bg-neutral-900 text-white rounded py-2 font-medium">
+            <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Enroll
             </button>
           </form>

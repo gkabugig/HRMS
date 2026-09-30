@@ -64,7 +64,7 @@ export default async function DisciplinaryPage() {
 
       <div className="space-y-4">
         {(records ?? []).map((r) => (
-          <div key={r.id} className="bg-white border border-neutral-200 rounded-lg p-4">
+          <div key={r.id} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
             <div className="flex items-center justify-between">
               <div>
                 <span className="font-medium">
@@ -91,7 +91,7 @@ export default async function DisciplinaryPage() {
                 {(attachmentsByRecord.get(r.id) ?? []).map((a) => (
                   <li key={a.id} className="flex items-center gap-2 text-sm">
                     {a.url ? (
-                      <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:text-brand-700 hover:underline">
                         {a.file_name}
                       </a>
                     ) : (
@@ -119,7 +119,7 @@ export default async function DisciplinaryPage() {
                     name="file"
                     type="file"
                     required
-                    className="flex-1 text-xs border border-neutral-300 rounded px-2 py-1"
+                    className="flex-1 text-xs border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1"
                   />
                   <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
                     Attach
@@ -135,10 +135,10 @@ export default async function DisciplinaryPage() {
       </div>
 
       {canRecord && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Record a hearing</h2>
           <form action={recordHearing} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <select name="employee_id" required className="border border-neutral-300 rounded px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -151,14 +151,14 @@ export default async function DisciplinaryPage() {
               type="date"
               required
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <textarea
               name="reason"
               placeholder="Reason explained to the employee"
               required
               rows={2}
-              className="sm:col-span-2 border border-neutral-300 rounded px-3 py-2"
+              className="sm:col-span-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <label className="flex items-center gap-2">
               <input type="checkbox" name="representative_present" /> Representative present
@@ -166,23 +166,23 @@ export default async function DisciplinaryPage() {
             <input
               name="representative_name"
               placeholder="Representative name (if any)"
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <textarea
               name="employee_response"
               placeholder="Employee's response / representations"
               rows={2}
-              className="sm:col-span-2 border border-neutral-300 rounded px-3 py-2"
+              className="sm:col-span-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
-            <select name="action_type" className="border border-neutral-300 rounded px-3 py-2">
+            <select name="action_type" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               {ACTION_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </select>
-            <input name="outcome" placeholder="Outcome / decision" className="border border-neutral-300 rounded px-3 py-2" />
-            <button type="submit" className="sm:col-span-2 bg-neutral-900 text-white rounded py-2 font-medium">
+            <input name="outcome" placeholder="Outcome / decision" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <button type="submit" className="sm:col-span-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Save record
             </button>
           </form>

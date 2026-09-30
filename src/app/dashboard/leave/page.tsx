@@ -24,7 +24,7 @@ export default async function LeavePage() {
     <div className="space-y-6">
       <h1 className="text-lg font-semibold text-neutral-900">Leave</h1>
 
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-neutral-600 text-left">
             <tr>
@@ -69,10 +69,10 @@ export default async function LeavePage() {
       </div>
 
       {appUser?.employee_id && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Apply for leave</h2>
           <form action={applyForLeave} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-            <select name="leave_type" className="border border-neutral-300 rounded px-3 py-2">
+            <select name="leave_type" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option>Annual</option>
               <option>Sick</option>
               <option>Compassionate</option>
@@ -81,10 +81,10 @@ export default async function LeavePage() {
               <option>Unpaid</option>
               <option>Study</option>
             </select>
-            <input name="start_date" type="date" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="end_date" type="date" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="reason" placeholder="Reason (optional)" className="border border-neutral-300 rounded px-3 py-2" />
-            <button type="submit" className="sm:col-span-4 bg-neutral-900 text-white rounded py-2 font-medium">
+            <input name="start_date" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="end_date" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="reason" placeholder="Reason (optional)" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <button type="submit" className="sm:col-span-4 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Submit request
             </button>
           </form>

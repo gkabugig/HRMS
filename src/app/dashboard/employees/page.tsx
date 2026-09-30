@@ -34,7 +34,7 @@ export default async function EmployeesPage() {
     <div className="space-y-6">
       <h1 className="text-lg font-semibold text-neutral-900">Employees</h1>
 
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-neutral-600 text-left">
             <tr>
@@ -99,7 +99,7 @@ export default async function EmployeesPage() {
                               name="probation_end_date"
                               type="date"
                               defaultValue={e.probation_end_date ?? ""}
-                              className="w-full border border-neutral-300 rounded px-2 py-1 mt-0.5"
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
                             />
                           </label>
                           <label className="text-neutral-500">
@@ -108,7 +108,7 @@ export default async function EmployeesPage() {
                               name="contract_issued_on"
                               type="date"
                               defaultValue={e.contract_issued_on ?? ""}
-                              className="w-full border border-neutral-300 rounded px-2 py-1 mt-0.5"
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
                             />
                           </label>
                           <button type="submit" className="bg-neutral-200 rounded px-3 py-1">
@@ -133,36 +133,36 @@ export default async function EmployeesPage() {
       </div>
 
       {canEdit && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Add employee</h2>
           <form action={createEmployee} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <input name="staff_no" placeholder="Staff No" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="name" placeholder="Full name" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="department" placeholder="Department" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="job_title" placeholder="Job title" required className="border border-neutral-300 rounded px-3 py-2" />
-            <select name="employment_type" className="border border-neutral-300 rounded px-3 py-2">
+            <input name="staff_no" placeholder="Staff No" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="name" placeholder="Full name" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="department" placeholder="Department" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="job_title" placeholder="Job title" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <select name="employment_type" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option>Permanent</option>
               <option>Contract</option>
               <option>Casual</option>
               <option>Intern</option>
             </select>
-            <input name="date_of_hire" type="date" required className="border border-neutral-300 rounded px-3 py-2" />
+            <input name="date_of_hire" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <label className="text-xs text-neutral-500 flex flex-col gap-1">
               Probation ends (defaults to hire date + 6 months)
-              <input name="probation_end_date" type="date" className="border border-neutral-300 rounded px-3 py-2" />
+              <input name="probation_end_date" type="date" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             </label>
             <label className="text-xs text-neutral-500 flex flex-col gap-1">
               Written contract issued on
-              <input name="contract_issued_on" type="date" className="border border-neutral-300 rounded px-3 py-2" />
+              <input name="contract_issued_on" type="date" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             </label>
-            <input name="basic" type="number" step="0.01" placeholder="Basic salary" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="house_allowance" type="number" step="0.01" placeholder="House allowance" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="transport_allowance" type="number" step="0.01" placeholder="Transport allowance" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="other_allowance" type="number" step="0.01" placeholder="Other allowance" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="kra_pin" placeholder="KRA PIN" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="nssf_no" placeholder="NSSF No" className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="shif_no" placeholder="SHIF No" className="border border-neutral-300 rounded px-3 py-2" />
-            <button type="submit" className="sm:col-span-3 bg-neutral-900 text-white rounded py-2 font-medium">
+            <input name="basic" type="number" step="0.01" placeholder="Basic salary" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="house_allowance" type="number" step="0.01" placeholder="House allowance" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="transport_allowance" type="number" step="0.01" placeholder="Transport allowance" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="other_allowance" type="number" step="0.01" placeholder="Other allowance" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="kra_pin" placeholder="KRA PIN" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="nssf_no" placeholder="NSSF No" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="shif_no" placeholder="SHIF No" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add employee
             </button>
           </form>

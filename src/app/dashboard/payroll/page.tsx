@@ -46,7 +46,7 @@ export default async function PayrollPage() {
       {isHrLike && (
         <form
           action={runPayroll}
-          className="bg-white border border-neutral-200 rounded-lg p-4 flex items-end gap-3 text-sm"
+          className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 flex items-end gap-3 text-sm"
         >
           <input type="hidden" name="org_id" value={DEFAULT_ORG_ID} />
           <div>
@@ -56,16 +56,16 @@ export default async function PayrollPage() {
               type="month"
               required
               defaultValue={new Date().toISOString().slice(0, 7)}
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
           </div>
-          <button type="submit" className="bg-neutral-900 text-white rounded py-2 px-4 font-medium">
+          <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 font-medium">
             Run payroll
           </button>
         </form>
       )}
 
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-neutral-600 text-left">
             <tr>

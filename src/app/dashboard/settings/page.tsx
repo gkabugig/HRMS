@@ -21,14 +21,14 @@ export default async function SettingsPage() {
         were active when they were generated.
       </p>
 
-      <form action={updateRates} className="bg-white border border-neutral-200 rounded-lg p-4 space-y-4 text-sm">
+      <form action={updateRates} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-4 text-sm">
         <div>
           <label className="block text-neutral-700 mb-1">PAYE bands (JSON)</label>
           <textarea
             name="paye_bands"
             rows={4}
             defaultValue={JSON.stringify(rates?.paye_bands ?? [], null, 2)}
-            className="w-full border border-neutral-300 rounded px-3 py-2 font-mono text-xs"
+            className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 font-mono text-xs"
           />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -40,7 +40,7 @@ export default async function SettingsPage() {
           <Field label="SHIF minimum" name="shif_min" defaultValue={rates?.shif_min} />
           <Field label="Housing levy rate" name="housing_levy_rate" step="0.0001" defaultValue={rates?.housing_levy_rate} />
         </div>
-        <button type="submit" className="bg-neutral-900 text-white rounded py-2 px-4 font-medium">
+        <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 font-medium">
           Save rates
         </button>
       </form>
@@ -67,7 +67,7 @@ function Field({
         type="number"
         step={step}
         defaultValue={defaultValue ?? undefined}
-        className="w-full border border-neutral-300 rounded px-3 py-2"
+        className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
       />
     </div>
   );

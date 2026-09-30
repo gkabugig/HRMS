@@ -62,7 +62,7 @@ export default async function CompliancePage() {
       {isHrLike && (
         <div>
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Statutory filings</h2>
-          <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+          <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-neutral-50 text-neutral-600 text-left">
                 <tr>
@@ -90,7 +90,7 @@ export default async function CompliancePage() {
             </table>
           </div>
           <form action={recordFiling} className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-            <select name="filing_key" required className="border border-neutral-300 rounded px-3 py-2">
+            <select name="filing_key" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Filing type</option>
               {FILING_KEYS.map((k) => (
                 <option key={k} value={k}>
@@ -102,15 +102,15 @@ export default async function CompliancePage() {
               name="period"
               placeholder="Period (e.g. 2026-09)"
               required
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <input
               name="filed_on"
               type="date"
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
-            <button type="submit" className="bg-neutral-900 text-white rounded py-2 font-medium">
+            <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Mark filed
             </button>
           </form>
@@ -120,7 +120,7 @@ export default async function CompliancePage() {
       {isHrLike && (
         <div>
           <h2 className="text-sm font-semibold text-neutral-900 mb-3">Compliance documents</h2>
-          <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+          <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-neutral-50 text-neutral-600 text-left">
                 <tr>
@@ -182,9 +182,9 @@ export default async function CompliancePage() {
             action={addComplianceDocument}
             className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm"
           >
-            <input name="label" placeholder="Document label" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="doc_type" placeholder="Type (License, Permit, Insurance...)" required className="border border-neutral-300 rounded px-3 py-2" />
-            <select name="employee_id" className="border border-neutral-300 rounded px-3 py-2">
+            <input name="label" placeholder="Document label" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="doc_type" placeholder="Type (License, Permit, Insurance...)" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <select name="employee_id" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Org-wide (no employee)</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -192,10 +192,10 @@ export default async function CompliancePage() {
                 </option>
               ))}
             </select>
-            <input name="expiry_date" type="date" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="alert_threshold_days" type="number" placeholder="Alert threshold (days)" defaultValue={30} className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="notes" placeholder="Notes" className="border border-neutral-300 rounded px-3 py-2" />
-            <button type="submit" className="sm:col-span-3 bg-neutral-900 text-white rounded py-2 font-medium">
+            <input name="expiry_date" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="alert_threshold_days" type="number" placeholder="Alert threshold (days)" defaultValue={30} className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="notes" placeholder="Notes" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Track document
             </button>
           </form>
@@ -204,7 +204,7 @@ export default async function CompliancePage() {
 
       <div>
         <h2 className="text-sm font-semibold text-neutral-900 mb-3">Policies</h2>
-        <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-600 text-left">
               <tr>
@@ -226,7 +226,7 @@ export default async function CompliancePage() {
                         <span className="text-xs text-green-700">Acknowledged</span>
                       ) : (
                         <form action={acknowledgePolicy.bind(null, p.id)}>
-                          <button type="submit" className="text-xs bg-neutral-900 text-white rounded px-3 py-1">
+                          <button type="submit" className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1">
                             Acknowledge
                           </button>
                         </form>
@@ -246,15 +246,15 @@ export default async function CompliancePage() {
         </div>
         {isHrLike && (
           <form action={publishPolicy} className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-            <input name="name" placeholder="Policy name" required className="border border-neutral-300 rounded px-3 py-2" />
-            <input name="version" placeholder="Version" className="border border-neutral-300 rounded px-3 py-2" />
+            <input name="name" placeholder="Policy name" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="version" placeholder="Version" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input
               name="published_on"
               type="date"
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="border border-neutral-300 rounded px-3 py-2"
+              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
-            <button type="submit" className="bg-neutral-900 text-white rounded py-2 font-medium">
+            <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Publish policy
             </button>
           </form>
