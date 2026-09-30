@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { recordHearing } from "./actions";
+import { recordHearing, addAttachment, deleteAttachment } from "./actions";
 
 const ACTION_TYPES = ["Verbal warning", "Written warning", "Suspension", "Termination", "No action"];
 
@@ -21,13 +21,33 @@ export default async function DisciplinaryPage() {
     supabase
       .from("disciplinary_actions")
       .select(
-        "id, reason, hearing_date, representative_present, representative_name, employee_response, outcome, action_type, employees(name)"
+        "id, employee_id, reason, hearing_date, representative_present, representative_name, employee_response, outcome, action_type, employees(name)"
       )
       .order("hearing_date", { ascending: false }),
     canRecord
       ? supabase.from("employees").select("id, name").eq("status", "Active").order("name")
       : Promise.resolve({ data: null }),
   ]);
+
+  const recordIds = (records ?? []).map((r) => r.id);
+  const { data: attachmentRows } =
+    recordIds.length > 0
+      ? await supabase
+          .from("disciplinary_attachments")
+          .select("id, disciplinary_action_id, file_path, file_name, uploaded_at")
+          .in("disciplinary_action_id", recordIds)
+          .order("uploaded_at", { ascending: false })
+      : { data: [] as { id: string; disciplinary_action_id: string; file_path: string; file_name: string; uploaded_at: string }[] };
+
+  const attachmentsByRecord = new Map<string, { id: string; file_path: string; file_name: string; url: string | null }[]>();
+  for (const a of attachmentRows ?? []) {
+    const { data: signed } = await supabase.storage
+      .from("disciplinary-documents")
+      .createSignedUrl(a.file_path, 3600);
+    const list = attachmentsByRecord.get(a.disciplinary_action_id) ?? [];
+    list.push({ id: a.id, file_path: a.file_path, file_name: a.file_name, url: signed?.signedUrl ?? null });
+    attachmentsByRecord.set(a.disciplinary_action_id, list);
+  }
 
   return (
     <div className="space-y-6">
@@ -64,6 +84,49 @@ export default async function DisciplinaryPage() {
               <p className="text-xs text-neutral-600 mt-1">Employee response: {r.employee_response}</p>
             )}
             {r.outcome && <p className="text-xs text-neutral-600 mt-1">Outcome: {r.outcome}</p>}
+
+            <div className="mt-3 border-t border-neutral-100 pt-3">
+              <p className="text-xs font-medium text-neutral-600 mb-2">Attached documents</p>
+              <ul className="space-y-1">
+                {(attachmentsByRecord.get(r.id) ?? []).map((a) => (
+                  <li key={a.id} className="flex items-center gap-2 text-sm">
+                    {a.url ? (
+                      <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {a.file_name}
+                      </a>
+                    ) : (
+                      <span className="text-neutral-400">{a.file_name} (link unavailable)</span>
+                    )}
+                    {isHrLike && (
+                      <form action={deleteAttachment.bind(null, a.id, a.file_path)}>
+                        <button type="submit" className="text-xs text-red-600 hover:underline">
+                          Remove
+                        </button>
+                      </form>
+                    )}
+                  </li>
+                ))}
+                {(attachmentsByRecord.get(r.id) ?? []).length === 0 && (
+                  <li className="text-xs text-neutral-400">No documents attached.</li>
+                )}
+              </ul>
+              {canRecord && (
+                <form
+                  action={addAttachment.bind(null, r.id, r.employee_id)}
+                  className="mt-2 flex gap-2 text-sm items-center"
+                >
+                  <input
+                    name="file"
+                    type="file"
+                    required
+                    className="flex-1 text-xs border border-neutral-300 rounded px-2 py-1"
+                  />
+                  <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
+                    Attach
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         ))}
         {(!records || records.length === 0) && (

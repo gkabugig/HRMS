@@ -47,7 +47,9 @@ this schema:
 - **Disciplinary records** (new module, s.41) — records the hearing required before dismissing for
   misconduct, poor performance, or incapacity: reason given, representative present, employee's
   response, outcome. HR/admin full access; managers record and read their own team; employees read
-  their own record.
+  their own record. Supports attaching documents (warning letters, employee written responses,
+  signed acknowledgements) via a private Supabase Storage bucket, scoped by the same roles as the
+  record itself — see `disciplinary_attachments` below.
 - **Redundancy severance pay** (s.40) — auto-calculated at 15 days' pay per completed year of
   service when an offboarding's exit type is Redundancy, editable by HR; also records labour
   office/union notification dates and the selection criteria used.
@@ -102,6 +104,9 @@ Migrations live in `supabase/migrations/`, applied in order:
    the new `disciplinary_actions` table + RLS
 9. `0009_payslip_compliance_columns.sql` — `leave_deduction` and `deduction_capped` on
    `payslips`
+10. `0010_disciplinary_attachments.sql` — private Storage bucket `disciplinary-documents`,
+    the `disciplinary_attachments` metadata table + RLS, and `storage.objects` RLS
+    policies keyed off an employee_id path segment
 
 These have already been applied to the live Supabase project. If you ever need to
 re-apply them elsewhere (a new environment, a reset project), run them in order via
