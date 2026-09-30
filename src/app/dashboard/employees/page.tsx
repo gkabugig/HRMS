@@ -273,6 +273,31 @@ export default async function EmployeesPage() {
                               className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
                             />
                           </label>
+                          <p className="text-neutral-400 pt-1 border-t border-neutral-100">Bank details (payroll)</p>
+                          <label className="text-neutral-500">
+                            Bank name
+                            <input
+                              name="bank_name"
+                              defaultValue={e.bank_name ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Account no
+                            <input
+                              name="bank_account_no"
+                              defaultValue={e.bank_account_no ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Branch code
+                            <input
+                              name="bank_branch_code"
+                              defaultValue={e.bank_branch_code ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
                           <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
                             Save
                           </button>

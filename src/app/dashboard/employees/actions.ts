@@ -78,7 +78,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   const { data: before } = await supabase
     .from("employees")
     .select(
-      "staff_no, department, job_title, employment_type, date_of_hire, reporting_manager_id, branch_id, probation_end_date, contract_issued_on, basic, house_allowance, transport_allowance, other_allowance, kra_pin, nssf_no, shif_no"
+      "staff_no, department, job_title, employment_type, date_of_hire, reporting_manager_id, branch_id, probation_end_date, contract_issued_on, basic, house_allowance, transport_allowance, other_allowance, kra_pin, nssf_no, shif_no, bank_name, bank_account_no, bank_branch_code"
     )
     .eq("id", employeeId)
     .single();
@@ -100,6 +100,9 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     kra_pin: String(formData.get("kra_pin") || "") || null,
     nssf_no: String(formData.get("nssf_no") || "") || null,
     shif_no: String(formData.get("shif_no") || "") || null,
+    bank_name: String(formData.get("bank_name") || "") || null,
+    bank_account_no: String(formData.get("bank_account_no") || "") || null,
+    bank_branch_code: String(formData.get("bank_branch_code") || "") || null,
   };
 
   const { error } = await supabase.from("employees").update(after).eq("id", employeeId);

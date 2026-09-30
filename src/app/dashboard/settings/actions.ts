@@ -29,6 +29,28 @@ export async function updateRates(formData: FormData) {
   revalidatePath("/dashboard/settings");
 }
 
+// Payroll Command Centre's exception thresholds are read from this
+// per-org column rather than hard-coded (spec §7: "do not hard-code a
+// universal 10%/KES threshold without an organisation setting").
+export async function updatePayrollControls(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: appUser } = await supabase.from("app_users").select("org_id, role").eq("id", user!.id).maybeSingle();
+  if (!appUser || (appUser.role !== "admin" && appUser.role !== "hr")) {
+    throw new Error("Not authorised.");
+  }
+
+  const pct = Number(formData.get("payroll_variance_warning_pct"));
+  if (!Number.isFinite(pct) || pct <= 0) throw new Error("Enter a valid percentage.");
+
+  const { error } = await supabase.from("organizations").update({ payroll_variance_warning_pct: pct }).eq("id", appUser.org_id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/settings");
+}
+
 // Toggle a single role/module cell in the Roles & Permissions matrix. This
 // is a UI-visibility layer only (see 0014_role_module_permissions.sql) — it
 // hides/shows a nav item for that role, it does not change what the

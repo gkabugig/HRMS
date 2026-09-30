@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { updateRates } from "./actions";
+import { updateRates, updatePayrollControls } from "./actions";
 import { PermissionToggle } from "./permission-toggle";
 import { ALL_MODULES } from "@/lib/auth/roles";
 
@@ -8,7 +8,7 @@ const ROLES = ["admin", "hr", "manager", "employee"] as const;
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const [{ data: rates }, { data: permissions }] = await Promise.all([
+  const [{ data: rates }, { data: permissions }, { data: org }] = await Promise.all([
     supabase
       .from("statutory_rates")
       .select("*")
@@ -20,6 +20,7 @@ export default async function SettingsPage() {
       .from("role_module_permissions")
       .select("role, module_key, can_view")
       .eq("org_id", DEFAULT_ORG_ID),
+    supabase.from("organizations").select("payroll_variance_warning_pct").eq("id", DEFAULT_ORG_ID).maybeSingle(),
   ]);
 
   const permByKey = new Map(
@@ -98,6 +99,25 @@ export default async function SettingsPage() {
         </div>
         <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 font-medium">
           Save rates
+        </button>
+      </form>
+
+      <form action={updatePayrollControls} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3 text-sm">
+        <div>
+          <h2 className="text-sm font-semibold text-neutral-900">Payroll Controls</h2>
+          <p className="text-xs text-neutral-500 mt-1">
+            The Payroll Command Centre flags an employee&apos;s gross pay when it moves more than this much
+            from the previous run.
+          </p>
+        </div>
+        <Field
+          label="Variance warning threshold (%)"
+          name="payroll_variance_warning_pct"
+          step="1"
+          defaultValue={org?.payroll_variance_warning_pct ?? 15}
+        />
+        <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 font-medium">
+          Save
         </button>
       </form>
     </div>
