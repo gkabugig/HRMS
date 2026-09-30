@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 
 import { defaultProbationEndDate } from "@/lib/compliance";
 import { logEmployeeChanges } from "@/lib/audit";
+import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { startWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 import { recordJobHistoryChange, recordCompensationHistoryChange } from "@/lib/employees/history";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
@@ -49,6 +51,28 @@ export async function createEmployee(formData: FormData) {
 
   const { data: created, error } = await supabase.from("employees").insert(payload).select("id").single();
   if (error) throw new Error(error.message);
+
+  const { data: { user: creator } } = await supabase.auth.getUser();
+  await recordAuditEvent(supabase, {
+    orgId: payload.org_id,
+    actorUserId: creator?.id ?? null,
+    action: "employee.created",
+    resourceType: "employee",
+    resourceId: created.id,
+    eventCategory: "data",
+    after: { staff_no: payload.staff_no, name: payload.name, department: payload.department },
+  });
+  await startWorkflowRun(supabase, {
+    orgId: payload.org_id,
+    key: PRIORITY_WORKFLOW_KEYS.ONBOARDING,
+    entityType: "employee",
+    entityId: created.id,
+    tasks: [
+      { task: "Issue written contract (s.10)", assigneeRole: "hr" },
+      { task: "Set up payroll and statutory numbers", assigneeRole: "hr" },
+      { task: "Provision system access", assigneeRole: "admin" },
+    ],
+  });
 
   // Seed the first job/compensation history rows so the Employee 360
   // History views aren't empty from day one.
@@ -137,6 +161,20 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     await logEmployeeChanges(supabase, employeeId, user.id, before as Record<string, unknown>, after);
     await recordJobHistoryChange(supabase, employeeId, before, after as typeof before);
     await recordCompensationHistoryChange(supabase, employeeId, user.id, before, after as typeof before);
+
+    const { data: appUser } = await supabase.from("app_users").select("org_id").eq("id", user.id).maybeSingle();
+    if (appUser) {
+      await recordAuditEvent(supabase, {
+        orgId: appUser.org_id,
+        actorUserId: user.id,
+        action: "employee.updated",
+        resourceType: "employee",
+        resourceId: employeeId,
+        eventCategory: "data",
+        before: before as Record<string, unknown>,
+        after,
+      });
+    }
   }
 
   revalidatePath("/dashboard/employees");

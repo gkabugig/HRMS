@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { calcSeverancePay } from "@/lib/compliance";
+import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { startWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 
 const EXIT_TYPES = ["Resignation", "Termination", "Redundancy", "End of Contract", "Retirement"];
 
@@ -74,6 +76,31 @@ export async function initiateOffboarding(formData: FormData) {
   await supabase.from("offboarding_assets").insert(
     DEFAULT_ASSET_CHECKLIST.map((item) => ({ offboarding_id: record.id, item }))
   );
+
+  const { data: appUser } = await supabase.from("app_users").select("org_id").eq("id", user!.id).maybeSingle();
+  if (appUser) {
+    await recordAuditEvent(supabase, {
+      orgId: appUser.org_id,
+      actorUserId: user!.id,
+      action: "offboarding.initiated",
+      resourceType: "offboarding_record",
+      resourceId: record.id,
+      eventCategory: "workflow",
+      riskLevel: "elevated",
+      after: { exitType, employeeId, lastWorkingDay },
+    });
+    await startWorkflowRun(supabase, {
+      orgId: appUser.org_id,
+      key: PRIORITY_WORKFLOW_KEYS.OFFBOARDING,
+      entityType: "offboarding_record",
+      entityId: record.id,
+      tasks: [
+        { task: "Collect company assets", assigneeRole: "hr" },
+        { task: "Conduct exit interview", assigneeRole: "hr" },
+        { task: "Finalise dues and clearance", assigneeRole: "hr" },
+      ],
+    });
+  }
 
   revalidatePath("/dashboard/offboarding");
   redirect(`/dashboard/offboarding/${record.id}`);

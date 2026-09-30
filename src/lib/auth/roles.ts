@@ -68,7 +68,7 @@ export const ALL_MODULES: NavTab[] = [
   { key: "documents", label: "Documents", href: "/dashboard/documents", icon: "folder", group: "Payroll & Compliance" },
 
   { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart", group: "Insights" },
-  { key: "audit-log", label: "Audit Log", href: "/dashboard/audit-log", icon: "history", group: "Insights" },
+  { key: "audit-log", label: "Audit Centre", href: "/dashboard/audit-log", icon: "history", group: "Insights" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },

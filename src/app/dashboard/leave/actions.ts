@@ -8,6 +8,8 @@ import type { LeaveConflict } from "@/lib/leave/leave-types";
 import { createNotification, createNotificationForMany } from "@/lib/notifications/create-notification";
 import { getHrAndManagerRecipients, getEmployeeUserId } from "@/lib/notifications/recipients";
 import { logDomainEvent } from "@/lib/domain-events/log-event";
+import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { startWorkflowRun, completeWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 
 export async function checkLeaveConflicts(
   employeeId: string,
@@ -94,6 +96,21 @@ export async function applyForLeave(formData: FormData) {
     actorId: user!.id,
     payload: { leaveType, start, end, days },
   });
+  await recordAuditEvent(supabase, {
+    orgId: appUser.org_id,
+    actorUserId: user!.id,
+    action: "leave.requested",
+    resourceType: "leave_request",
+    resourceId: created.id,
+    eventCategory: "workflow",
+    after: { leaveType, start, end, days },
+  });
+  await startWorkflowRun(supabase, {
+    orgId: appUser.org_id,
+    key: PRIORITY_WORKFLOW_KEYS.LEAVE_APPROVAL,
+    entityType: "leave_request",
+    entityId: created.id,
+  });
 
   revalidatePath("/dashboard/leave");
 }
@@ -136,6 +153,26 @@ export async function decideLeave(id: string, decision: "Approved" | "Rejected")
       entityId: updated.id,
       actorId: user!.id,
     });
+    await recordAuditEvent(supabase, {
+      orgId: appUser.org_id,
+      actorUserId: user!.id,
+      action: decision === "Approved" ? "leave.approved" : "leave.rejected",
+      resourceType: "leave_request",
+      resourceId: updated.id,
+      eventCategory: "approval",
+      after: { status: decision },
+    });
+
+    const { data: run } = await supabase
+      .from("workflow_runs")
+      .select("id")
+      .eq("entity_type", "leave_request")
+      .eq("entity_id", updated.id)
+      .eq("status", "running")
+      .maybeSingle();
+    if (run) {
+      await completeWorkflowRun(supabase, run.id, decision === "Approved" ? "completed" : "failed");
+    }
   }
 
   revalidatePath("/dashboard/leave");
