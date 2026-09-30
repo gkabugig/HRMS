@@ -28,7 +28,8 @@ export type NavIcon =
   | "clipboard-list"
   | "history"
   | "bell"
-  | "check-circle";
+  | "check-circle"
+  | "life-buoy";
 
 export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
@@ -51,6 +52,7 @@ export const ALL_MODULES: NavTab[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard", group: "Overview" },
   { key: "notifications", label: "Notifications", href: "/dashboard/notifications", icon: "bell", group: "Overview" },
   { key: "approvals", label: "My Approvals", href: "/dashboard/approvals", icon: "check-circle", group: "Overview" },
+  { key: "service-requests", label: "HR Service Centre", href: "/dashboard/service-requests", icon: "life-buoy", group: "Overview" },
 
   { key: "employees", label: "Employees", href: "/dashboard/employees", icon: "users", group: "People" },
   { key: "recruitment", label: "Recruitment", href: "/dashboard/recruitment", icon: "briefcase", group: "People" },
@@ -79,8 +81,8 @@ export const ALL_MODULES: NavTab[] = [
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
   hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
-  manager: ["dashboard", "notifications", "approvals", "attendance", "leave", "assignments", "performance", "disciplinary"],
-  employee: ["dashboard", "notifications", "leave", "payroll", "performance", "documents", "assignments"],
+  manager: ["dashboard", "notifications", "approvals", "service-requests", "attendance", "leave", "assignments", "performance", "disciplinary"],
+  employee: ["dashboard", "notifications", "service-requests", "leave", "payroll", "performance", "documents", "assignments"],
 };
 
 // Role-specific labels for a handful of shared modules (managers/employees
@@ -92,6 +94,7 @@ export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> 
     performance: "Team Performance",
     disciplinary: "Team Disciplinary",
     assignments: "Team Assignments",
+    "service-requests": "My HR Requests",
   },
   employee: {
     leave: "My Leave",
@@ -99,6 +102,7 @@ export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> 
     performance: "My Appraisals",
     documents: "My Documents",
     assignments: "My Assignments",
+    "service-requests": "My HR Requests",
   },
 };
 

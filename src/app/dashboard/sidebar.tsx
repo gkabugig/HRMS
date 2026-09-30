@@ -27,6 +27,7 @@ import {
   X,
   Bell,
   CheckCircle2,
+  LifeBuoy,
   type LucideIcon,
 } from "lucide-react";
 import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
@@ -56,6 +57,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   history: History,
   bell: Bell,
   "check-circle": CheckCircle2,
+  "life-buoy": LifeBuoy,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {
