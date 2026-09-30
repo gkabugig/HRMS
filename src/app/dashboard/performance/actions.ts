@@ -3,19 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-async function currentAppUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data } = await supabase
-    .from("app_users")
-    .select("role, employee_id")
-    .eq("id", user!.id)
-    .maybeSingle();
-  return data;
-}
-
 export async function createAppraisal(formData: FormData) {
   const supabase = await createClient();
   const {

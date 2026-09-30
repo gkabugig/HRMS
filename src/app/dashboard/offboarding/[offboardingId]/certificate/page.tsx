@@ -41,7 +41,7 @@ export default async function CertificateOfServicePage({
     <div className="max-w-2xl mx-auto space-y-6 print:mx-0">
       <div className="flex justify-between items-center print:hidden">
         <p className="text-sm text-neutral-500">
-          Employment Act s.51 — issued to every employee (except under 4 consecutive weeks' service)
+          Employment Act s.51 — issued to every employee (except under 4 consecutive weeks&apos; service)
           on termination. Deliberately omits the reason for leaving, to avoid prejudicing future
           employment.
         </p>
@@ -70,7 +70,7 @@ export default async function CertificateOfServicePage({
       </div>
 
       <p className="print:hidden text-xs text-neutral-500">
-        Use your browser's Print (Cmd/Ctrl+P) to save this as a PDF.
+        Use your browser&apos;s Print (Cmd/Ctrl+P) to save this as a PDF.
       </p>
     </div>
   );
