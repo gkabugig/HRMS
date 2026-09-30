@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { defaultProbationEndDate } from "@/lib/compliance";
 import { logEmployeeChanges } from "@/lib/audit";
+import { recordJobHistoryChange, recordCompensationHistoryChange } from "@/lib/employees/history";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -36,8 +37,29 @@ export async function createEmployee(formData: FormData) {
     contract_issued_on: String(formData.get("contract_issued_on") || "") || null,
   };
 
-  const { error } = await supabase.from("employees").insert(payload);
+  const { data: created, error } = await supabase.from("employees").insert(payload).select("id").single();
   if (error) throw new Error(error.message);
+
+  // Seed the first job/compensation history rows so the Employee 360
+  // History views aren't empty from day one.
+  await supabase.from("employee_job_history").insert({
+    employee_id: created.id,
+    effective_from: dateOfHire,
+    department: payload.department,
+    job_title: payload.job_title,
+    employment_type: payload.employment_type,
+    manager_id: payload.reporting_manager_id,
+    reason: "Hired",
+  });
+  await supabase.from("employee_compensation_history").insert({
+    employee_id: created.id,
+    effective_from: dateOfHire,
+    basic: payload.basic,
+    house_allowance: payload.house_allowance,
+    transport_allowance: payload.transport_allowance,
+    other_allowance: payload.other_allowance,
+    reason: "Hired",
+  });
 
   revalidatePath("/dashboard/employees");
 }
@@ -90,10 +112,13 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 
   if (before && user) {
     await logEmployeeChanges(supabase, employeeId, user.id, before as Record<string, unknown>, after);
+    await recordJobHistoryChange(supabase, employeeId, before, after as typeof before);
+    await recordCompensationHistoryChange(supabase, employeeId, user.id, before, after as typeof before);
   }
 
   revalidatePath("/dashboard/employees");
   revalidatePath("/dashboard/organogram");
+  revalidatePath(`/dashboard/employees/${employeeId}`);
 }
 
 export async function inviteToEss(employeeId: string, email: string, role: string) {

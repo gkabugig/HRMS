@@ -17,6 +17,8 @@ export async function uploadDocument(employeeId: string, formData: FormData) {
   }
   const docType = String(formData.get("doc_type") || "Other");
   if (!DOC_TYPES.includes(docType)) throw new Error("Invalid document type.");
+  const visibility = String(formData.get("visibility") || "HR");
+  if (!["HR", "Manager", "Employee"].includes(visibility)) throw new Error("Invalid visibility.");
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${employeeId}/${Date.now()}-${safeName}`;
@@ -32,13 +34,17 @@ export async function uploadDocument(employeeId: string, formData: FormData) {
     file_path: path,
     file_name: file.name,
     uploaded_by: user!.id,
+    issue_date: String(formData.get("issue_date") || "") || null,
+    expiry_date: String(formData.get("expiry_date") || "") || null,
+    visibility,
   });
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/documents");
+  revalidatePath(`/dashboard/employees/${employeeId}`);
 }
 
-export async function deleteDocument(documentId: string, filePath: string) {
+export async function deleteDocument(documentId: string, filePath: string, employeeId?: string) {
   const supabase = await createClient();
 
   const { error: storageError } = await supabase.storage.from("employee-documents").remove([filePath]);
@@ -48,4 +54,5 @@ export async function deleteDocument(documentId: string, filePath: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/documents");
+  if (employeeId) revalidatePath(`/dashboard/employees/${employeeId}`);
 }

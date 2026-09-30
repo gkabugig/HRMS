@@ -165,6 +165,15 @@ export async function hireCandidate(candidateId: string, requisitionId: string) 
     .single();
   if (empErr) throw new Error(empErr.message);
 
+  await supabase.from("employee_job_history").insert({
+    employee_id: employee.id,
+    effective_from: dateOfHire,
+    department: requisition.department,
+    job_title: requisition.role,
+    employment_type: "Permanent",
+    reason: "Hired",
+  });
+
   const { error: candErr } = await supabase
     .from("candidates")
     .update({ stage: "Hired", employee_id: employee.id })

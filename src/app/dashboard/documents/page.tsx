@@ -81,7 +81,7 @@ export default async function DocumentsPage() {
                   <td className="px-4 py-2 text-neutral-500">{new Date(d.uploaded_at).toLocaleDateString("en-KE")}</td>
                   {isHrLike && (
                     <td className="px-4 py-2">
-                      <form action={deleteDocument.bind(null, d.id, d.file_path)}>
+                      <form action={deleteDocument.bind(null, d.id, d.file_path, d.employee_id)}>
                         <button type="submit" className="text-xs text-red-600 hover:underline">
                           Remove
                         </button>

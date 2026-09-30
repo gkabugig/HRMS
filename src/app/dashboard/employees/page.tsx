@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createEmployee, updateEmployee } from "./actions";
 
@@ -61,7 +62,11 @@ export default async function EmployeesPage() {
               return (
                 <tr key={e.id} className="border-t border-neutral-100 align-top">
                   <td className="px-4 py-2">{e.staff_no}</td>
-                  <td className="px-4 py-2">{e.name}</td>
+                  <td className="px-4 py-2">
+                    <Link href={`/dashboard/employees/${e.id}`} className="text-brand-600 hover:text-brand-700 hover:underline">
+                      {e.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-2">{e.department}</td>
                   <td className="px-4 py-2">{e.job_title}</td>
                   <td className="px-4 py-2">{branchName ?? "—"}</td>
