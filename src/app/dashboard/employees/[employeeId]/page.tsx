@@ -61,7 +61,26 @@ export default async function Employee360Page({
       <EmployeeTabs employeeId={employeeId} active={activeTab} />
 
       {activeTab === "overview" && <EmployeeOverview data={data} employeeId={employeeId} />}
-      {activeTab === "bio" && <BioTab data={data} employeeId={employeeId} canManageContacts={isHrLike} />}
+      {activeTab === "bio" && (
+        <BioTab
+          data={data}
+          employeeId={employeeId}
+          canManageContacts={isHrLike}
+          isOwnProfile={appUser?.employee_id === employeeId}
+          pendingChanges={
+            appUser?.employee_id === employeeId
+              ? (
+                  await supabase
+                    .from("profile_change_requests")
+                    .select("id, field, new_value, status, created_at")
+                    .eq("employee_id", employeeId)
+                    .eq("status", "Pending")
+                    .order("created_at", { ascending: false })
+                ).data ?? []
+              : []
+          }
+        />
+      )}
       {activeTab === "employment" && (
         <EmploymentTab data={data} employeeId={employeeId} canAddNote={isManagerLike} canSeeNotes={isManagerLike} />
       )}

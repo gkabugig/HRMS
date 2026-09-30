@@ -1,14 +1,22 @@
 import type { Employee360 } from "@/lib/employees/get-employee-360";
 import { addContact, deleteContact } from "../actions";
+import { submitProfileChangeRequest } from "@/lib/self-service/profile-change-actions";
+import { ALLOWED_FIELDS } from "@/lib/self-service/profile-change-fields";
+
+type PendingChange = { id: string; field: string; new_value: string; status: string; created_at: string };
 
 export function BioTab({
   data,
   employeeId,
   canManageContacts,
+  isOwnProfile = false,
+  pendingChanges = [],
 }: {
   data: Employee360;
   employeeId: string;
   canManageContacts: boolean;
+  isOwnProfile?: boolean;
+  pendingChanges?: PendingChange[];
 }) {
   const e = data.employee;
 
@@ -83,11 +91,47 @@ export function BioTab({
         )}
       </div>
 
-      {canManageContacts && (
+      {canManageContacts && !isOwnProfile && (
         <p className="text-xs text-neutral-400">
           Personal details and contact info are edited from the Employees list — use &ldquo;Edit&rdquo; on{" "}
           {e.name as string}&apos;s row.
         </p>
+      )}
+
+      {isOwnProfile && (
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
+          <h2 className="text-sm font-semibold text-neutral-900 mb-1">Request a change</h2>
+          <p className="text-xs text-neutral-500 mb-3">
+            Contact and personal details go to HR for approval rather than changing immediately — you&apos;ll be
+            notified once it&apos;s decided.
+          </p>
+
+          {pendingChanges.length > 0 && (
+            <ul className="space-y-1.5 mb-4 text-sm">
+              {pendingChanges.map((c) => (
+                <li key={c.id} className="flex items-center justify-between border-b border-neutral-50 pb-1.5">
+                  <span>
+                    {c.field.replace(/_/g, " ")} → <span className="font-medium">{c.new_value}</span>
+                  </span>
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Pending</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form action={submitProfileChangeRequest} className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <select name="field" required className="border border-neutral-300 rounded-lg px-2 py-1.5 bg-white">
+              {ALLOWED_FIELDS.map((f) => (
+                <option key={f} value={f}>{f.replace(/_/g, " ")}</option>
+              ))}
+            </select>
+            <input name="new_value" placeholder="New value" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+            <input name="reason" placeholder="Reason (optional)" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+            <button type="submit" className="sm:col-span-3 justify-self-start bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
+              Submit request
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );

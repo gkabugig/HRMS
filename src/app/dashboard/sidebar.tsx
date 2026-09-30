@@ -26,6 +26,7 @@ import {
   Menu,
   X,
   Bell,
+  CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
 import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
@@ -54,6 +55,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   "clipboard-list": ClipboardList,
   history: History,
   bell: Bell,
+  "check-circle": CheckCircle2,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {

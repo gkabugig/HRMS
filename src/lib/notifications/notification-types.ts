@@ -8,7 +8,9 @@ export type NotificationCategory =
   | "recruitment"
   | "offboarding"
   | "documents"
-  | "system";
+  | "system"
+  | "self_service"
+  | "service_request";
 
 export type NotificationPriority = "critical" | "action_required" | "reminder" | "information";
 

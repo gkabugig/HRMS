@@ -27,7 +27,8 @@ export type NavIcon =
   | "calendar-clock"
   | "clipboard-list"
   | "history"
-  | "bell";
+  | "bell"
+  | "check-circle";
 
 export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
@@ -49,6 +50,7 @@ export type NavTab = {
 export const ALL_MODULES: NavTab[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard", group: "Overview" },
   { key: "notifications", label: "Notifications", href: "/dashboard/notifications", icon: "bell", group: "Overview" },
+  { key: "approvals", label: "My Approvals", href: "/dashboard/approvals", icon: "check-circle", group: "Overview" },
 
   { key: "employees", label: "Employees", href: "/dashboard/employees", icon: "users", group: "People" },
   { key: "recruitment", label: "Recruitment", href: "/dashboard/recruitment", icon: "briefcase", group: "People" },
@@ -77,7 +79,7 @@ export const ALL_MODULES: NavTab[] = [
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
   hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
-  manager: ["dashboard", "notifications", "attendance", "leave", "assignments", "performance", "disciplinary"],
+  manager: ["dashboard", "notifications", "approvals", "attendance", "leave", "assignments", "performance", "disciplinary"],
   employee: ["dashboard", "notifications", "leave", "payroll", "performance", "documents", "assignments"],
 };
 
