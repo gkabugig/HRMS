@@ -21,7 +21,7 @@ export default async function AuditLogPage({
   const params = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: legacyRows }, events] = await Promise.all([
+  const [{ data: legacyRows }, events, { data: workflowRuns }] = await Promise.all([
     supabase
       .from("employee_audit_log")
       .select("changed_at, field, old_value, new_value, employees(name, staff_no)")
@@ -35,6 +35,11 @@ export default async function AuditLogPage({
       riskLevel: (params.risk as AuditRiskLevel) || undefined,
       q: params.q || undefined,
     }),
+    supabase
+      .from("workflow_runs")
+      .select("id, entity_type, entity_id, status, started_at, completed_at, workflow_definitions(name), workflow_tasks(task, status)")
+      .order("started_at", { ascending: false })
+      .limit(50),
   ]);
 
   const resourceTypes = distinctResourceTypes(events);
@@ -101,6 +106,62 @@ export default async function AuditLogPage({
                 <tr>
                   <td colSpan={5} className="px-4 py-6 text-center text-neutral-400">
                     No changes recorded yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold text-neutral-900 mb-1">Priority workflow runs</h2>
+        <p className="text-xs text-neutral-500 mb-3">
+          Every run of the five hard-wired priority workflows (Onboarding, Leave Approval, Contract Renewal,
+          Employee Data Change, Offboarding), most recent first.
+        </p>
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-50 text-neutral-600 text-left">
+              <tr>
+                <th className="px-4 py-2 font-medium">Workflow</th>
+                <th className="px-4 py-2 font-medium">Entity</th>
+                <th className="px-4 py-2 font-medium">Status</th>
+                <th className="px-4 py-2 font-medium">Tasks</th>
+                <th className="px-4 py-2 font-medium">Started</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(workflowRuns ?? []).map((r) => {
+                const def = r.workflow_definitions as unknown as { name: string } | null;
+                const tasks = (r.workflow_tasks as unknown as { task: string; status: string }[]) ?? [];
+                const done = tasks.filter((t) => t.status === "done").length;
+                return (
+                  <tr key={r.id} className="border-t border-neutral-100">
+                    <td className="px-4 py-2 font-medium">{def?.name ?? "—"}</td>
+                    <td className="px-4 py-2 text-neutral-500 font-mono text-xs">{r.entity_type}</td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          r.status === "completed"
+                            ? "bg-green-100 text-green-700"
+                            : r.status === "failed"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-neutral-500">{tasks.length > 0 ? `${done}/${tasks.length} done` : "—"}</td>
+                    <td className="px-4 py-2 text-neutral-500 whitespace-nowrap">{new Date(r.started_at).toLocaleString("en-KE")}</td>
+                  </tr>
+                );
+              })}
+              {(!workflowRuns || workflowRuns.length === 0) && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-6 text-center text-neutral-400">
+                    No workflow runs yet.
                   </td>
                 </tr>
               )}

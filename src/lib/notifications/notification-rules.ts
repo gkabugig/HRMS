@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createNotification } from "./create-notification";
+import { startWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 
 // Date-driven reminders (spec §19: "Contract expiring", "Probation
 // ending") have no natural trigger — nothing clicks a button on the day a
@@ -70,4 +71,27 @@ export async function sweepReminderNotifications(
       })
     ),
   ]);
+
+  // Contract Renewal (priority workflow #3) — one run per expiring
+  // contract document, started the same moment the reminder above first
+  // fires for it. startWorkflowRun itself doesn't dedupe, so this checks
+  // for an existing running/completed run against the same document first;
+  // sweeping this twice a day should never open a second run for the same
+  // contract.
+  for (const doc of expiringContracts ?? []) {
+    const { count: existingRuns } = await supabase
+      .from("workflow_runs")
+      .select("id", { count: "exact", head: true })
+      .eq("entity_type", "employee_document")
+      .eq("entity_id", doc.id as string);
+    if (existingRuns && existingRuns > 0) continue;
+
+    await startWorkflowRun(supabase, {
+      orgId,
+      key: PRIORITY_WORKFLOW_KEYS.CONTRACT_RENEWAL,
+      entityType: "employee_document",
+      entityId: doc.id as string,
+      tasks: [{ task: `Renew or formally end contract expiring ${doc.expiry_date}`, assigneeRole: "hr" }],
+    });
+  }
 }
