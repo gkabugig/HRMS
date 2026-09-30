@@ -29,7 +29,25 @@ export async function prepareDraftRun(formData: FormData) {
     .insert({ org_id: appUser.org_id, period, generated_by: user!.id, status: "draft" })
     .select("id")
     .single();
-  if (error) throw new Error(error.message);
+
+  if (error) {
+    // A run for this period already exists (payroll_runs_org_id_period_key)
+    // — this isn't a real failure, just a re-click of "Prepare Payroll" for
+    // a period that's already in progress. Take the admin to the existing
+    // run instead of throwing (thrown errors here would bubble up through
+    // a Server Component re-render, and Next.js redacts that message in
+    // production, so this would otherwise show as an opaque crash).
+    if (error.code === "23505") {
+      const { data: existing } = await supabase
+        .from("payroll_runs")
+        .select("id")
+        .eq("org_id", appUser.org_id)
+        .eq("period", period)
+        .single();
+      if (existing) redirect(`/dashboard/payroll/${existing.id}`);
+    }
+    throw new Error(error.message);
+  }
 
   await logPayrollEvent(supabase, {
     orgId: appUser.org_id,

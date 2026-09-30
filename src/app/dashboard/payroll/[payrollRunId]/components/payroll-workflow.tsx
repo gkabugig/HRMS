@@ -4,9 +4,11 @@
 // Advancing a stage submits the actual server action; this component just
 // shows where the run currently sits and offers the one or two next valid
 // transitions, per lib/payroll/state-machine.ts.
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { PAYROLL_STATUSES, STATUS_LABELS, type PayrollStatus } from "@/lib/payroll/state-machine";
-import { calculateRun, transitionRun } from "../actions";
+import { calculateRun, transitionRun, type PayrollActionState } from "../actions";
+
+const initialActionState: PayrollActionState = {};
 
 const STAGE_ACTION_LABEL: Partial<Record<PayrollStatus, string>> = {
   calculated: "Calculate",
@@ -31,6 +33,8 @@ export default function PayrollWorkflow({
   canManage: boolean;
 }) {
   const [pendingComment, setPendingComment] = useState<PayrollStatus | null>(null);
+  const [calcState, calcAction, calculating] = useActionState(calculateRun, initialActionState);
+  const [transitionState, transitionAction, transitioning] = useActionState(transitionRun, initialActionState);
   const currentIndex = PAYROLL_STATUSES.indexOf(status);
 
   return (
@@ -56,38 +60,50 @@ export default function PayrollWorkflow({
       </div>
 
       {canManage && !locked && next.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
-          {next.map((n) =>
-            n === "calculated" ? (
-              <form key={n} action={calculateRun}>
-                <input type="hidden" name="run_id" value={runId} />
-                <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 text-sm font-medium">
-                  {status === "draft" || status === "inputs_open" ? "Run / Continue" : "Recalculate"}
+        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+          <div className="flex flex-wrap items-center gap-2">
+            {next.map((n) =>
+              n === "calculated" ? (
+                <form key={n} action={calcAction}>
+                  <input type="hidden" name="run_id" value={runId} />
+                  <button
+                    type="submit"
+                    disabled={calculating}
+                    className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg transition-colors py-2 px-4 text-sm font-medium"
+                  >
+                    {calculating ? "Working..." : status === "draft" || status === "inputs_open" ? "Run / Continue" : "Recalculate"}
+                  </button>
+                </form>
+              ) : pendingComment === n ? (
+                <form key={n} action={transitionAction} className="flex items-center gap-2">
+                  <input type="hidden" name="run_id" value={runId} />
+                  <input type="hidden" name="to" value={n} />
+                  <input
+                    name="comment"
+                    placeholder="Comment (optional)"
+                    className="text-sm border border-neutral-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={transitioning}
+                    className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg transition-colors py-1.5 px-3 text-sm font-medium"
+                  >
+                    {transitioning ? "Working..." : `Confirm ${STATUS_LABELS[n]}`}
+                  </button>
+                </form>
+              ) : (
+                <button
+                  key={n}
+                  onClick={() => setPendingComment(n)}
+                  className="border border-[var(--border-subtle)] hover:border-brand-300 text-neutral-700 rounded-lg transition-colors py-2 px-4 text-sm font-medium"
+                >
+                  {STAGE_ACTION_LABEL[n] ?? `Move to ${STATUS_LABELS[n]}`}
                 </button>
-              </form>
-            ) : pendingComment === n ? (
-              <form key={n} action={transitionRun} className="flex items-center gap-2">
-                <input type="hidden" name="run_id" value={runId} />
-                <input type="hidden" name="to" value={n} />
-                <input
-                  name="comment"
-                  placeholder="Comment (optional)"
-                  className="text-sm border border-neutral-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                />
-                <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-1.5 px-3 text-sm font-medium">
-                  Confirm {STATUS_LABELS[n]}
-                </button>
-              </form>
-            ) : (
-              <button
-                key={n}
-                onClick={() => setPendingComment(n)}
-                className="border border-[var(--border-subtle)] hover:border-brand-300 text-neutral-700 rounded-lg transition-colors py-2 px-4 text-sm font-medium"
-              >
-                {STAGE_ACTION_LABEL[n] ?? `Move to ${STATUS_LABELS[n]}`}
-              </button>
-            )
-          )}
+              )
+            )}
+          </div>
+          {calcState.error && <p className="text-xs text-red-600 mt-2">{calcState.error}</p>}
+          {transitionState.error && <p className="text-xs text-red-600 mt-2">{transitionState.error}</p>}
         </div>
       )}
       {locked && <p className="text-xs text-neutral-400 mt-4 pt-4 border-t border-[var(--border-subtle)]">This payroll period is locked and immutable.</p>}

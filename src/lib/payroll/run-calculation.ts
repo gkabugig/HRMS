@@ -29,16 +29,37 @@ export async function calculatePayrollRun(
   orgId: string,
   period: string
 ): Promise<{ payslipCount: number }> {
-  const { data: rateRow, error: rateErr } = await supabase
+  const periodEnd = lastDayOfMonth(period);
+
+  // Prefer the rate row in force by the end of the period (the normal
+  // case: rates set up in advance or, for the current period, on some day
+  // within it). Fall back to the earliest rate on file if the org only
+  // configured rates *after* the period closed — e.g. setting up Settings
+  // for the first time and then running payroll for a past month — rather
+  // than blocking the run entirely just because no row happens to predate
+  // the period's own start.
+  const primary = await supabase
     .from("statutory_rates")
     .select("*")
     .eq("org_id", orgId)
-    .lte("effective_from", `${period}-01`)
+    .lte("effective_from", periodEnd)
     .order("effective_from", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (primary.error) throw new Error(primary.error.message);
+  let rateRow = primary.data;
 
-  if (rateErr) throw new Error(rateErr.message);
+  if (!rateRow) {
+    const fallback = await supabase
+      .from("statutory_rates")
+      .select("*")
+      .eq("org_id", orgId)
+      .order("effective_from", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (fallback.error) throw new Error(fallback.error.message);
+    rateRow = fallback.data;
+  }
   if (!rateRow) throw new Error("No statutory rates configured for this period.");
 
   const rates = rateRow as unknown as StatutoryRates;
@@ -56,7 +77,6 @@ export async function calculatePayrollRun(
 
   const { data: advances } = await supabase.from("salary_advances").select("*").eq("status", "Active");
 
-  const periodEnd = lastDayOfMonth(period);
   const windowStart = oneYearBefore(`${period}-01`);
   const { data: sickLeaves } = await supabase
     .from("leave_requests")
