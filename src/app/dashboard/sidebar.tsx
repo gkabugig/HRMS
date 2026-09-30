@@ -175,7 +175,7 @@ export default function Sidebar({
           </div>
           <div className="leading-tight">
             <p className="text-white font-semibold text-sm tracking-tight">HRMS</p>
-            <p className="text-[10px] text-[var(--sidebar-text)] uppercase tracking-wider">Bugig Consulting</p>
+            <p className="text-[10px] text-[var(--sidebar-text)] uppercase tracking-wider">SKMG Consulting</p>
           </div>
         </div>
         {navLinks()}
