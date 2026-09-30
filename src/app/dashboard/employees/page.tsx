@@ -57,6 +57,7 @@ export default async function EmployeesPage() {
               const casualFlag =
                 e.employment_type === "Casual" ? casualConversionFlag(e.date_of_hire) : null;
               const branchName = (e.branches as unknown as { name: string } | null)?.name;
+              const pendingStaffNo = e.staff_no?.startsWith("PENDING-");
               return (
                 <tr key={e.id} className="border-t border-neutral-100 align-top">
                   <td className="px-4 py-2">{e.staff_no}</td>
@@ -67,6 +68,13 @@ export default async function EmployeesPage() {
                   <td className="px-4 py-2">{e.employment_type}</td>
                   <td className="px-4 py-2">{e.status}</td>
                   <td className="px-4 py-2 space-y-1">
+                    {pendingStaffNo && (
+                      <div>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                          Just hired — finish this record (staff no, pay, statutory numbers)
+                        </span>
+                      </div>
+                    )}
                     {onProbation && (
                       <div>
                         <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
@@ -97,6 +105,15 @@ export default async function EmployeesPage() {
                           action={updateEmployee.bind(null, e.id)}
                           className="mt-2 flex flex-col gap-2 text-xs w-56"
                         >
+                          <label className="text-neutral-500">
+                            Staff No
+                            <input
+                              name="staff_no"
+                              defaultValue={e.staff_no}
+                              required
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
                           <label className="text-neutral-500">
                             Department
                             <input
@@ -173,6 +190,81 @@ export default async function EmployeesPage() {
                               name="contract_issued_on"
                               type="date"
                               defaultValue={e.contract_issued_on ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Date of hire
+                            <input
+                              name="date_of_hire"
+                              type="date"
+                              defaultValue={e.date_of_hire ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <p className="text-neutral-400 pt-1 border-t border-neutral-100">Compensation</p>
+                          <label className="text-neutral-500">
+                            Basic salary
+                            <input
+                              name="basic"
+                              type="number"
+                              step="0.01"
+                              defaultValue={e.basic ?? 0}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            House allowance
+                            <input
+                              name="house_allowance"
+                              type="number"
+                              step="0.01"
+                              defaultValue={e.house_allowance ?? 0}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Transport allowance
+                            <input
+                              name="transport_allowance"
+                              type="number"
+                              step="0.01"
+                              defaultValue={e.transport_allowance ?? 0}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Other allowance
+                            <input
+                              name="other_allowance"
+                              type="number"
+                              step="0.01"
+                              defaultValue={e.other_allowance ?? 0}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <p className="text-neutral-400 pt-1 border-t border-neutral-100">Statutory</p>
+                          <label className="text-neutral-500">
+                            KRA PIN
+                            <input
+                              name="kra_pin"
+                              defaultValue={e.kra_pin ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            NSSF No
+                            <input
+                              name="nssf_no"
+                              defaultValue={e.nssf_no ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            SHIF No
+                            <input
+                              name="shif_no"
+                              defaultValue={e.shif_no ?? ""}
                               className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
                             />
                           </label>

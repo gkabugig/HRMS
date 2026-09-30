@@ -88,30 +88,16 @@ export default async function RequisitionDetailPage({
             )}
 
             {canEdit && c.stage === "Offered" && (
-              <details className="mt-3">
-                <summary className="text-sm text-blue-600 cursor-pointer">Hire this candidate</summary>
-                <form
-                  action={hireCandidate.bind(null, c.id, requisitionId)}
-                  className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm"
-                >
-                  <input name="staff_no" placeholder="Staff No" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <input name="department" placeholder="Department" defaultValue={requisition.department} required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <input name="job_title" placeholder="Job title" defaultValue={requisition.role} required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <select name="employment_type" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1">
-                    <option>Permanent</option>
-                    <option>Contract</option>
-                    <option>Casual</option>
-                    <option>Intern</option>
-                  </select>
-                  <input name="date_of_hire" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <input name="basic" type="number" step="0.01" placeholder="Basic salary" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <input name="house_allowance" type="number" step="0.01" placeholder="House allowance" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <input name="transport_allowance" type="number" step="0.01" placeholder="Transport allowance" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                  <button type="submit" className="col-span-2 sm:col-span-3 bg-green-700 text-white rounded py-1.5 font-medium">
-                    Confirm hire → create employee record
-                  </button>
-                </form>
-              </details>
+              <form action={hireCandidate.bind(null, c.id, requisitionId)} className="mt-3">
+                <p className="text-xs text-neutral-500 mb-2">
+                  Creates an employee record for {c.name} in {requisition.department} as{" "}
+                  {requisition.role} — staff no, compensation, branch, and the rest are filled in
+                  on the Employees page right after.
+                </p>
+                <button type="submit" className="text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
+                  Hire → create employee record
+                </button>
+              </form>
             )}
 
             {(c.stage === "Offered" || c.stage === "Hired") && (

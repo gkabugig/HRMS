@@ -120,11 +120,13 @@ export async function toggleOnboardingTask(
   revalidatePath(`/dashboard/recruitment/${requisitionId}`);
 }
 
-export async function hireCandidate(
-  candidateId: string,
-  requisitionId: string,
-  formData: FormData
-) {
+// Hiring only needs a single click: the candidate's name carries straight
+// over into a new employee record (department/job title come from the
+// requisition, since those are already known), and everything else — staff
+// no, compensation, statutory numbers, branch, reporting line, contract —
+// gets filled in afterwards on the Employees page, where HR lands right
+// after this runs.
+export async function hireCandidate(candidateId: string, requisitionId: string) {
   const supabase = await createClient();
 
   const { data: candidate } = await supabase
@@ -134,22 +136,30 @@ export async function hireCandidate(
     .single();
   if (!candidate) throw new Error("Candidate not found");
 
+  const { data: requisition } = await supabase
+    .from("requisitions")
+    .select("role, department")
+    .eq("id", requisitionId)
+    .single();
+  if (!requisition) throw new Error("Requisition not found");
+
+  const dateOfHire = new Date().toISOString().slice(0, 10);
+  // Placeholder, unique per org — HR corrects this to the real staff number
+  // from the Employees page as part of filling in the rest of the record.
+  const placeholderStaffNo = `PENDING-${candidateId.slice(0, 8)}`;
+
   const { data: employee, error: empErr } = await supabase
     .from("employees")
     .insert({
       org_id: DEFAULT_ORG_ID,
-      staff_no: String(formData.get("staff_no")),
+      staff_no: placeholderStaffNo,
       name: candidate.name,
-      department: String(formData.get("department")),
-      job_title: String(formData.get("job_title")),
-      employment_type: String(formData.get("employment_type") || "Permanent"),
-      date_of_hire: String(formData.get("date_of_hire")),
-      basic: Number(formData.get("basic") || 0),
-      house_allowance: Number(formData.get("house_allowance") || 0),
-      transport_allowance: Number(formData.get("transport_allowance") || 0),
+      department: requisition.department,
+      job_title: requisition.role,
+      date_of_hire: dateOfHire,
       // Employment Act s.42: 6-month initial probation, editable later from
       // the Employees page.
-      probation_end_date: defaultProbationEndDate(String(formData.get("date_of_hire"))),
+      probation_end_date: defaultProbationEndDate(dateOfHire),
     })
     .select()
     .single();
@@ -163,5 +173,5 @@ export async function hireCandidate(
 
   revalidatePath(`/dashboard/recruitment/${requisitionId}`);
   revalidatePath("/dashboard/employees");
-  redirect(`/dashboard/recruitment/${requisitionId}`);
+  redirect("/dashboard/employees");
 }

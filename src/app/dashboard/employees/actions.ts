@@ -55,22 +55,38 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 
   const { data: before } = await supabase
     .from("employees")
-    .select("department, job_title, employment_type, reporting_manager_id, branch_id, probation_end_date, contract_issued_on")
+    .select(
+      "staff_no, department, job_title, employment_type, date_of_hire, reporting_manager_id, branch_id, probation_end_date, contract_issued_on, basic, house_allowance, transport_allowance, other_allowance, kra_pin, nssf_no, shif_no"
+    )
     .eq("id", employeeId)
     .single();
 
-  const after: Record<string, string | null> = {
+  const after: Record<string, string | number | null> = {
+    staff_no: String(formData.get("staff_no") || ""),
     department: String(formData.get("department") || ""),
     job_title: String(formData.get("job_title") || ""),
     employment_type: String(formData.get("employment_type") || ""),
+    date_of_hire: String(formData.get("date_of_hire") || "") || null,
     reporting_manager_id: String(formData.get("reporting_manager_id") || "") || null,
     branch_id: String(formData.get("branch_id") || "") || null,
     probation_end_date: String(formData.get("probation_end_date") || "") || null,
     contract_issued_on: String(formData.get("contract_issued_on") || "") || null,
+    basic: Number(formData.get("basic") || 0),
+    house_allowance: Number(formData.get("house_allowance") || 0),
+    transport_allowance: Number(formData.get("transport_allowance") || 0),
+    other_allowance: Number(formData.get("other_allowance") || 0),
+    kra_pin: String(formData.get("kra_pin") || "") || null,
+    nssf_no: String(formData.get("nssf_no") || "") || null,
+    shif_no: String(formData.get("shif_no") || "") || null,
   };
 
   const { error } = await supabase.from("employees").update(after).eq("id", employeeId);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("That staff number is already in use by another employee.");
+    }
+    throw new Error(error.message);
+  }
 
   if (before && user) {
     await logEmployeeChanges(supabase, employeeId, user.id, before as Record<string, unknown>, after);
