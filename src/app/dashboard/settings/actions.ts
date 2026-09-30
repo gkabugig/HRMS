@@ -86,83 +86,121 @@ export async function toggleModulePermission(formData: FormData) {
   revalidatePath("/dashboard/settings");
 }
 
+// These three are wired up via useActionState (see manage-users.tsx), so
+// failures come back as state the form can render inline — a thrown Error
+// here would bubble to the route's error.tsx, and Next.js redacts the
+// message of any error that surfaces through a Server Component re-render
+// in production (only the digest survives), which is exactly what made
+// "email already registered" show up as an opaque, dashboard-wide crash
+// instead of a message next to the form. See
+// node_modules/next/dist/docs/01-app/01-getting-started/10-error-handling.md
+// ("Handling expected errors" / "Server Functions") — expected, user-facing
+// failures should be modeled as return values, not thrown.
+export type SettingsActionState = { error?: string; success?: boolean };
+
 // Manage Users: admin creates the login and assigns the role directly —
 // no Supabase dashboard access needed. Restricted to admin (not hr): this
 // is account/security provisioning, not day-to-day HR data entry.
-export async function createUserLoginAction(formData: FormData) {
-  const { supabase, userId, orgId } = await requireAdmin();
+export async function createUserLoginAction(
+  _prevState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  try {
+    const { supabase, userId, orgId } = await requireAdmin();
 
-  const email = String(formData.get("email") || "").trim().toLowerCase();
-  const password = String(formData.get("password") || "");
-  const role = String(formData.get("role") || "") as AppRole;
-  const employeeId = String(formData.get("employee_id") || "") || null;
+    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const password = String(formData.get("password") || "");
+    const role = String(formData.get("role") || "") as AppRole;
+    const employeeId = String(formData.get("employee_id") || "") || null;
 
-  if (!email) throw new Error("Email is required.");
-  if (password.length < 8) throw new Error("Password must be at least 8 characters.");
-  if (!["admin", "hr", "manager", "employee"].includes(role)) throw new Error("Invalid role.");
+    if (!email) return { error: "Email is required." };
+    if (password.length < 8) return { error: "Password must be at least 8 characters." };
+    if (!["admin", "hr", "manager", "employee"].includes(role)) return { error: "Invalid role." };
 
-  await createAppUserLogin(supabase, { orgId, actorUserId: userId, email, password, role, employeeId });
+    await createAppUserLogin(supabase, { orgId, actorUserId: userId, email, password, role, employeeId });
 
-  revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create login." };
+  }
 }
 
-export async function updateUserRoleAction(formData: FormData) {
-  const { supabase, userId, orgId } = await requireAdmin();
-  const targetUserId = String(formData.get("user_id"));
-  const newRole = String(formData.get("role")) as AppRole;
-  if (!["admin", "hr", "manager", "employee"].includes(newRole)) throw new Error("Invalid role.");
+export async function updateUserRoleAction(
+  _prevState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  try {
+    const { supabase, userId, orgId } = await requireAdmin();
+    const targetUserId = String(formData.get("user_id"));
+    const newRole = String(formData.get("role")) as AppRole;
+    if (!["admin", "hr", "manager", "employee"].includes(newRole)) return { error: "Invalid role." };
 
-  if (targetUserId === userId && newRole !== "admin") {
-    const { count } = await supabase.from("app_users").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("role", "admin");
-    if ((count ?? 0) <= 1) throw new Error("You're the only admin — promote someone else to admin before changing your own role.");
+    if (targetUserId === userId && newRole !== "admin") {
+      const { count } = await supabase.from("app_users").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("role", "admin");
+      if ((count ?? 0) <= 1) {
+        return { error: "You're the only admin — promote someone else to admin before changing your own role." };
+      }
+    }
+
+    const { data: before } = await supabase.from("app_users").select("role").eq("id", targetUserId).maybeSingle();
+
+    const { error: updateErr } = await supabase.from("app_users").update({ role: newRole }).eq("id", targetUserId).eq("org_id", orgId);
+    if (updateErr) return { error: updateErr.message };
+
+    await recordAuditEvent(supabase, {
+      orgId,
+      actorUserId: userId,
+      action: "user_role_changed",
+      resourceType: "app_user",
+      resourceId: targetUserId,
+      eventCategory: "security",
+      riskLevel: "elevated",
+      before: { role: before?.role ?? null },
+      after: { role: newRole },
+    });
+
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to update role." };
   }
-
-  const { data: before } = await supabase.from("app_users").select("role").eq("id", targetUserId).maybeSingle();
-
-  const { error: updateErr } = await supabase.from("app_users").update({ role: newRole }).eq("id", targetUserId).eq("org_id", orgId);
-  if (updateErr) throw new Error(updateErr.message);
-
-  await recordAuditEvent(supabase, {
-    orgId,
-    actorUserId: userId,
-    action: "user_role_changed",
-    resourceType: "app_user",
-    resourceId: targetUserId,
-    eventCategory: "security",
-    riskLevel: "elevated",
-    before: { role: before?.role ?? null },
-    after: { role: newRole },
-  });
-
-  revalidatePath("/dashboard/settings");
 }
 
 // Revokes app access by removing the app_users row (the person's Supabase
 // Auth login itself is untouched, so this is reversible by re-adding them
 // here — deleting their auth account outright is a heavier, harder-to-undo
 // action this screen deliberately doesn't offer).
-export async function removeUserAccessAction(formData: FormData) {
-  const { supabase, userId, orgId } = await requireAdmin();
-  const targetUserId = String(formData.get("user_id"));
+export async function removeUserAccessAction(
+  _prevState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  try {
+    const { supabase, userId, orgId } = await requireAdmin();
+    const targetUserId = String(formData.get("user_id"));
 
-  if (targetUserId === userId) throw new Error("You can't remove your own access.");
+    if (targetUserId === userId) return { error: "You can't remove your own access." };
 
-  const { data: target } = await supabase.from("app_users").select("role").eq("id", targetUserId).eq("org_id", orgId).maybeSingle();
-  if (!target) throw new Error("User not found.");
+    const { data: target } = await supabase.from("app_users").select("role").eq("id", targetUserId).eq("org_id", orgId).maybeSingle();
+    if (!target) return { error: "User not found." };
 
-  const { error: deleteErr } = await supabase.from("app_users").delete().eq("id", targetUserId).eq("org_id", orgId);
-  if (deleteErr) throw new Error(deleteErr.message);
+    const { error: deleteErr } = await supabase.from("app_users").delete().eq("id", targetUserId).eq("org_id", orgId);
+    if (deleteErr) return { error: deleteErr.message };
 
-  await recordAuditEvent(supabase, {
-    orgId,
-    actorUserId: userId,
-    action: "user_access_removed",
-    resourceType: "app_user",
-    resourceId: targetUserId,
-    eventCategory: "security",
-    riskLevel: "high",
-    before: { role: target.role },
-  });
+    await recordAuditEvent(supabase, {
+      orgId,
+      actorUserId: userId,
+      action: "user_access_removed",
+      resourceType: "app_user",
+      resourceId: targetUserId,
+      eventCategory: "security",
+      riskLevel: "high",
+      before: { role: target.role },
+    });
 
-  revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to remove access." };
+  }
 }

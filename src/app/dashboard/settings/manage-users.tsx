@@ -1,6 +1,15 @@
-import { createUserLoginAction, updateUserRoleAction, removeUserAccessAction } from "./actions";
+"use client";
+
+import { useActionState, useState } from "react";
+import {
+  createUserLoginAction,
+  updateUserRoleAction,
+  removeUserAccessAction,
+  type SettingsActionState,
+} from "./actions";
 
 const ROLES = ["admin", "hr", "manager", "employee"] as const;
+const initialActionState: SettingsActionState = {};
 
 type AppUserRow = {
   id: string;
@@ -43,46 +52,86 @@ export default function ManageUsers({
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-neutral-100">
-                <td className="px-3 py-2">
-                  <form action={updateUserRoleAction} className="flex items-center gap-2">
-                    <input type="hidden" name="user_id" value={u.id} />
-                    <select
-                      name="role"
-                      defaultValue={u.role}
-                      className="border border-neutral-300 rounded-lg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="submit" className="text-xs text-brand-600 hover:underline">
-                      Save
-                    </button>
-                  </form>
-                </td>
-                <td className="px-3 py-2 text-neutral-600">{u.employees?.name ?? "—"}</td>
-                <td className="px-3 py-2 text-neutral-400 text-xs">{new Date(u.created_at).toLocaleDateString()}</td>
-                <td className="px-3 py-2">
-                  {u.id !== currentUserId && (
-                    <form action={removeUserAccessAction}>
-                      <input type="hidden" name="user_id" value={u.id} />
-                      <button type="submit" className="text-xs text-red-600 hover:underline">
-                        Remove access
-                      </button>
-                    </form>
-                  )}
-                  {u.id === currentUserId && <span className="text-xs text-neutral-400">You</span>}
-                </td>
-              </tr>
+              <UserRow key={u.id} user={u} isSelf={u.id === currentUserId} />
             ))}
           </tbody>
         </table>
       </div>
 
-      <form action={createUserLoginAction} className="border-t border-[var(--border-subtle)] pt-4 flex items-end gap-2 flex-wrap">
+      <CreateLoginForm employees={employees} linkedEmployeeIds={linkedEmployeeIds} />
+    </div>
+  );
+}
+
+function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
+  const [roleState, updateRole, roleUpdating] = useActionState(updateUserRoleAction, initialActionState);
+  const [removeState, removeAccess, removing] = useActionState(removeUserAccessAction, initialActionState);
+
+  return (
+    <tr className="border-t border-neutral-100 align-top">
+      <td className="px-3 py-2">
+        <form action={updateRole} className="flex items-center gap-2 flex-wrap">
+          <input type="hidden" name="user_id" value={user.id} />
+          <select
+            name="role"
+            defaultValue={user.role}
+            className="border border-neutral-300 rounded-lg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+          <button type="submit" disabled={roleUpdating} className="text-xs text-brand-600 hover:underline disabled:opacity-50">
+            {roleUpdating ? "Saving..." : "Save"}
+          </button>
+        </form>
+        {roleState.error && <p className="text-xs text-red-600 mt-1 max-w-xs">{roleState.error}</p>}
+      </td>
+      <td className="px-3 py-2 text-neutral-600">{user.employees?.name ?? "—"}</td>
+      <td className="px-3 py-2 text-neutral-400 text-xs">{new Date(user.created_at).toLocaleDateString()}</td>
+      <td className="px-3 py-2">
+        {!isSelf && (
+          <>
+            <form action={removeAccess}>
+              <input type="hidden" name="user_id" value={user.id} />
+              <button type="submit" disabled={removing} className="text-xs text-red-600 hover:underline disabled:opacity-50">
+                {removing ? "Removing..." : "Remove access"}
+              </button>
+            </form>
+            {removeState.error && <p className="text-xs text-red-600 mt-1 max-w-xs">{removeState.error}</p>}
+          </>
+        )}
+        {isSelf && <span className="text-xs text-neutral-400">You</span>}
+      </td>
+    </tr>
+  );
+}
+
+function CreateLoginForm({
+  employees,
+  linkedEmployeeIds,
+}: {
+  employees: { id: string; name: string }[];
+  linkedEmployeeIds: Set<string | null>;
+}) {
+  const [state, formAction, pending] = useActionState(createUserLoginAction, initialActionState);
+  // Remount the form on success so the email/password fields clear — an
+  // uncontrolled form otherwise keeps showing the just-used temporary
+  // password, which reads as "did that actually work?". Adjusted during
+  // render (React's recommended way to react to a prop/state change)
+  // rather than in an effect, to avoid the extra render pass.
+  const [formKey, setFormKey] = useState(0);
+  const [seenState, setSeenState] = useState(state);
+  if (state !== seenState) {
+    setSeenState(state);
+    if (state.success) setFormKey((k) => k + 1);
+  }
+
+  return (
+    <div className="border-t border-[var(--border-subtle)] pt-4">
+      <form key={formKey} action={formAction} className="flex items-end gap-2 flex-wrap">
         <div>
           <label className="block text-xs text-neutral-500 mb-1">Email</label>
           <input
@@ -134,11 +183,17 @@ export default function ManageUsers({
               ))}
           </select>
         </div>
-        <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-1.5 px-4 text-sm font-medium">
-          Create login
+        <button
+          type="submit"
+          disabled={pending}
+          className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-1.5 px-4 text-sm font-medium disabled:opacity-50"
+        >
+          {pending ? "Creating..." : "Create login"}
         </button>
       </form>
-      <p className="text-xs text-neutral-400">
+      {state.error && <p className="text-xs text-red-600 mt-2">{state.error}</p>}
+      {state.success && <p className="text-xs text-green-600 mt-2">Login created. Share the email and password with them directly.</p>}
+      <p className="text-xs text-neutral-400 mt-2">
         Share the email and temporary password with them directly — no invite email is sent. They can sign in right away at{" "}
         <span className="font-mono">/login</span>.
       </p>
