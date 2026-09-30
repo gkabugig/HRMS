@@ -1,11 +1,112 @@
-export default function Page() {
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { initiateOffboarding } from "./actions";
+
+const EXIT_TYPES = ["Resignation", "Termination", "Redundancy", "End of Contract", "Retirement"];
+
+export default async function OffboardingPage() {
+  const supabase = await createClient();
+
+  const [{ data: records }, { data: employees }] = await Promise.all([
+    supabase
+      .from("offboarding_records")
+      .select("id, exit_type, notice_date, last_working_day, status, employees(name)")
+      .order("initiated_on", { ascending: false }),
+    supabase.from("employees").select("id, name").eq("status", "Active").order("name"),
+  ]);
+
   return (
-    <div>
-      <h1 className="text-lg font-semibold text-neutral-900 mb-2">Offboarding</h1>
-      <p className="text-sm text-neutral-500">
-        Schema and RLS policies for this module are already in the database migration.
-        The UI hasn't been built yet — this is next in line.
-      </p>
+    <div className="space-y-6">
+      <h1 className="text-lg font-semibold text-neutral-900">Offboarding</h1>
+
+      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <tr>
+              <th className="px-4 py-2 font-medium">Employee</th>
+              <th className="px-4 py-2 font-medium">Exit type</th>
+              <th className="px-4 py-2 font-medium">Notice date</th>
+              <th className="px-4 py-2 font-medium">Last working day</th>
+              <th className="px-4 py-2 font-medium">Status</th>
+              <th className="px-4 py-2 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {(records ?? []).map((r) => (
+              <tr key={r.id} className="border-t border-neutral-100">
+                <td className="px-4 py-2">
+                  {(r.employees as unknown as { name: string } | null)?.name ?? "—"}
+                </td>
+                <td className="px-4 py-2">{r.exit_type}</td>
+                <td className="px-4 py-2">{r.notice_date}</td>
+                <td className="px-4 py-2">{r.last_working_day}</td>
+                <td className="px-4 py-2">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded ${
+                      r.status === "Completed"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {r.status}
+                  </span>
+                </td>
+                <td className="px-4 py-2 text-right">
+                  <Link href={`/dashboard/offboarding/${r.id}`} className="text-blue-600 hover:underline">
+                    View
+                  </Link>
+                </td>
+              </tr>
+            ))}
+            {(!records || records.length === 0) && (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-center text-neutral-400">
+                  No offboarding records yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-white border border-neutral-200 rounded-lg p-4">
+        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Initiate an exit</h2>
+        <form action={initiateOffboarding} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
+          <select name="employee_id" required className="border border-neutral-300 rounded px-3 py-2">
+            <option value="">Select employee</option>
+            {(employees ?? []).map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name}
+              </option>
+            ))}
+          </select>
+          <select name="exit_type" required className="border border-neutral-300 rounded px-3 py-2">
+            <option value="">Exit type</option>
+            {EXIT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <input
+            name="notice_date"
+            type="date"
+            required
+            className="border border-neutral-300 rounded px-3 py-2"
+            placeholder="Notice date"
+          />
+          <input
+            name="last_working_day"
+            type="date"
+            required
+            className="border border-neutral-300 rounded px-3 py-2"
+            placeholder="Last working day"
+          />
+          <button type="submit" className="sm:col-span-4 bg-neutral-900 text-white rounded py-2 font-medium">
+            Start offboarding
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

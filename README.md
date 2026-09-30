@@ -18,11 +18,26 @@ Next.js (App Router) and Supabase (Postgres + Auth + Row-Level Security).
   effective date, so past payslips don't change when rates change), including salary
   advance deductions. Employees see only their own payslips.
 - **Settings** — admin/HR can edit statutory rates live.
+- **Recruitment** — requisitions (manager auto-assigned as hiring manager, HR/admin can
+  pick anyone), candidate pipeline with stage tracking, onboarding checklist, and a
+  "hire" action that creates the real `employees` row from an offered candidate.
+- **Attendance** — clock in/out (self-service for employees, manual entry for HR/admin/
+  manager), late-arrival and missing-clock-out flags.
+- **Performance** — HR/admin opens an appraisal cycle per employee; goals with weights;
+  self and manager ratings; self and manager comments; "Finalize" computes a weighted
+  final score out of 5.
+- **Learning & Development** — HR/admin manages the course catalog and can enroll any
+  employee; employees can self-enroll; HR/admin marks enrollments complete (with an
+  optional certificate note).
+- **Compliance** — statutory filing log (PAYE/NSSF/SHIF/Housing Levy/NITA, HR/admin
+  only), compliance document expiry tracking with automatic expiring/expired flags,
+  and org-wide policies that employees acknowledge.
+- **Offboarding** — HR/admin initiates an exit with a seeded asset-return checklist,
+  records the exit interview and final dues, and "Complete offboarding" flips the
+  linked employee's status to Terminated (blocked until all assets are returned).
 
-**Not yet built** (schema + RLS policies exist, UI doesn't): Recruitment, Attendance,
-Performance, Learning & Development, Compliance, Offboarding. Each has a placeholder
-page under `src/app/dashboard/<module>/page.tsx` — see `supabase/migrations/0001_schema.sql`
-for their tables.
+All six of these were built directly against the live schema and RLS policies in
+`supabase/migrations/0001_schema.sql`/`0002_rls.sql` — no placeholders remain.
 
 ## Database
 
@@ -36,6 +51,14 @@ Migrations live in `supabase/migrations/`, applied in order:
    organization row, Kenya statutory rates (2026), and default leave entitlements
 4. `0004_harden_functions.sql` — locks down the RLS helper functions so they can't be
    called directly as public RPC endpoints
+5. `0005_attendance_self_update.sql` — lets employees update their own same-day
+   attendance row (needed for the clock-in → clock-out upsert flow)
+6. `0006_appraisal_goals_update.sql` — lets employees set their own `self_rating` and
+   managers set `manager_rating` on their team's appraisal goals
+7. `0007_harden_functions_public_grant.sql` — 0004's revoke only targeted the `anon`
+   role, but Postgres grants EXECUTE to `PUBLIC` by default and `anon` inherits that,
+   so the helper functions were still callable anonymously; this revokes from `PUBLIC`
+   and grants back to `authenticated` only
 
 These have already been applied to the live Supabase project. If you ever need to
 re-apply them elsewhere (a new environment, a reset project), run them in order via
