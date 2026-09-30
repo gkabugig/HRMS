@@ -2,8 +2,23 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
+import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
+
+async function requireAdmin() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+  const { data: appUser } = await supabase.from("app_users").select("org_id, role").eq("id", user.id).maybeSingle();
+  if (!appUser || appUser.role !== "admin") {
+    throw new Error("Only an admin can manage user logins.");
+  }
+  return { supabase, userId: user.id, orgId: appUser.org_id };
+}
 
 export async function updateRates(formData: FormData) {
   const supabase = await createClient();
@@ -67,6 +82,87 @@ export async function toggleModulePermission(formData: FormData) {
     { onConflict: "org_id,role,module_key" }
   );
   if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/settings");
+}
+
+// Manage Users: admin creates the login and assigns the role directly —
+// no Supabase dashboard access needed. Restricted to admin (not hr): this
+// is account/security provisioning, not day-to-day HR data entry.
+export async function createUserLoginAction(formData: FormData) {
+  const { supabase, userId, orgId } = await requireAdmin();
+
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+  const role = String(formData.get("role") || "") as AppRole;
+  const employeeId = String(formData.get("employee_id") || "") || null;
+
+  if (!email) throw new Error("Email is required.");
+  if (password.length < 8) throw new Error("Password must be at least 8 characters.");
+  if (!["admin", "hr", "manager", "employee"].includes(role)) throw new Error("Invalid role.");
+
+  await createAppUserLogin(supabase, { orgId, actorUserId: userId, email, password, role, employeeId });
+
+  revalidatePath("/dashboard/settings");
+}
+
+export async function updateUserRoleAction(formData: FormData) {
+  const { supabase, userId, orgId } = await requireAdmin();
+  const targetUserId = String(formData.get("user_id"));
+  const newRole = String(formData.get("role")) as AppRole;
+  if (!["admin", "hr", "manager", "employee"].includes(newRole)) throw new Error("Invalid role.");
+
+  if (targetUserId === userId && newRole !== "admin") {
+    const { count } = await supabase.from("app_users").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("role", "admin");
+    if ((count ?? 0) <= 1) throw new Error("You're the only admin — promote someone else to admin before changing your own role.");
+  }
+
+  const { data: before } = await supabase.from("app_users").select("role").eq("id", targetUserId).maybeSingle();
+
+  const { error: updateErr } = await supabase.from("app_users").update({ role: newRole }).eq("id", targetUserId).eq("org_id", orgId);
+  if (updateErr) throw new Error(updateErr.message);
+
+  await recordAuditEvent(supabase, {
+    orgId,
+    actorUserId: userId,
+    action: "user_role_changed",
+    resourceType: "app_user",
+    resourceId: targetUserId,
+    eventCategory: "security",
+    riskLevel: "elevated",
+    before: { role: before?.role ?? null },
+    after: { role: newRole },
+  });
+
+  revalidatePath("/dashboard/settings");
+}
+
+// Revokes app access by removing the app_users row (the person's Supabase
+// Auth login itself is untouched, so this is reversible by re-adding them
+// here — deleting their auth account outright is a heavier, harder-to-undo
+// action this screen deliberately doesn't offer).
+export async function removeUserAccessAction(formData: FormData) {
+  const { supabase, userId, orgId } = await requireAdmin();
+  const targetUserId = String(formData.get("user_id"));
+
+  if (targetUserId === userId) throw new Error("You can't remove your own access.");
+
+  const { data: target } = await supabase.from("app_users").select("role").eq("id", targetUserId).eq("org_id", orgId).maybeSingle();
+  if (!target) throw new Error("User not found.");
+
+  const { error: deleteErr } = await supabase.from("app_users").delete().eq("id", targetUserId).eq("org_id", orgId);
+  if (deleteErr) throw new Error(deleteErr.message);
+
+  await recordAuditEvent(supabase, {
+    orgId,
+    actorUserId: userId,
+    action: "user_access_removed",
+    resourceType: "app_user",
+    resourceId: targetUserId,
+    eventCategory: "security",
+    riskLevel: "high",
+    before: { role: target.role },
+  });
 
   revalidatePath("/dashboard/settings");
 }

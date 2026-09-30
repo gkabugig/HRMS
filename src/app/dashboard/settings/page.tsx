@@ -2,13 +2,20 @@ import { createClient } from "@/lib/supabase/server";
 import { updateRates, updatePayrollControls } from "./actions";
 import { PermissionToggle } from "./permission-toggle";
 import { ALL_MODULES } from "@/lib/auth/roles";
+import ManageUsers from "./manage-users";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 const ROLES = ["admin", "hr", "manager", "employee"] as const;
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const [{ data: rates }, { data: permissions }, { data: org }] = await Promise.all([
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: currentAppUser } = await supabase.from("app_users").select("role").eq("id", user!.id).maybeSingle();
+  const isAdmin = currentAppUser?.role === "admin";
+
+  const [{ data: rates }, { data: permissions }, { data: org }, { data: appUsers }, { data: employees }] = await Promise.all([
     supabase
       .from("statutory_rates")
       .select("*")
@@ -21,6 +28,10 @@ export default async function SettingsPage() {
       .select("role, module_key, can_view")
       .eq("org_id", DEFAULT_ORG_ID),
     supabase.from("organizations").select("payroll_variance_warning_pct").eq("id", DEFAULT_ORG_ID).maybeSingle(),
+    isAdmin
+      ? supabase.from("app_users").select("id, role, employee_id, created_at, employees(name)").order("created_at", { ascending: true })
+      : Promise.resolve({ data: null }),
+    isAdmin ? supabase.from("employees").select("id, name").order("name") : Promise.resolve({ data: null }),
   ]);
 
   const permByKey = new Map(
@@ -34,6 +45,14 @@ export default async function SettingsPage() {
         <h1 className="text-lg font-semibold text-neutral-900">Settings</h1>
         <p className="text-sm text-neutral-500">Statutory rates and role-based module visibility.</p>
       </div>
+
+      {isAdmin && (
+        <ManageUsers
+          users={(appUsers ?? []) as unknown as Parameters<typeof ManageUsers>[0]["users"]}
+          employees={employees ?? []}
+          currentUserId={user!.id}
+        />
+      )}
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-4">
         <div>

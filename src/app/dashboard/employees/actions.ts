@@ -8,6 +8,7 @@ import { logEmployeeChanges } from "@/lib/audit";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 import { startWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 import { recordJobHistoryChange, recordCompensationHistoryChange } from "@/lib/employees/history";
+import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -182,12 +183,30 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   revalidatePath(`/dashboard/employees/${employeeId}`);
 }
 
-export async function inviteToEss(employeeId: string, email: string, role: string) {
-  // Creating the auth.users row and the matching app_users row requires the
-  // service_role key (admin API) and isn't safe to do with the anon key from
-  // the browser. This is a stub showing where that Server Action would call
-  // supabase.auth.admin.inviteUserByEmail() with a service-role client.
-  throw new Error(
-    `Invite-to-ESS for ${email} (employee ${employeeId}, role ${role}) requires a service-role key — not yet wired up.`
-  );
+// Not currently wired to a button anywhere (Settings -> Manage Users is the
+// UI for this today, and links an employee the same way). Kept as the
+// programmatic entry point for creating a login directly from an employee
+// record, now backed by the real Auth Admin call (see
+// lib/auth/provision-user.ts) instead of a stub.
+export async function inviteToEss(employeeId: string, email: string, password: string, role: AppRole = "employee") {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+  const { data: appUser } = await supabase.from("app_users").select("org_id, role").eq("id", user.id).maybeSingle();
+  if (!appUser || appUser.role !== "admin") throw new Error("Only an admin can create a login.");
+
+  await createAppUserLogin(supabase, {
+    orgId: appUser.org_id,
+    actorUserId: user.id,
+    email,
+    password,
+    role,
+    employeeId,
+  });
+
+  revalidatePath("/dashboard/employees");
+  revalidatePath(`/dashboard/employees/${employeeId}`);
+  revalidatePath("/dashboard/settings");
 }
