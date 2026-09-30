@@ -26,7 +26,8 @@ export type NavIcon =
   | "building"
   | "calendar-clock"
   | "clipboard-list"
-  | "history";
+  | "history"
+  | "bell";
 
 export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
@@ -47,6 +48,7 @@ export type NavTab = {
 // supabase/migrations/0014_role_module_permissions.sql exactly.
 export const ALL_MODULES: NavTab[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard", group: "Overview" },
+  { key: "notifications", label: "Notifications", href: "/dashboard/notifications", icon: "bell", group: "Overview" },
 
   { key: "employees", label: "Employees", href: "/dashboard/employees", icon: "users", group: "People" },
   { key: "recruitment", label: "Recruitment", href: "/dashboard/recruitment", icon: "briefcase", group: "People" },
@@ -75,8 +77,8 @@ export const ALL_MODULES: NavTab[] = [
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
   hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
-  manager: ["dashboard", "attendance", "leave", "assignments", "performance", "disciplinary"],
-  employee: ["dashboard", "leave", "payroll", "performance", "documents", "assignments"],
+  manager: ["dashboard", "notifications", "attendance", "leave", "assignments", "performance", "disciplinary"],
+  employee: ["dashboard", "notifications", "leave", "payroll", "performance", "documents", "assignments"],
 };
 
 // Role-specific labels for a handful of shared modules (managers/employees

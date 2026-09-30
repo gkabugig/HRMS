@@ -2,16 +2,35 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { calculateLeaveDays } from "@/lib/leave/calculate-leave-days";
+import { getLeaveConflicts } from "@/lib/leave/get-leave-conflicts";
+import type { LeaveConflict } from "@/lib/leave/leave-types";
+import { createNotification, createNotificationForMany } from "@/lib/notifications/create-notification";
+import { getHrAndManagerRecipients, getEmployeeUserId } from "@/lib/notifications/recipients";
+import { logDomainEvent } from "@/lib/domain-events/log-event";
 
-function businessDaysBetween(start: string, end: string): number {
-  const s = new Date(start);
-  const e = new Date(end);
-  let days = 0;
-  for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) days++;
-  }
-  return days;
+export async function checkLeaveConflicts(
+  employeeId: string,
+  leaveType: string,
+  startDate: string,
+  endDate: string
+): Promise<{ conflicts: LeaveConflict[]; workingDays: number }> {
+  const supabase = await createClient();
+  const { data: appUser } = await supabase.auth.getUser();
+  const { data: caller } = await supabase.from("app_users").select("org_id").eq("id", appUser.user!.id).maybeSingle();
+  if (!caller || !startDate || !endDate) return { conflicts: [], workingDays: 0 };
+
+  const { data: holidays } = await supabase
+    .from("public_holidays")
+    .select("holiday_date")
+    .eq("org_id", caller.org_id)
+    .lte("holiday_date", endDate)
+    .gte("holiday_date", startDate);
+
+  const workingDays = calculateLeaveDays(startDate, endDate, new Set((holidays ?? []).map((h) => h.holiday_date)));
+  const conflicts = await getLeaveConflicts(supabase, caller.org_id, { employeeId, leaveType, startDate, endDate });
+
+  return { conflicts, workingDays };
 }
 
 export async function applyForLeave(formData: FormData) {
@@ -21,7 +40,7 @@ export async function applyForLeave(formData: FormData) {
   } = await supabase.auth.getUser();
   const { data: appUser } = await supabase
     .from("app_users")
-    .select("employee_id")
+    .select("org_id, employee_id")
     .eq("id", user!.id)
     .maybeSingle();
 
@@ -29,31 +48,114 @@ export async function applyForLeave(formData: FormData) {
 
   const start = String(formData.get("start_date"));
   const end = String(formData.get("end_date"));
+  const leaveType = String(formData.get("leave_type"));
 
-  const { error } = await supabase.from("leave_requests").insert({
-    employee_id: appUser.employee_id,
-    leave_type: String(formData.get("leave_type")),
-    start_date: start,
-    end_date: end,
-    days: businessDaysBetween(start, end),
-    reason: String(formData.get("reason") || "") || null,
-  });
+  const { data: holidays } = await supabase
+    .from("public_holidays")
+    .select("holiday_date")
+    .eq("org_id", appUser.org_id)
+    .lte("holiday_date", end)
+    .gte("holiday_date", start);
+
+  const days = calculateLeaveDays(start, end, new Set((holidays ?? []).map((h) => h.holiday_date)));
+
+  const { data: created, error } = await supabase
+    .from("leave_requests")
+    .insert({
+      employee_id: appUser.employee_id,
+      leave_type: leaveType,
+      start_date: start,
+      end_date: end,
+      days,
+      reason: String(formData.get("reason") || "") || null,
+    })
+    .select("id, employees(name)")
+    .single();
   if (error) throw new Error(error.message);
+
+  const recipients = await getHrAndManagerRecipients(supabase, appUser.org_id, appUser.employee_id);
+  const empName = (created.employees as unknown as { name: string } | null)?.name ?? "An employee";
+  await createNotificationForMany(supabase, recipients, {
+    orgId: appUser.org_id,
+    type: "LEAVE_APPROVAL_REQUIRED",
+    category: "leave",
+    priority: "action_required",
+    title: "Leave request awaiting approval",
+    message: `${empName} requested ${days} day(s) of ${leaveType} leave (${start} → ${end}).`,
+    entityType: "leave_request",
+    entityId: created.id,
+    actionUrl: "/dashboard/leave?view=requests",
+  });
+  await logDomainEvent(supabase, {
+    orgId: appUser.org_id,
+    eventType: "LEAVE_REQUESTED",
+    entityType: "leave_request",
+    entityId: created.id,
+    actorId: user!.id,
+    payload: { leaveType, start, end, days },
+  });
 
   revalidatePath("/dashboard/leave");
 }
 
 export async function decideLeave(id: string, decision: "Approved" | "Rejected") {
-  "use server";
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const { data: appUser } = await supabase.from("app_users").select("org_id").eq("id", user!.id).maybeSingle();
+
+  const { data: updated, error } = await supabase
+    .from("leave_requests")
+    .update({ status: decision, approved_by: user!.id, decided_on: new Date().toISOString() })
+    .eq("id", id)
+    .select("id, employee_id, leave_type, start_date, end_date, days")
+    .single();
+  if (error) throw new Error(error.message);
+
+  if (appUser) {
+    const employeeUserId = await getEmployeeUserId(supabase, updated.employee_id);
+    if (employeeUserId) {
+      await createNotification(supabase, {
+        orgId: appUser.org_id,
+        recipientUserId: employeeUserId,
+        type: `LEAVE_${decision.toUpperCase()}`,
+        category: "leave",
+        priority: "information",
+        title: `Leave request ${decision.toLowerCase()}`,
+        message: `Your ${updated.leave_type} leave request (${updated.start_date} → ${updated.end_date}) was ${decision.toLowerCase()}.`,
+        entityType: "leave_request",
+        entityId: updated.id,
+        actionUrl: "/dashboard/leave",
+      });
+    }
+    await logDomainEvent(supabase, {
+      orgId: appUser.org_id,
+      eventType: decision === "Approved" ? "LEAVE_APPROVED" : "LEAVE_REJECTED",
+      entityType: "leave_request",
+      entityId: updated.id,
+      actorId: user!.id,
+    });
+  }
+
+  revalidatePath("/dashboard/leave");
+  revalidatePath("/dashboard");
+}
+
+export async function cancelLeaveRequest(id: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: appUser } = await supabase.from("app_users").select("employee_id").eq("id", user!.id).maybeSingle();
+  if (!appUser?.employee_id) throw new Error("No employee record linked to this account.");
 
   const { error } = await supabase
     .from("leave_requests")
-    .update({ status: decision, approved_by: user!.id, decided_on: new Date().toISOString() })
-    .eq("id", id);
+    .delete()
+    .eq("id", id)
+    .eq("employee_id", appUser.employee_id)
+    .eq("status", "Pending");
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/leave");

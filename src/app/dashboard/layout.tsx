@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { tabsForRole, DEFAULT_VISIBLE_MODULES, type UserRole } from "@/lib/auth/roles";
 import SignOutButton from "./sign-out-button";
 import Sidebar from "./sidebar";
+import CommandSearch from "@/components/search/command-search";
+import NotificationBell from "@/components/notifications/notification-bell";
+import MobileBottomNav from "@/components/mobile/mobile-bottom-nav";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -36,7 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const role = appUser.role as UserRole;
 
-  const [{ data: permRows }, { count: pendingLeaveCount }] = await Promise.all([
+  const [{ data: permRows }, { count: pendingLeaveCount }, { count: unreadNotificationCount }] = await Promise.all([
     supabase
       .from("role_module_permissions")
       .select("module_key, can_view")
@@ -48,6 +51,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .from("leave_requests")
       .select("*", { count: "exact", head: true })
       .eq("status", "Pending"),
+    supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("recipient_user_id", user.id)
+      .eq("is_read", false),
   ]);
 
   const visible =
@@ -60,10 +68,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-[var(--surface-muted)]">
-      <Sidebar tabs={tabs} role={role} displayName={displayName} leavePendingCount={pendingLeaveCount ?? 0} />
-      <main className="lg:pl-64">
+      <Sidebar
+        tabs={tabs}
+        role={role}
+        displayName={displayName}
+        leavePendingCount={pendingLeaveCount ?? 0}
+        unreadNotificationCount={unreadNotificationCount ?? 0}
+      />
+      <main className="lg:pl-64 pb-16 lg:pb-0">
+        <div className="hidden lg:flex items-center justify-end gap-3 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <CommandSearch role={role} />
+          <NotificationBell />
+        </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
       </main>
+      <MobileBottomNav role={role} />
     </div>
   );
 }

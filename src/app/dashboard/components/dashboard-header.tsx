@@ -1,4 +1,3 @@
-import CommandSearch from "./command-search";
 import PeriodSelector from "./period-selector";
 import type { DashboardContext } from "@/lib/dashboard/dashboard-types";
 
@@ -29,23 +28,18 @@ export default function DashboardHeader({
 
   return (
     <div className="mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <CommandSearch role={context.role} />
-        <div className="flex items-center gap-3">
-          <PeriodSelector availablePeriods={availablePayrollPeriods} current={selectedPayrollPeriod} />
-          {criticalCount > 0 && (
-            <a
-              href="#action-centre"
-              className="relative flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border-subtle)] text-neutral-500 hover:border-red-200"
-              aria-label={`${criticalCount} critical alerts`}
-            >
-              <span className="text-sm">🔔</span>
-              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
-                {criticalCount}
-              </span>
-            </a>
-          )}
+      {criticalCount > 0 && (
+        <div className="flex justify-end mb-3">
+          <a
+            href="#action-centre"
+            className="flex items-center gap-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 hover:border-red-200"
+          >
+            {criticalCount} critical item{criticalCount === 1 ? "" : "s"} need attention
+          </a>
         </div>
+      )}
+      <div className="flex flex-wrap items-center justify-end gap-3 mb-4">
+        <PeriodSelector availablePeriods={availablePayrollPeriods} current={selectedPayrollPeriod} />
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>

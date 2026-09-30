@@ -25,10 +25,13 @@ import {
   History,
   Menu,
   X,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
 import SignOutButton from "./sign-out-button";
+import CommandSearch from "@/components/search/command-search";
+import NotificationBell from "@/components/notifications/notification-bell";
 
 const ICONS: Record<NavIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -50,6 +53,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   "calendar-clock": CalendarClock,
   "clipboard-list": ClipboardList,
   history: History,
+  bell: Bell,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {
@@ -77,11 +81,13 @@ export default function Sidebar({
   role,
   displayName,
   leavePendingCount = 0,
+  unreadNotificationCount = 0,
 }: {
   tabs: NavTab[];
   role: UserRole;
   displayName: string;
   leavePendingCount?: number;
+  unreadNotificationCount?: number;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -100,7 +106,12 @@ export default function Sidebar({
             {groupTabsList.map((t) => {
               const Icon = ICONS[t.icon];
               const active = isActive(pathname, t.href);
-              const badge = t.key === "leave" && leavePendingCount > 0 ? leavePendingCount : 0;
+              const badge =
+                t.key === "leave" && leavePendingCount > 0
+                  ? leavePendingCount
+                  : t.key === "notifications" && unreadNotificationCount > 0
+                    ? unreadNotificationCount
+                    : 0;
               return (
                 <Link
                   key={t.key}
@@ -141,13 +152,21 @@ export default function Sidebar({
           </div>
           <span className="text-white font-semibold text-sm tracking-tight">HRMS</span>
         </div>
-        <button
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
-          className="text-[var(--sidebar-text)] hover:text-white p-1"
-        >
-          <Menu size={22} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <div className="[&_button]:border-[var(--sidebar-border)] [&_button]:text-[var(--sidebar-text)] [&_button:hover]:border-white/30">
+            <CommandSearch role={role} />
+          </div>
+          <div className="[&_button]:border-[var(--sidebar-border)] [&_button]:text-[var(--sidebar-text)] [&_button:hover]:border-white/30">
+            <NotificationBell />
+          </div>
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className="text-[var(--sidebar-text)] hover:text-white p-1"
+          >
+            <Menu size={22} />
+          </button>
+        </div>
       </div>
 
       {/* Mobile drawer */}
