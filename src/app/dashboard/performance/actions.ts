@@ -34,7 +34,7 @@ export async function setSelfRating(goalId: string, appraisalId: string, formDat
   const supabase = await createClient();
   const { error } = await supabase
     .from("appraisal_goals")
-    .update({ self_rating: Number(formData.get("self_rating")) })
+    .update({ self_rating: Number(formData.get("self_rating")), updated_at: new Date().toISOString() })
     .eq("id", goalId);
   if (error) throw new Error(error.message);
   revalidatePath(`/dashboard/performance/${appraisalId}`);
@@ -44,7 +44,7 @@ export async function setManagerRating(goalId: string, appraisalId: string, form
   const supabase = await createClient();
   const { error } = await supabase
     .from("appraisal_goals")
-    .update({ manager_rating: Number(formData.get("manager_rating")) })
+    .update({ manager_rating: Number(formData.get("manager_rating")), updated_at: new Date().toISOString() })
     .eq("id", goalId);
   if (error) throw new Error(error.message);
   revalidatePath(`/dashboard/performance/${appraisalId}`);

@@ -138,6 +138,46 @@ Set up admin account" to create the first user, which becomes admin automaticall
    (values are in your local `.env.local`, or Supabase dashboard → Settings → API)
 4. Deploy. First visit, sign up as the admin.
 
+## Phase 3: Intelligence (foundation)
+
+Scope agreed for this phase: the canonical metric layer + Workforce Analytics,
+Payroll Anomaly Detection, and Performance Insights — the three capabilities
+that don't need a live LLM API key. The AI HR Assistant, Recruitment AI
+(CV parsing/matching) and Predictive Forecasting from the Phase 3 spec are
+deferred to a follow-up build once an LLM API key is available.
+
+- **Workforce Analytics** (`/dashboard/analytics`, admin/hr) — nine dashboards
+  (Executive, Headcount, Cost, Attendance, Leave, Recruitment, Performance,
+  Learning, Compliance) computed on demand from the existing operational
+  tables (no second copy of employee/payroll/performance data), with every
+  KPI carrying its own definition, formula, population and freshness
+  (`metric_definitions`), department drill-down with a click-through to a
+  filtered Employees list, trend history (`metric_snapshots`, written
+  opportunistically each time a dashboard is viewed — this app has no
+  background job runner), and CSV export.
+- **Payroll Anomaly Detection** (`/dashboard/payroll/anomalies`, admin/hr) —
+  a statistical second pass that runs right after the existing deterministic
+  payroll exceptions engine on every "Calculate" transition: per-employee
+  gross/net pay outside its own historical range, department cost spikes,
+  manual adjustments, and bank-account changes shortly before processing.
+  Every flagged anomaly is checked against context (an approved compensation
+  change, a new hire, an exit, approved leave) and downgraded to
+  informational with the reason on file when one exists. Never edits a
+  payslip — every row needs an explicit reviewer decision (resolve / mark
+  expected / false positive), recorded to `ai_feedback` and the audit trail.
+- **Performance Insights** (`/dashboard/performance/insights`, admin/hr/
+  manager) — evidence-linked coaching signals generated from documented goal
+  status and ratings only (a stalled goal with no manager rating for 21+
+  days, an appraisal cycle open 45+ days with no ratings entered, all goals
+  rated 4+): never a personality, health or motivation inference. A manager
+  only ever sees insights for employees they manage (RLS, not just hidden
+  in the UI).
+- Shared AI registry: `ai_models` (versioned, so every anomaly/insight
+  record is traceable to the detector version that produced it),
+  `ai_insights`, `ai_anomalies`, `ai_feedback` — see
+  `supabase/migrations/0029_phase3_intelligence_foundation.sql` for the full
+  schema and RLS design notes.
+
 ## Architecture notes
 
 - `src/lib/payroll/calculate.ts` — pure functions for PAYE/NSSF/SHIF/Housing Levy,

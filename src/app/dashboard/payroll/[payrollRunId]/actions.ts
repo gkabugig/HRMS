@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { calculatePayrollRun } from "@/lib/payroll/run-calculation";
 import { detectAndStoreExceptions } from "@/lib/payroll/exceptions-engine";
+import { runPayrollAnomalyDetection } from "@/lib/intelligence/anomaly-detection/run-payroll-anomaly-detection";
 import { logPayrollEvent } from "@/lib/payroll/audit";
 import { assertTransition, type PayrollStatus } from "@/lib/payroll/state-machine";
 
@@ -58,7 +59,11 @@ export async function calculateRun(formData: FormData) {
   assertTransition(fromStatus === "draft" ? "inputs_open" : fromStatus, "calculated", role);
 
   const { payslipCount } = await calculatePayrollRun(supabase, run.id, orgId, run.period);
+  // Deterministic validation first (spec §6: anomaly detection complements,
+  // never replaces, the exceptions engine), then the statistical anomaly
+  // scan — same order as the spec's payroll integration scenario.
   await detectAndStoreExceptions(supabase, { id: run.id, orgId, period: run.period });
+  await runPayrollAnomalyDetection(supabase, { id: run.id, orgId, period: run.period, generatedAt: new Date().toISOString() });
 
   await supabase.from("payroll_runs").update({ status: "calculated" }).eq("id", run.id);
   await logPayrollEvent(supabase, {

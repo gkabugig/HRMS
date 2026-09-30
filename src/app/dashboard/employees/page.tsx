@@ -16,10 +16,15 @@ function casualConversionFlag(dateOfHire: string): string | null {
   return null;
 }
 
-export default async function EmployeesPage() {
+export default async function EmployeesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ department?: string }>;
+}) {
+  const { department: departmentFilter } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: employees }, { data: appUser }, { data: branches }] = await Promise.all([
+  const [{ data: employeesRaw }, { data: appUser }, { data: branches }] = await Promise.all([
     supabase.from("employees").select("*, branches(name)").order("name"),
     (async () => {
       const {
@@ -31,10 +36,23 @@ export default async function EmployeesPage() {
   ]);
 
   const canEdit = appUser?.role === "admin" || appUser?.role === "hr";
+  const employees = departmentFilter
+    ? (employeesRaw ?? []).filter((e) => e.department === departmentFilter)
+    : employeesRaw;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold text-neutral-900">Employees</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-neutral-900">Employees</h1>
+        {departmentFilter && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-neutral-500">Filtered: {departmentFilter}</span>
+            <Link href="/dashboard/employees" className="text-brand-600 hover:underline">
+              Clear
+            </Link>
+          </div>
+        )}
+      </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">

@@ -28,6 +28,9 @@ import {
   Bell,
   CheckCircle2,
   LifeBuoy,
+  LineChart,
+  ShieldAlert,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
@@ -58,6 +61,9 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   bell: Bell,
   "check-circle": CheckCircle2,
   "life-buoy": LifeBuoy,
+  "line-chart": LineChart,
+  "shield-alert": ShieldAlert,
+  sparkles: Sparkles,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {

@@ -29,7 +29,10 @@ export type NavIcon =
   | "history"
   | "bell"
   | "check-circle"
-  | "life-buoy";
+  | "life-buoy"
+  | "line-chart"
+  | "shield-alert"
+  | "sparkles";
 
 export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
@@ -72,6 +75,9 @@ export const ALL_MODULES: NavTab[] = [
   { key: "documents", label: "Documents", href: "/dashboard/documents", icon: "folder", group: "Payroll & Compliance" },
 
   { key: "reports", label: "Reports", href: "/dashboard/reports", icon: "bar-chart", group: "Insights" },
+  { key: "analytics", label: "Workforce Analytics", href: "/dashboard/analytics", icon: "line-chart", group: "Insights" },
+  { key: "payroll-anomalies", label: "Payroll Intelligence", href: "/dashboard/payroll/anomalies", icon: "shield-alert", group: "Insights" },
+  { key: "performance-insights", label: "Performance Insights", href: "/dashboard/performance/insights", icon: "sparkles", group: "Insights" },
   { key: "audit-log", label: "Audit Centre", href: "/dashboard/audit-log", icon: "history", group: "Insights" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
@@ -81,7 +87,7 @@ export const ALL_MODULES: NavTab[] = [
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
   hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
-  manager: ["dashboard", "notifications", "approvals", "service-requests", "attendance", "leave", "assignments", "performance", "disciplinary"],
+  manager: ["dashboard", "notifications", "approvals", "service-requests", "attendance", "leave", "assignments", "performance", "performance-insights", "disciplinary"],
   employee: ["dashboard", "notifications", "service-requests", "leave", "payroll", "performance", "documents", "assignments"],
 };
 
@@ -92,6 +98,7 @@ export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> 
     attendance: "Team Attendance",
     leave: "Team Leave",
     performance: "Team Performance",
+    "performance-insights": "Team Performance Insights",
     disciplinary: "Team Disciplinary",
     assignments: "Team Assignments",
     "service-requests": "My HR Requests",
