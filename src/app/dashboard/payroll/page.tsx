@@ -20,14 +20,18 @@ export default async function PayrollPage() {
   if (isHrLike) {
     const { data } = await supabase
       .from("payslips")
-      .select("id, gross, net, paye, nssf, shif, housing_levy, employees(name), payroll_runs(period)")
+      .select(
+        "id, gross, net, paye, nssf, shif, housing_levy, leave_deduction, deduction_capped, employees(name), payroll_runs(period)"
+      )
       .order("id", { ascending: false })
       .limit(50);
     payslips = data;
   } else {
     const { data } = await supabase
       .from("payslips")
-      .select("id, gross, net, paye, nssf, shif, housing_levy, payroll_runs(period)")
+      .select(
+        "id, gross, net, paye, nssf, shif, housing_levy, leave_deduction, deduction_capped, payroll_runs(period)"
+      )
       .eq("employee_id", appUser?.employee_id ?? "")
       .order("id", { ascending: false });
     payslips = data;
@@ -72,7 +76,9 @@ export default async function PayrollPage() {
               <th className="px-4 py-2 font-medium text-right">NSSF</th>
               <th className="px-4 py-2 font-medium text-right">SHIF</th>
               <th className="px-4 py-2 font-medium text-right">Housing</th>
+              <th className="px-4 py-2 font-medium text-right">Leave</th>
               <th className="px-4 py-2 font-medium text-right">Net</th>
+              <th className="px-4 py-2 font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -91,12 +97,25 @@ export default async function PayrollPage() {
                 <td className="px-4 py-2 text-right font-mono">{p.nssf.toLocaleString()}</td>
                 <td className="px-4 py-2 text-right font-mono">{p.shif.toLocaleString()}</td>
                 <td className="px-4 py-2 text-right font-mono">{p.housing_levy.toLocaleString()}</td>
+                <td className="px-4 py-2 text-right font-mono">
+                  {p.leave_deduction > 0 ? `-${p.leave_deduction.toLocaleString()}` : "—"}
+                </td>
                 <td className="px-4 py-2 text-right font-mono font-semibold">{p.net.toLocaleString()}</td>
+                <td className="px-4 py-2">
+                  {p.deduction_capped && (
+                    <span
+                      className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded"
+                      title="Deductions were capped at two-thirds of gross pay (s.19(3)); the remainder rolls to next period."
+                    >
+                      Capped
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
             {(!payslips || payslips.length === 0) && (
               <tr>
-                <td colSpan={isHrLike ? 8 : 7} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={isHrLike ? 10 : 9} className="px-4 py-6 text-center text-neutral-400">
                   No payslips yet.
                 </td>
               </tr>

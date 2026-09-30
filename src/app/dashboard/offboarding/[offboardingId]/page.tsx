@@ -5,6 +5,7 @@ import {
   toggleAssetReturned,
   updateExitInterview,
   updateFinalDues,
+  updateRedundancyRecords,
   completeOffboarding,
 } from "../actions";
 
@@ -47,7 +48,16 @@ export default async function OffboardingDetailPage({
         <p className="text-sm text-neutral-500">
           {record.exit_type} · Notice {record.notice_date} · Last working day {record.last_working_day} · Status{" "}
           {record.status}
+          {record.paid_in_lieu_of_notice && " · Paid in lieu of notice"}
         </p>
+        {isCompleted && (
+          <Link
+            href={`/dashboard/offboarding/${offboardingId}/certificate`}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            View certificate of service →
+          </Link>
+        )}
       </div>
 
       <div className="bg-white border border-neutral-200 rounded-lg p-4">
@@ -113,6 +123,9 @@ export default async function OffboardingDetailPage({
             <p>Pro-rated days: {record.pro_rated_days}</p>
             <p>Other deductions: KES {Number(record.other_deductions).toLocaleString()}</p>
             <p>Statutory deregistered: {record.statutory_deregistered ? "Yes" : "No"}</p>
+            {record.exit_type === "Redundancy" && (
+              <p>Severance pay (s.40, 15 days/completed year): KES {Number(record.severance_pay).toLocaleString()}</p>
+            )}
           </div>
         ) : (
           <form action={updateFinalDues.bind(null, offboardingId)} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
@@ -139,12 +152,64 @@ export default async function OffboardingDetailPage({
               />
               NSSF/SHIF deregistered
             </label>
+            {record.exit_type === "Redundancy" && (
+              <label className="text-xs text-neutral-500 flex flex-col gap-1 sm:col-span-3">
+                Severance pay (KES) — auto-calculated at 15 days/completed year, adjust if needed
+                <input
+                  name="severance_pay"
+                  type="number"
+                  step="0.01"
+                  defaultValue={record.severance_pay}
+                  className="border border-neutral-300 rounded px-3 py-2"
+                />
+              </label>
+            )}
             <button type="submit" className="sm:col-span-3 text-xs bg-neutral-200 rounded px-3 py-1.5 w-fit">
               Save
             </button>
           </form>
         )}
       </div>
+
+      {record.exit_type === "Redundancy" && (
+        <div className="bg-white border border-neutral-200 rounded-lg p-4">
+          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Redundancy notices (s.40)</h2>
+          {isCompleted ? (
+            <div className="text-sm text-neutral-600 space-y-1">
+              <p>Labour office notified: {record.labour_office_notified_on || "Not recorded"}</p>
+              <p>Union notified: {record.union_notified_on || "Not recorded"}</p>
+              <p>Selection criteria: {record.selection_criteria || "Not recorded"}</p>
+            </div>
+          ) : (
+            <form
+              action={updateRedundancyRecords.bind(null, offboardingId)}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm"
+            >
+              <input
+                name="labour_office_notified_on"
+                type="date"
+                defaultValue={record.labour_office_notified_on ?? ""}
+                className="border border-neutral-300 rounded px-3 py-2"
+              />
+              <input
+                name="union_notified_on"
+                type="date"
+                defaultValue={record.union_notified_on ?? ""}
+                className="border border-neutral-300 rounded px-3 py-2"
+              />
+              <input
+                name="selection_criteria"
+                placeholder="Selection criteria used"
+                defaultValue={record.selection_criteria ?? ""}
+                className="border border-neutral-300 rounded px-3 py-2"
+              />
+              <button type="submit" className="sm:col-span-3 text-xs bg-neutral-200 rounded px-3 py-1.5 w-fit">
+                Save
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       {!isCompleted && (
         <form action={completeOffboarding.bind(null, offboardingId, record.employee_id)}>

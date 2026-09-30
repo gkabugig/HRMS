@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { defaultProbationEndDate } from "@/lib/compliance";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -59,6 +60,16 @@ export async function addCandidate(requisitionId: string, formData: FormData) {
   revalidatePath(`/dashboard/recruitment/${requisitionId}`);
 }
 
+// Seeded once a candidate is offered the role, so the paper trail for the
+// 2022 amendment (clearance certificates may only be requested after an
+// offer, never before) exists from the start.
+const DEFAULT_OFFER_TASKS = [
+  "Issue written offer letter",
+  "Request certificate of good conduct (only now that an offer has been made)",
+  "Request KRA/NSSF/SHIF clearance certificates (post-offer only)",
+  "Collect signed written contract / particulars of employment",
+];
+
 export async function updateCandidateStage(formData: FormData) {
   const candidateId = String(formData.get("candidate_id"));
   const requisitionId = String(formData.get("requisition_id"));
@@ -67,6 +78,20 @@ export async function updateCandidateStage(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("candidates").update({ stage }).eq("id", candidateId);
   if (error) throw new Error(error.message);
+
+  if (stage === "Offered") {
+    const { data: existing } = await supabase
+      .from("onboarding_tasks")
+      .select("id")
+      .eq("candidate_id", candidateId)
+      .limit(1);
+    if (!existing || existing.length === 0) {
+      await supabase
+        .from("onboarding_tasks")
+        .insert(DEFAULT_OFFER_TASKS.map((task) => ({ candidate_id: candidateId, task })));
+    }
+  }
+
   revalidatePath(`/dashboard/recruitment/${requisitionId}`);
 }
 
@@ -122,6 +147,9 @@ export async function hireCandidate(
       basic: Number(formData.get("basic") || 0),
       house_allowance: Number(formData.get("house_allowance") || 0),
       transport_allowance: Number(formData.get("transport_allowance") || 0),
+      // Employment Act s.42: 6-month initial probation, editable later from
+      // the Employees page.
+      probation_end_date: defaultProbationEndDate(String(formData.get("date_of_hire"))),
     })
     .select()
     .single();

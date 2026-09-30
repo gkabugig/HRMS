@@ -39,6 +39,44 @@ Next.js (App Router) and Supabase (Postgres + Auth + Row-Level Security).
 All six of these were built directly against the live schema and RLS policies in
 `supabase/migrations/0001_schema.sql`/`0002_rls.sql` — no placeholders remain.
 
+## Employment Act, 2007 compliance
+
+Built from a full review of the Act (see `docs` link in the project, or ask for it again) against
+this schema:
+
+- **Disciplinary records** (new module, s.41) — records the hearing required before dismissing for
+  misconduct, poor performance, or incapacity: reason given, representative present, employee's
+  response, outcome. HR/admin full access; managers record and read their own team; employees read
+  their own record.
+- **Redundancy severance pay** (s.40) — auto-calculated at 15 days' pay per completed year of
+  service when an offboarding's exit type is Redundancy, editable by HR; also records labour
+  office/union notification dates and the selection criteria used.
+- **Notice period validation** (s.35) — blocks starting an offboarding with less than 28 days'
+  notice for monthly-paid staff unless "paid in lieu of notice" is ticked (casuals, who are
+  daily-paid, are exempt).
+- **Certificate of service** (s.51) — a printable page at `/dashboard/offboarding/[id]/certificate`,
+  available once an offboarding is completed; deliberately omits the reason for leaving.
+- **Deduction cap** (s.19) — `computePayslip()` caps salary-advance repayments at 50% of gross and
+  all discretionary deductions combined at two-thirds of gross; a payslip that hit the cap is
+  flagged, and the un-collected advance balance rolls to the next payroll run instead of being
+  written off.
+- **Sick leave full/half pay split** (s.30) — payroll now looks at approved Sick leave in the
+  trailing 12 months and reduces gross pay (not a s.19 deduction) for the half-pay (days 8–14) and
+  unpaid (day 15+) tiers, shown as a "Leave" line on the payslip.
+- **Probation tracking** (s.42) — `employees.probation_end_date` defaults to hire date + 6 months
+  and is flagged on the Employees page while active.
+- **Written contract tracking** (s.9/10) — `employees.contract_issued_on`; flagged red when unset.
+- **Rest-day compliance** (s.27) — flags any employee who has worked 7+ consecutive days with no
+  rest day, computed from existing attendance rows.
+- **Overtime visibility** (Regulation of Wages) — hours worked and overtime hours are shown per
+  attendance row; not yet wired into payroll (that needs an hourly-rate model — the largest
+  remaining piece of this work).
+- **Casual-to-term conversion** (s.37) — flags a Casual employee once their cumulative engagement
+  passes 30 and 90 days, when written terms and term-employee protections respectively kick in.
+- **Post-offer clearance checklist** (2022 amendment) — moving a candidate to "Offered" seeds a
+  default onboarding checklist that only asks for clearance/good-conduct certificates after the
+  offer, never before.
+
 ## Database
 
 Migrations live in `supabase/migrations/`, applied in order:
@@ -59,6 +97,11 @@ Migrations live in `supabase/migrations/`, applied in order:
    role, but Postgres grants EXECUTE to `PUBLIC` by default and `anon` inherits that,
    so the helper functions were still callable anonymously; this revokes from `PUBLIC`
    and grants back to `authenticated` only
+8. `0008_compliance_fields.sql` — probation/contract-issued dates on `employees`;
+   severance pay + redundancy notice fields + paid-in-lieu flag on `offboarding_records`;
+   the new `disciplinary_actions` table + RLS
+9. `0009_payslip_compliance_columns.sql` — `leave_deduction` and `deduction_capped` on
+   `payslips`
 
 These have already been applied to the live Supabase project. If you ever need to
 re-apply them elsewhere (a new environment, a reset project), run them in order via

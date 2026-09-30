@@ -18,6 +18,7 @@ export const TABS_BY_ROLE: Record<UserRole, { key: string; label: string; href: 
     { key: "performance", label: "Performance", href: "/dashboard/performance" },
     { key: "ld", label: "L&D", href: "/dashboard/ld" },
     { key: "compliance", label: "Compliance", href: "/dashboard/compliance" },
+    { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary" },
     { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding" },
     { key: "settings", label: "Settings", href: "/dashboard/settings" },
   ],
@@ -31,6 +32,7 @@ export const TABS_BY_ROLE: Record<UserRole, { key: string; label: string; href: 
     { key: "performance", label: "Performance", href: "/dashboard/performance" },
     { key: "ld", label: "L&D", href: "/dashboard/ld" },
     { key: "compliance", label: "Compliance", href: "/dashboard/compliance" },
+    { key: "disciplinary", label: "Disciplinary", href: "/dashboard/disciplinary" },
     { key: "offboarding", label: "Offboarding", href: "/dashboard/offboarding" },
   ],
   manager: [
@@ -38,6 +40,7 @@ export const TABS_BY_ROLE: Record<UserRole, { key: string; label: string; href: 
     { key: "attendance", label: "Team Attendance", href: "/dashboard/attendance" },
     { key: "leave", label: "Team Leave", href: "/dashboard/leave" },
     { key: "performance", label: "Team Performance", href: "/dashboard/performance" },
+    { key: "disciplinary", label: "Team Disciplinary", href: "/dashboard/disciplinary" },
   ],
   employee: [
     { key: "dashboard", label: "Dashboard", href: "/dashboard" },

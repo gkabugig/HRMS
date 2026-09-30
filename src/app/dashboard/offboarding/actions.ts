@@ -3,10 +3,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { calcSeverancePay } from "@/lib/compliance";
 
 const EXIT_TYPES = ["Resignation", "Termination", "Redundancy", "End of Contract", "Retirement"];
 
 const DEFAULT_ASSET_CHECKLIST = ["Laptop", "ID card", "Access card", "Company phone"];
+
+const MINIMUM_NOTICE_DAYS = 28; // s.35(1)(c): monthly-paid staff, 28 days' written notice
+
+function daysBetween(a: string, b: string): number {
+  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / (1000 * 60 * 60 * 24));
+}
 
 export async function initiateOffboarding(formData: FormData) {
   const supabase = await createClient();
@@ -17,13 +24,45 @@ export async function initiateOffboarding(formData: FormData) {
   const exitType = String(formData.get("exit_type"));
   if (!EXIT_TYPES.includes(exitType)) throw new Error("Invalid exit type.");
 
+  const employeeId = String(formData.get("employee_id"));
+  const noticeDate = String(formData.get("notice_date"));
+  const lastWorkingDay = String(formData.get("last_working_day"));
+  const paidInLieu = formData.get("paid_in_lieu_of_notice") === "on";
+
+  const { data: employee, error: empErr } = await supabase
+    .from("employees")
+    .select("basic, date_of_hire, employment_type")
+    .eq("id", employeeId)
+    .single();
+  if (empErr) throw new Error(empErr.message);
+
+  // s.35(1)(c): 28 days' written notice for monthly-paid staff, unless paid
+  // in lieu. Casuals are daily-paid (s.35(1)(a)) so this check doesn't apply
+  // to them.
+  if (employee.employment_type !== "Casual" && !paidInLieu) {
+    const noticeDays = daysBetween(noticeDate, lastWorkingDay);
+    if (noticeDays < MINIMUM_NOTICE_DAYS) {
+      throw new Error(
+        `Only ${noticeDays} days' notice given — the Employment Act requires ${MINIMUM_NOTICE_DAYS} days for monthly-paid staff. Extend the last working day, or tick "paid in lieu of notice".`
+      );
+    }
+  }
+
+  const severancePay =
+    exitType === "Redundancy" ? calcSeverancePay(employee.basic, employee.date_of_hire, lastWorkingDay) : 0;
+
   const { data: record, error } = await supabase
     .from("offboarding_records")
     .insert({
-      employee_id: String(formData.get("employee_id")),
+      employee_id: employeeId,
       exit_type: exitType,
-      notice_date: String(formData.get("notice_date")),
-      last_working_day: String(formData.get("last_working_day")),
+      notice_date: noticeDate,
+      last_working_day: lastWorkingDay,
+      paid_in_lieu_of_notice: paidInLieu,
+      severance_pay: severancePay,
+      labour_office_notified_on: String(formData.get("labour_office_notified_on") || "") || null,
+      union_notified_on: String(formData.get("union_notified_on") || "") || null,
+      selection_criteria: String(formData.get("selection_criteria") || "") || null,
       initiated_by: user!.id,
     })
     .select("id")
@@ -81,6 +120,21 @@ export async function updateFinalDues(offboardingId: string, formData: FormData)
       pro_rated_days: Number(formData.get("pro_rated_days") || 0),
       other_deductions: Number(formData.get("other_deductions") || 0),
       statutory_deregistered: formData.get("statutory_deregistered") === "on",
+      severance_pay: Number(formData.get("severance_pay") || 0),
+    })
+    .eq("id", offboardingId);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/dashboard/offboarding/${offboardingId}`);
+}
+
+export async function updateRedundancyRecords(offboardingId: string, formData: FormData) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("offboarding_records")
+    .update({
+      labour_office_notified_on: String(formData.get("labour_office_notified_on") || "") || null,
+      union_notified_on: String(formData.get("union_notified_on") || "") || null,
+      selection_criteria: String(formData.get("selection_criteria") || "") || null,
     })
     .eq("id", offboardingId);
   if (error) throw new Error(error.message);
