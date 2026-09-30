@@ -35,6 +35,16 @@ export async function createEmployee(formData: FormData) {
     branch_id: String(formData.get("branch_id") || "") || null,
     probation_end_date: probationEndDate,
     contract_issued_on: String(formData.get("contract_issued_on") || "") || null,
+    date_of_birth: String(formData.get("date_of_birth") || "") || null,
+    gender: String(formData.get("gender") || "") || null,
+    marital_status: String(formData.get("marital_status") || "") || null,
+    national_id: String(formData.get("national_id") || "") || null,
+    passport_no: String(formData.get("passport_no") || "") || null,
+    nationality: String(formData.get("nationality") || "") || null,
+    personal_email: String(formData.get("personal_email") || "") || null,
+    phone_number: String(formData.get("phone_number") || "") || null,
+    physical_address: String(formData.get("physical_address") || "") || null,
+    postal_address: String(formData.get("postal_address") || "") || null,
   };
 
   const { data: created, error } = await supabase.from("employees").insert(payload).select("id").single();
@@ -78,7 +88,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   const { data: before } = await supabase
     .from("employees")
     .select(
-      "staff_no, department, job_title, employment_type, date_of_hire, reporting_manager_id, branch_id, probation_end_date, contract_issued_on, basic, house_allowance, transport_allowance, other_allowance, kra_pin, nssf_no, shif_no, bank_name, bank_account_no, bank_branch_code"
+      "staff_no, department, job_title, employment_type, date_of_hire, reporting_manager_id, branch_id, probation_end_date, contract_issued_on, basic, house_allowance, transport_allowance, other_allowance, kra_pin, nssf_no, shif_no, bank_name, bank_account_no, bank_branch_code, date_of_birth, gender, marital_status, national_id, passport_no, nationality, personal_email, phone_number, physical_address, postal_address"
     )
     .eq("id", employeeId)
     .single();
@@ -103,6 +113,16 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     bank_name: String(formData.get("bank_name") || "") || null,
     bank_account_no: String(formData.get("bank_account_no") || "") || null,
     bank_branch_code: String(formData.get("bank_branch_code") || "") || null,
+    date_of_birth: String(formData.get("date_of_birth") || "") || null,
+    gender: String(formData.get("gender") || "") || null,
+    marital_status: String(formData.get("marital_status") || "") || null,
+    national_id: String(formData.get("national_id") || "") || null,
+    passport_no: String(formData.get("passport_no") || "") || null,
+    nationality: String(formData.get("nationality") || "") || null,
+    personal_email: String(formData.get("personal_email") || "") || null,
+    phone_number: String(formData.get("phone_number") || "") || null,
+    physical_address: String(formData.get("physical_address") || "") || null,
+    postal_address: String(formData.get("postal_address") || "") || null,
   };
 
   const { error } = await supabase.from("employees").update(after).eq("id", employeeId);

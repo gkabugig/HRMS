@@ -298,6 +298,101 @@ export default async function EmployeesPage() {
                               className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
                             />
                           </label>
+                          <p className="text-neutral-400 pt-1 border-t border-neutral-100">Personal details</p>
+                          <label className="text-neutral-500">
+                            Date of birth
+                            <input
+                              name="date_of_birth"
+                              type="date"
+                              defaultValue={e.date_of_birth ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Gender
+                            <select
+                              name="gender"
+                              defaultValue={e.gender ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            >
+                              <option value="">—</option>
+                              <option value="Female">Female</option>
+                              <option value="Male">Male</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </label>
+                          <label className="text-neutral-500">
+                            Marital status
+                            <select
+                              name="marital_status"
+                              defaultValue={e.marital_status ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            >
+                              <option value="">—</option>
+                              <option value="Single">Single</option>
+                              <option value="Married">Married</option>
+                              <option value="Divorced">Divorced</option>
+                              <option value="Widowed">Widowed</option>
+                            </select>
+                          </label>
+                          <label className="text-neutral-500">
+                            Nationality
+                            <input
+                              name="nationality"
+                              defaultValue={e.nationality ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            National ID
+                            <input
+                              name="national_id"
+                              defaultValue={e.national_id ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Passport no.
+                            <input
+                              name="passport_no"
+                              defaultValue={e.passport_no ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <p className="text-neutral-400 pt-1 border-t border-neutral-100">Contact details</p>
+                          <label className="text-neutral-500">
+                            Phone number
+                            <input
+                              name="phone_number"
+                              defaultValue={e.phone_number ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Personal email
+                            <input
+                              name="personal_email"
+                              type="email"
+                              defaultValue={e.personal_email ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Physical address
+                            <input
+                              name="physical_address"
+                              defaultValue={e.physical_address ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
+                          <label className="text-neutral-500">
+                            Postal address
+                            <input
+                              name="postal_address"
+                              defaultValue={e.postal_address ?? ""}
+                              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            />
+                          </label>
                           <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
                             Save
                           </button>
@@ -365,6 +460,30 @@ export default async function EmployeesPage() {
             <input name="kra_pin" placeholder="KRA PIN" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="nssf_no" placeholder="NSSF No" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="shif_no" placeholder="SHIF No" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <label className="text-xs text-neutral-500 flex flex-col gap-1 sm:col-span-3 pt-1 border-t border-neutral-100">
+              Personal &amp; contact details (optional — can also be added later from Edit)
+            </label>
+            <input name="date_of_birth" type="date" placeholder="Date of birth" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <select name="gender" defaultValue="" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+              <option value="">Gender (optional)</option>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other</option>
+            </select>
+            <select name="marital_status" defaultValue="" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+              <option value="">Marital status (optional)</option>
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Divorced">Divorced</option>
+              <option value="Widowed">Widowed</option>
+            </select>
+            <input name="nationality" placeholder="Nationality" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="national_id" placeholder="National ID" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="passport_no" placeholder="Passport no." className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="phone_number" placeholder="Phone number" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="personal_email" type="email" placeholder="Personal email" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="physical_address" placeholder="Physical address" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="postal_address" placeholder="Postal address" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add employee
             </button>

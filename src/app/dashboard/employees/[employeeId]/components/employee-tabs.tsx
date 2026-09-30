@@ -2,6 +2,7 @@ import Link from "next/link";
 
 export const TAB_KEYS = [
   "overview",
+  "bio",
   "employment",
   "payroll",
   "attendance",
@@ -18,6 +19,7 @@ export type TabKey = (typeof TAB_KEYS)[number];
 
 const TAB_LABELS: Record<TabKey, string> = {
   overview: "Overview",
+  bio: "Bio",
   employment: "Employment",
   payroll: "Payroll",
   attendance: "Attendance",

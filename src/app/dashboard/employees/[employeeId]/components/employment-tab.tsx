@@ -1,16 +1,14 @@
 import type { Employee360 } from "@/lib/employees/get-employee-360";
-import { addContact, deleteContact, addNote } from "../actions";
+import { addNote } from "../actions";
 
 export function EmploymentTab({
   data,
   employeeId,
-  canManageContacts,
   canAddNote,
   canSeeNotes,
 }: {
   data: Employee360;
   employeeId: string;
-  canManageContacts: boolean;
   canAddNote: boolean;
   canSeeNotes: boolean;
 }) {
@@ -77,46 +75,6 @@ export function EmploymentTab({
             )}
           </tbody>
         </table>
-      </div>
-
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Emergency Contacts</h2>
-        <ul className="space-y-2 text-sm">
-          {data.contacts.map((c) => (
-            <li key={c.id} className="flex items-center justify-between gap-3 border-b border-neutral-50 pb-2">
-              <div>
-                <span className="font-medium text-neutral-900">{c.name}</span>
-                {c.is_primary && <span className="text-xs text-brand-600 ml-2">Primary</span>}
-                <p className="text-xs text-neutral-500">
-                  {[c.relationship, c.phone, c.email].filter(Boolean).join(" · ") || "—"}
-                </p>
-              </div>
-              {canManageContacts && (
-                <form action={deleteContact.bind(null, c.id, employeeId)}>
-                  <button type="submit" className="text-xs text-red-600 hover:underline shrink-0">
-                    Remove
-                  </button>
-                </form>
-              )}
-            </li>
-          ))}
-          {data.contacts.length === 0 && <p className="text-sm text-neutral-400">No contacts on file.</p>}
-        </ul>
-
-        {canManageContacts && (
-          <form action={addContact.bind(null, employeeId)} className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <input name="name" placeholder="Name" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="relationship" placeholder="Relationship" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="phone" placeholder="Phone" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="email" placeholder="Email" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <label className="flex items-center gap-1.5 text-neutral-600">
-              <input type="checkbox" name="is_primary" /> Primary contact
-            </label>
-            <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
-              Add contact
-            </button>
-          </form>
-        )}
       </div>
 
       {canSeeNotes && (

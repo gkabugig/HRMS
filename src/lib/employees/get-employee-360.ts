@@ -27,6 +27,16 @@ export type EmployeeRow = Record<string, unknown> & {
   transport_allowance: number;
   other_allowance: number;
   reporting_manager_id: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  marital_status: string | null;
+  national_id: string | null;
+  passport_no: string | null;
+  nationality: string | null;
+  personal_email: string | null;
+  phone_number: string | null;
+  physical_address: string | null;
+  postal_address: string | null;
 };
 
 export type ManagerSummary = {

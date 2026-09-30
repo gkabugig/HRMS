@@ -4,6 +4,7 @@ import type { UserRole } from "@/lib/auth/roles";
 import { EmployeeHeader } from "./components/employee-header";
 import { EmployeeTabs, parseTab } from "./components/employee-tabs";
 import { EmployeeOverview } from "./components/employee-overview";
+import { BioTab } from "./components/bio-tab";
 import { EmploymentTab } from "./components/employment-tab";
 import { PayrollTab } from "./components/payroll-tab";
 import { AttendanceTab } from "./components/attendance-tab";
@@ -60,14 +61,9 @@ export default async function Employee360Page({
       <EmployeeTabs employeeId={employeeId} active={activeTab} />
 
       {activeTab === "overview" && <EmployeeOverview data={data} employeeId={employeeId} />}
+      {activeTab === "bio" && <BioTab data={data} employeeId={employeeId} canManageContacts={isHrLike} />}
       {activeTab === "employment" && (
-        <EmploymentTab
-          data={data}
-          employeeId={employeeId}
-          canManageContacts={isHrLike}
-          canAddNote={isManagerLike}
-          canSeeNotes={isManagerLike}
-        />
+        <EmploymentTab data={data} employeeId={employeeId} canAddNote={isManagerLike} canSeeNotes={isManagerLike} />
       )}
       {activeTab === "payroll" && <PayrollTab data={data} />}
       {activeTab === "attendance" && <AttendanceTab data={data} />}
