@@ -79,6 +79,7 @@ export const ALL_MODULES: NavTab[] = [
   { key: "payroll-anomalies", label: "Payroll Intelligence", href: "/dashboard/payroll/anomalies", icon: "shield-alert", group: "Insights" },
   { key: "performance-insights", label: "Performance Insights", href: "/dashboard/performance/insights", icon: "sparkles", group: "Insights" },
   { key: "audit-log", label: "Audit Centre", href: "/dashboard/audit-log", icon: "history", group: "Insights" },
+  { key: "workflows", label: "Workflows", href: "/dashboard/workflows", icon: "sitemap", group: "Insights" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },

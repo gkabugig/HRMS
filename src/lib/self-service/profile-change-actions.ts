@@ -2,11 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { startApproval } from "@/lib/approvals/start-approval";
 import { decideApprovalStep } from "@/lib/approvals/decide-approval-step";
-import { startWorkflowRun, completeWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
-import { createNotificationForMany, createNotification } from "@/lib/notifications/create-notification";
-import { getManagerRecipient, getEmployeeUserId } from "@/lib/notifications/recipients";
+import { publishAndProcessEvent } from "@/lib/workflows/events/publish-and-process";
+import { resumeWorkflowFromApproval } from "@/lib/workflows/runtime/resume-from-approval";
 import { ALLOWED_FIELDS } from "./profile-change-fields";
 
 export async function submitProfileChangeRequest(formData: FormData) {
@@ -45,49 +43,37 @@ export async function submitProfileChangeRequest(formData: FormData) {
     .single();
   if (error) throw new Error(error.message);
 
-  // Definition-driven now (Universal Approval Engine, Area 02) — the
-  // approval_definitions row seeded in migration 0041 resolves to the same
-  // single HR step this used to hard-code, just through resolveApprover()
-  // instead of a literal { approverRole: "hr" } array.
-  const { requestId: approvalRequestId } = await startApproval(supabase, {
-    orgId: appUser.org_id,
-    resource: "employee_data_change",
-    entityType: "profile_change_request",
-    entityId: changeRequest.id,
-    requesterId: user.id,
-    subjectEmployeeId: appUser.employee_id,
-    summary: `Change ${field.replace(/_/g, " ")} from "${oldValue ?? "—"}" to "${newValue}"`,
-    metadata: { field, old_value: oldValue, new_value: newValue },
-  });
-
-  await supabase.from("profile_change_requests").update({ approval_request_id: approvalRequestId }).eq("id", changeRequest.id);
-
-  await startWorkflowRun(supabase, {
-    orgId: appUser.org_id,
-    key: PRIORITY_WORKFLOW_KEYS.EMPLOYEE_DATA_CHANGE,
-    entityType: "profile_change_request",
-    entityId: changeRequest.id,
-  });
-
-  // HR already gets a notification for this via startApproval's own
-  // approval.step_assigned (category "approval") — only the employee's
-  // manager still needs one here, since they aren't part of the HR-only
-  // approval chain but should still know a change is pending.
+  // Workflow Automation Engine (Area 03) now owns this end-to-end: the
+  // published "Employee Data Change" graph (seeded in migration 0049) does
+  // the manager notification, the HR approval (via Area 02's startApproval
+  // — same approval_definitions row from migration 0041, just invoked from
+  // the engine's approval node instead of directly from here), and — once
+  // decided — applying the field change or rejecting it, plus the
+  // employee's own decision notification. This action's only job now is to
+  // publish the event that kicks that off; everything downstream lives in
+  // the workflow graph and the registered actions it calls, not here.
   const empName = (changeRequest.employees as unknown as { name: string } | null)?.name ?? "An employee";
-  const managerRecipients = await getManagerRecipient(supabase, appUser.employee_id);
-  if (managerRecipients.length > 0) {
-    await createNotificationForMany(supabase, managerRecipients, {
-      orgId: appUser.org_id,
-      type: "PROFILE_CHANGE_REQUESTED",
-      category: "self_service",
-      priority: "information",
-      title: "Profile change request submitted",
-      message: `${empName} requested to change ${field.replace(/_/g, " ")}.`,
+  await publishAndProcessEvent(supabase, {
+    orgId: appUser.org_id,
+    eventName: "employee_data_change.requested",
+    entityType: "profile_change_request",
+    entityId: changeRequest.id,
+    createdBy: user.id,
+    payload: {
+      employeeId: appUser.employee_id,
+      subjectEmployeeId: appUser.employee_id,
+      requestedBy: user.id,
+      changeRequestId: changeRequest.id,
+      field,
+      fieldLabel: field.replace(/_/g, " "),
+      oldValue,
+      oldValueDisplay: oldValue ?? "—",
+      newValue,
+      employeeName: empName,
       entityType: "profile_change_request",
       entityId: changeRequest.id,
-      actionUrl: "/dashboard/approvals",
-    });
-  }
+    },
+  });
 
   revalidatePath("/dashboard/employees/me");
   revalidatePath("/dashboard/approvals");
@@ -128,49 +114,15 @@ export async function decideProfileChangeApproval(stepId: string, decision: "app
       : undefined,
   });
 
-  const { data: changeRequest } = await supabase
-    .from("profile_change_requests")
-    .select("id, employee_id, field, new_value")
-    .eq("approval_request_id", requestId)
-    .maybeSingle();
-
-  if (changeRequest) {
-    if (decision === "approved") {
-      await supabase
-        .from("employees")
-        .update({ [changeRequest.field]: changeRequest.new_value })
-        .eq("id", changeRequest.employee_id);
-    }
-    await supabase
-      .from("profile_change_requests")
-      .update({ status: decision === "approved" ? "Approved" : "Rejected", decided_at: new Date().toISOString() })
-      .eq("id", changeRequest.id);
-
-    const { data: run } = await supabase
-      .from("workflow_runs")
-      .select("id")
-      .eq("entity_type", "profile_change_request")
-      .eq("entity_id", changeRequest.id)
-      .eq("status", "running")
-      .maybeSingle();
-    if (run) await completeWorkflowRun(supabase, run.id, decision === "approved" ? "completed" : "failed");
-
-    const employeeUserId = await getEmployeeUserId(supabase, changeRequest.employee_id);
-    if (employeeUserId) {
-      await createNotification(supabase, {
-        orgId: appUser.org_id,
-        recipientUserId: employeeUserId,
-        type: `PROFILE_CHANGE_${decision.toUpperCase()}`,
-        category: "self_service",
-        priority: "information",
-        title: `Profile change ${decision}`,
-        message: `Your request to change ${changeRequest.field.replace(/_/g, " ")} was ${decision}.`,
-        entityType: "profile_change_request",
-        entityId: changeRequest.id,
-        actionUrl: "/dashboard/employees/me",
-      });
-    }
-  }
+  // Hands off to the Workflow Automation Engine (Area 03): decideApprovalStep
+  // itself stays completely unaware that a workflow exists (Area 02
+  // constraint). This looks for the workflow_run_nodes row still 'waiting'
+  // on this approval request — there is one here, since submitting a
+  // profile change request now always starts the Employee Data Change
+  // run — and resumes it, which applies the field change or rejects it
+  // (via the registered actions) and notifies the employee, all from the
+  // seeded graph rather than inline code here.
+  await resumeWorkflowFromApproval(supabase, requestId, decision);
 
   revalidatePath("/dashboard/approvals");
   revalidatePath("/dashboard/employees");

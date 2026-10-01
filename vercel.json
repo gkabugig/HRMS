@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/approval-escalations",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/workflow-events",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
