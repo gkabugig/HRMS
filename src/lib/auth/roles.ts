@@ -87,6 +87,12 @@ export const ALL_MODULES: NavTab[] = [
   // managers get a narrower view (manager-risk below) scoped to risks
   // concerning their own reports (workforce_risks_manager_read RLS).
   { key: "risk", label: "Workforce Risk", href: "/dashboard/risk", icon: "shield-alert", group: "Insights" },
+  // Area 16 Position & Workforce Planning — admin/hr only (position
+  // establishment, requests, vacancies, plans, scenarios are headcount/
+  // budget decisions, not something every manager needs in their sidebar;
+  // managers still get a plain-English "my team's positions" view, if
+  // needed, through manager-organisation).
+  { key: "positions", label: "Position & Workforce Planning", href: "/dashboard/positions", icon: "sitemap", group: "People" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
