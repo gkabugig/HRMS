@@ -126,7 +126,7 @@ export default async function ManagerEmployee360Page({ params }: { params: Promi
             <ul className="space-y-1 text-sm text-neutral-700">
               {data.documents.map((d) => (
                 <li key={d.id} className="flex justify-between">
-                  <span>{d.fileName}</span>
+                  <span>{d.title || d.fileName}</span>
                   <span className="text-xs text-neutral-500">{d.docType}{d.expiryDate ? ` · expires ${d.expiryDate}` : ""}</span>
                 </li>
               ))}

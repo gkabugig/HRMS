@@ -57,7 +57,7 @@ export type ManagerEmployee360 = {
     enrollments: { id: string; status: string; courseName: string; enrolledOn: string; completedOn: string | null }[];
     overdueMandatory: { courseName: string }[];
   };
-  documents: { id: string; docType: string; fileName: string; expiryDate: string | null }[];
+  documents: { id: string; docType: string; title: string | null; fileName: string; expiryDate: string | null }[];
   openRequests: { id: string; subject: string; status: string; createdAt: string }[];
 };
 
@@ -106,10 +106,11 @@ export async function getManagerEmployee360(
   // is_manager_of) — belt and suspenders, not a substitute for it.
   const documentsQuery = supabase
     .from("employee_documents")
-    .select("id, doc_type, file_name, expiry_date")
+    .select("id, doc_type, title, file_name, expiry_date, lifecycle_state")
     .eq("employee_id", employeeId)
     .eq("visibility", "Manager")
     .eq("status", "Active")
+    .in("lifecycle_state", ["issued", "acknowledged"])
     .is("archived_at", null);
   const requestsQuery = supabase
     .from("service_requests")
@@ -225,7 +226,7 @@ export async function getManagerEmployee360(
       })),
       overdueMandatory,
     },
-    documents: (documentsRes.data ?? []).map((d) => ({ id: d.id, docType: d.doc_type, fileName: d.file_name, expiryDate: d.expiry_date })),
+    documents: (documentsRes.data ?? []).map((d) => ({ id: d.id, docType: d.doc_type, title: d.title, fileName: d.file_name, expiryDate: d.expiry_date })),
     openRequests: (requestsRes.data ?? []).map((r) => ({
       id: r.id,
       subject: r.subject,

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Employee360 } from "@/lib/employees/get-employee-360";
 import { uploadDocument, deleteDocument } from "@/app/dashboard/documents/actions";
 
@@ -44,10 +45,16 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-neutral-500">{d.visibility}</td>
+                  <td className="px-4 py-2 text-neutral-500">
+                    {d.visibility}
+                    <span className="block text-xs text-neutral-400 capitalize">{d.lifecycle_state}</span>
+                  </td>
                   {canUpload && (
-                    <td className="px-4 py-2">
-                      <form action={deleteDocument.bind(null, d.id, d.file_path, employeeId)}>
+                    <td className="px-4 py-2 whitespace-nowrap space-x-2">
+                      <Link href={`/dashboard/documents/${d.id}`} className="text-xs text-brand-600 hover:underline">
+                        Manage
+                      </Link>
+                      <form action={deleteDocument.bind(null, d.id, d.file_path, employeeId)} className="inline">
                         <button type="submit" className="text-xs text-red-600 hover:underline">
                           Remove
                         </button>

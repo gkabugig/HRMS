@@ -105,6 +105,7 @@ export type DocumentSummary = {
   visibility: string;
   uploaded_at: string;
   url: string | null;
+  lifecycle_state: string;
 };
 
 export type AssetSummary = {
@@ -254,7 +255,7 @@ export async function getEmployee360(supabase: SupabaseClient<any>, employeeId: 
     supabase.from("disciplinary_actions").select("id", { count: "exact", head: true }).eq("employee_id", employeeId),
     supabase
       .from("employee_documents")
-      .select("id, doc_type, file_path, file_name, issue_date, expiry_date, visibility, uploaded_at")
+      .select("id, doc_type, file_path, file_name, issue_date, expiry_date, visibility, uploaded_at, lifecycle_state")
       .eq("employee_id", employeeId)
       .order("uploaded_at", { ascending: false }),
     supabase
@@ -384,6 +385,7 @@ export async function getEmployee360(supabase: SupabaseClient<any>, employeeId: 
     expiry_date: string | null;
     visibility: string;
     uploaded_at: string;
+    lifecycle_state: string;
   }[];
   const documentSummaries: DocumentSummary[] = [];
   for (const d of docRows) {
@@ -398,6 +400,7 @@ export async function getEmployee360(supabase: SupabaseClient<any>, employeeId: 
       visibility: d.visibility,
       uploaded_at: d.uploaded_at,
       url: signed?.signedUrl ?? null,
+      lifecycle_state: d.lifecycle_state ?? "issued",
     });
   }
 

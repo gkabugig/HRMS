@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-context";
 import { getMyDocuments } from "@/lib/employee-portal/get-my-documents";
 import { uploadMyDocument } from "@/lib/employee-portal/documents-actions";
-import { acknowledgeDocument } from "@/lib/documents/get-signed-document-url";
+import { acknowledgeDocumentVersion, declineDocumentAcknowledgement } from "@/lib/documents/acknowledgements";
 import EmptyState from "@/components/employee-portal/empty-state";
 import ViewDocumentButton from "./view-document-button";
 
@@ -72,21 +72,40 @@ export default async function MyDocumentsPage() {
             <tbody>
               {documents.map((d) => (
                 <tr key={d.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2">{d.fileName}</td>
+                  <td className="px-4 py-2">{d.title || d.fileName}</td>
                   <td className="px-4 py-2 text-neutral-500">{d.docType}</td>
                   <td className="px-4 py-2 text-neutral-500">{d.expiryDate ?? "—"}</td>
                   <td className="px-4 py-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${LIFECYCLE_STYLE[d.lifecycle] ?? "bg-neutral-100"}`}>{d.lifecycle}</span>
                   </td>
                   <td className="px-4 py-2 text-right space-x-2 whitespace-nowrap">
-                    <ViewDocumentButton documentId={d.id} />
-                    {d.requiresAcknowledgement && !d.acknowledgedAt && (
-                      <form action={acknowledgeDocument.bind(null, d.id)} className="inline">
-                        <button className="text-xs font-medium text-amber-700 hover:underline">Acknowledge</button>
-                      </form>
+                    <ViewDocumentButton documentId={d.id} versionId={d.currentVersionId} />
+                    {d.requiresAcknowledgement && d.acknowledgementStatus !== "acknowledged" && d.acknowledgementStatus !== "declined" && (
+                      <>
+                        <form
+                          action={async () => {
+                            "use server";
+                            await acknowledgeDocumentVersion(d.id, d.currentVersionId);
+                          }}
+                          className="inline"
+                        >
+                          <button className="text-xs font-medium text-amber-700 hover:underline">Acknowledge</button>
+                        </form>
+                        <form
+                          action={async (formData: FormData) => {
+                            "use server";
+                            await declineDocumentAcknowledgement(d.id, d.currentVersionId, String(formData.get("reason") || ""));
+                          }}
+                          className="inline-flex items-center gap-1"
+                        >
+                          <input name="reason" placeholder="Reason" className="border border-neutral-300 rounded px-1.5 py-0.5 text-xs w-24" />
+                          <button className="text-xs font-medium text-red-600 hover:underline">Decline</button>
+                        </form>
+                      </>
                     )}
-                    {d.requiresAcknowledgement && d.acknowledgedAt && (
-                      <span className="text-xs text-green-700">Acknowledged</span>
+                    {d.acknowledgementStatus === "acknowledged" && <span className="text-xs text-green-700">Acknowledged</span>}
+                    {d.acknowledgementStatus === "declined" && (
+                      <span className="text-xs text-red-700" title={d.declineReason ?? undefined}>Declined</span>
                     )}
                   </td>
                 </tr>
