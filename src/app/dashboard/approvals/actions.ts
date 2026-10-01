@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { decideApprovalStep } from "@/lib/approvals/decide-approval-step";
+import { escalateStep } from "@/lib/approvals/escalate-step";
 import { decideProfileChangeApproval } from "@/lib/self-service/profile-change-actions";
 
 // Single entry point the inbox calls, regardless of which module opened
@@ -32,6 +33,23 @@ export async function decideApproval(stepId: string, decision: "approved" | "rej
   const { data: appUser } = await supabase.from("app_users").select("org_id").eq("id", user.id).maybeSingle();
   if (!appUser) throw new Error("No org context.");
 
-  await decideApprovalStep(supabase, { stepId, actorUserId: user.id, orgId: appUser.org_id, decision });
+  await decideApprovalStep(supabase, { stepId, orgId: appUser.org_id, decision });
+  revalidatePath("/dashboard/approvals");
+}
+
+// Manual escalation (the button on an overdue row) — only admin/hr can pull
+// this lever; it reassigns the step and logs approval_escalations the same
+// way the scheduled job does (escalateStep itself knows nothing about who's
+// calling it).
+export async function escalateApprovalStep(stepId: string, reason?: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+  const { data: appUser } = await supabase.from("app_users").select("org_id, role").eq("id", user.id).maybeSingle();
+  if (!appUser || !["admin", "hr"].includes(appUser.role)) throw new Error("Only admin/HR can escalate an approval.");
+
+  await escalateStep(supabase, { stepId, orgId: appUser.org_id, reason: reason ?? null, actorUserId: user.id });
   revalidatePath("/dashboard/approvals");
 }

@@ -2,11 +2,11 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { createApprovalRequest } from "@/lib/approvals/create-approval-request";
+import { startApproval } from "@/lib/approvals/start-approval";
 import { decideApprovalStep } from "@/lib/approvals/decide-approval-step";
 import { startWorkflowRun, completeWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 import { createNotificationForMany, createNotification } from "@/lib/notifications/create-notification";
-import { getHrAndManagerRecipients, getEmployeeUserId } from "@/lib/notifications/recipients";
+import { getManagerRecipient, getEmployeeUserId } from "@/lib/notifications/recipients";
 import { ALLOWED_FIELDS } from "./profile-change-fields";
 
 export async function submitProfileChangeRequest(formData: FormData) {
@@ -45,15 +45,19 @@ export async function submitProfileChangeRequest(formData: FormData) {
     .single();
   if (error) throw new Error(error.message);
 
-  const approvalRequestId = await createApprovalRequest(supabase, {
+  // Definition-driven now (Universal Approval Engine, Area 02) — the
+  // approval_definitions row seeded in migration 0041 resolves to the same
+  // single HR step this used to hard-code, just through resolveApprover()
+  // instead of a literal { approverRole: "hr" } array.
+  const { requestId: approvalRequestId } = await startApproval(supabase, {
     orgId: appUser.org_id,
-    requestType: "employee_data_change",
+    resource: "employee_data_change",
     entityType: "profile_change_request",
     entityId: changeRequest.id,
-    requestedBy: user.id,
+    requesterId: user.id,
     subjectEmployeeId: appUser.employee_id,
     summary: `Change ${field.replace(/_/g, " ")} from "${oldValue ?? "—"}" to "${newValue}"`,
-    steps: [{ approverRole: "hr" }],
+    metadata: { field, old_value: oldValue, new_value: newValue },
   });
 
   await supabase.from("profile_change_requests").update({ approval_request_id: approvalRequestId }).eq("id", changeRequest.id);
@@ -65,19 +69,25 @@ export async function submitProfileChangeRequest(formData: FormData) {
     entityId: changeRequest.id,
   });
 
+  // HR already gets a notification for this via startApproval's own
+  // approval.step_assigned (category "approval") — only the employee's
+  // manager still needs one here, since they aren't part of the HR-only
+  // approval chain but should still know a change is pending.
   const empName = (changeRequest.employees as unknown as { name: string } | null)?.name ?? "An employee";
-  const recipients = await getHrAndManagerRecipients(supabase, appUser.org_id, appUser.employee_id);
-  await createNotificationForMany(supabase, recipients, {
-    orgId: appUser.org_id,
-    type: "PROFILE_CHANGE_REQUESTED",
-    category: "self_service",
-    priority: "action_required",
-    title: "Profile change request awaiting approval",
-    message: `${empName} requested to change ${field.replace(/_/g, " ")}.`,
-    entityType: "profile_change_request",
-    entityId: changeRequest.id,
-    actionUrl: "/dashboard/approvals",
-  });
+  const managerRecipients = await getManagerRecipient(supabase, appUser.employee_id);
+  if (managerRecipients.length > 0) {
+    await createNotificationForMany(supabase, managerRecipients, {
+      orgId: appUser.org_id,
+      type: "PROFILE_CHANGE_REQUESTED",
+      category: "self_service",
+      priority: "information",
+      title: "Profile change request submitted",
+      message: `${empName} requested to change ${field.replace(/_/g, " ")}.`,
+      entityType: "profile_change_request",
+      entityId: changeRequest.id,
+      actionUrl: "/dashboard/approvals",
+    });
+  }
 
   revalidatePath("/dashboard/employees/me");
   revalidatePath("/dashboard/approvals");
@@ -96,11 +106,26 @@ export async function decideProfileChangeApproval(stepId: string, decision: "app
   const { data: appUser } = await supabase.from("app_users").select("org_id, role").eq("id", user.id).maybeSingle();
   if (!appUser || !["admin", "hr"].includes(appUser.role)) throw new Error("Only admin/HR can decide this.");
 
+  // The subject employee's id for the RBAC record-level check — a profile
+  // change request names one specific employee whose record would be
+  // edited on approval, so this is an edit-on-employees decision, not a
+  // coarse one.
+  const { data: changeRequestForRbac } = await supabase
+    .from("approval_steps")
+    .select("approval_requests(subject_employee_id)")
+    .eq("id", stepId)
+    .maybeSingle();
+  const subjectEmployeeId =
+    (changeRequestForRbac?.approval_requests as unknown as { subject_employee_id: string | null } | null)
+      ?.subject_employee_id ?? null;
+
   const { requestId } = await decideApprovalStep(supabase, {
     stepId,
-    actorUserId: user.id,
     orgId: appUser.org_id,
     decision,
+    rbac: subjectEmployeeId
+      ? { resource: "employees", action: "edit", sensitivity: "normal", recordId: subjectEmployeeId }
+      : undefined,
   });
 
   const { data: changeRequest } = await supabase

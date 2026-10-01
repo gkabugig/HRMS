@@ -10,7 +10,8 @@ export type NotificationCategory =
   | "documents"
   | "system"
   | "self_service"
-  | "service_request";
+  | "service_request"
+  | "approval";
 
 export type NotificationPriority = "critical" | "action_required" | "reminder" | "information";
 
