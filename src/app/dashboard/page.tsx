@@ -48,6 +48,13 @@ export default async function DashboardHome({
     redirect("/dashboard/me");
   }
 
+  // Area 06 — same alias relationship as the employee redirect above: the
+  // manager workspace is the real landing experience for the manager role,
+  // /dashboard stays the one entry point login/nav both target.
+  if (context.role === "manager") {
+    redirect("/dashboard/manager");
+  }
+
   return (
     <div className="space-y-6">
       <DashboardHeader

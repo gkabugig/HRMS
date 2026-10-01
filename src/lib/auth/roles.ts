@@ -105,12 +105,44 @@ export const ALL_MODULES: NavTab[] = [
   { key: "me-documents", label: "My Documents", href: "/dashboard/me/documents", icon: "folder", group: "Overview" },
   { key: "me-tasks", label: "My Tasks", href: "/dashboard/me/tasks", icon: "check-square", group: "Overview" },
   { key: "me-help", label: "Help", href: "/dashboard/me/help", icon: "help-circle", group: "Overview" },
+
+  // Area 06 Manager Workspace — the manager's own purpose-built surface,
+  // replacing the shared "attendance"/"leave"/"performance" keys for the
+  // manager role (those stay pointed at /dashboard/* for admin/hr, who have
+  // their own full-org version of those pages). "disciplinary" was removed
+  // from the manager role entirely (see migration 0074) rather than kept
+  // pointing at a page managers can no longer read anything on.
+  { key: "manager-team", label: "My Team", href: "/dashboard/manager/team", icon: "users", group: "Overview" },
+  { key: "manager-attendance", label: "Team Attendance", href: "/dashboard/manager/attendance", icon: "clock", group: "Workforce" },
+  { key: "manager-leave", label: "Team Leave", href: "/dashboard/manager/leave", icon: "calendar-days", group: "Workforce" },
+  { key: "manager-performance", label: "Team Performance", href: "/dashboard/manager/performance", icon: "target", group: "Workforce" },
+  { key: "manager-learning", label: "Team Learning", href: "/dashboard/manager/learning", icon: "graduation-cap", group: "Workforce" },
+  { key: "manager-recruitment", label: "Recruitment", href: "/dashboard/manager/recruitment", icon: "briefcase", group: "People" },
+  { key: "manager-requests", label: "Team Requests", href: "/dashboard/manager/requests", icon: "life-buoy", group: "Overview" },
+  { key: "manager-analytics", label: "Team Analytics", href: "/dashboard/manager/analytics", icon: "line-chart", group: "Insights" },
+  { key: "manager-organisation", label: "Organisation", href: "/dashboard/manager/organisation", icon: "sitemap", group: "People" },
 ];
 
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
   hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
-  manager: ["dashboard", "notifications", "approvals", "service-requests", "attendance", "leave", "assignments", "performance", "performance-insights", "disciplinary"],
+  manager: [
+    "dashboard",
+    "notifications",
+    "approvals",
+    "service-requests",
+    "manager-team",
+    "manager-attendance",
+    "manager-leave",
+    "manager-performance",
+    "manager-learning",
+    "manager-recruitment",
+    "manager-requests",
+    "manager-analytics",
+    "manager-organisation",
+    "assignments",
+    "performance-insights",
+  ],
   employee: [
     "dashboard",
     "notifications",
@@ -131,11 +163,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
 // see "Team X" / "My X" instead of the HR-facing name).
 export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> = {
   manager: {
-    attendance: "Team Attendance",
-    leave: "Team Leave",
-    performance: "Team Performance",
     "performance-insights": "Team Performance Insights",
-    disciplinary: "Team Disciplinary",
     assignments: "Team Assignments",
     "service-requests": "My HR Requests",
   },

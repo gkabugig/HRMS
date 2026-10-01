@@ -35,10 +35,14 @@ const ITEMS_BY_ROLE: Record<UserRole, BottomItem[]> = {
     { key: "payslips", label: "Payslips", href: "/dashboard/me/pay", icon: Wallet },
     { key: "notifications", label: "Alerts", href: "/dashboard/notifications", icon: Bell },
   ],
+  // Area 06: repointed at the manager workspace's own pages — /dashboard
+  // still works (it redirects a manager straight to /dashboard/manager),
+  // but the bottom nav skips the extra hop and "Approvals" now opens the
+  // real Approvals Centre instead of a leave-only filtered view.
   manager: [
-    { key: "home", label: "Home", href: "/dashboard", icon: Home },
-    { key: "team", label: "Team", href: "/dashboard/attendance#team", icon: Users },
-    { key: "approvals", label: "Approvals", href: "/dashboard/leave?view=requests", icon: CheckSquare },
+    { key: "home", label: "Home", href: "/dashboard/manager", icon: Home },
+    { key: "team", label: "Team", href: "/dashboard/manager/team", icon: Users },
+    { key: "approvals", label: "Approvals", href: "/dashboard/approvals", icon: CheckSquare },
     { key: "search", label: "Search", href: "#", icon: Search, action: "open-search" },
     { key: "profile", label: "Profile", href: "/dashboard/employees/me", icon: User },
   ],
