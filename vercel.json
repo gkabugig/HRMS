@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/approval-escalations",
-      "schedule": "0 * * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cron/workflow-events",
-      "schedule": "*/15 * * * *"
+      "schedule": "15 5 * * *"
     },
     {
       "path": "/api/cron/document-expiry",
@@ -14,15 +14,15 @@
     },
     {
       "path": "/api/cron/notifications-process",
-      "schedule": "*/5 * * * *"
+      "schedule": "30 5 * * *"
     },
     {
       "path": "/api/cron/notifications-dispatch",
-      "schedule": "*/5 * * * *"
+      "schedule": "45 5 * * *"
     },
     {
       "path": "/api/cron/notifications-escalate",
-      "schedule": "*/15 * * * *"
+      "schedule": "10 6 * * *"
     },
     {
       "path": "/api/cron/notifications-digest",
