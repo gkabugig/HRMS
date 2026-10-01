@@ -15,6 +15,7 @@ const DASHBOARDS = [
   { key: "performance", label: "Performance" },
   { key: "learning", label: "Learning" },
   { key: "compliance", label: "Compliance" },
+  { key: "planning", label: "Planning & Workflow" },
 ] as const;
 
 type DashboardKey = (typeof DASHBOARDS)[number]["key"];
@@ -50,12 +51,32 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             Trusted metrics with drill-down. Every figure links back to its definition, formula and population.
           </p>
         </div>
-        <a
-          href={`/dashboard/analytics/export?view=${activeView}`}
-          className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
-        >
-          Export CSV
-        </a>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/analytics/kpi-explorer"
+            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+          >
+            KPI Explorer
+          </Link>
+          <Link
+            href="/dashboard/analytics/forecasts"
+            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+          >
+            Forecasts
+          </Link>
+          <Link
+            href="/dashboard/analytics/data-quality"
+            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+          >
+            Data Quality
+          </Link>
+          <a
+            href={`/dashboard/analytics/export?view=${activeView}`}
+            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+          >
+            Export CSV
+          </a>
+        </div>
       </div>
 
       <div className="flex gap-1 border-b border-[var(--border-subtle)] overflow-x-auto">
@@ -158,6 +179,16 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
       {activeView === "compliance" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <MetricCard metric={metrics.complianceExpiringDocuments} computedAt={metrics.computedAt} />
+        </div>
+      )}
+
+      {activeView === "planning" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <MetricCard metric={metrics.fte} computedAt={metrics.computedAt} />
+          <MetricCard metric={metrics.vacancyRate} computedAt={metrics.computedAt} />
+          <MetricCard metric={metrics.overtimeHours} computedAt={metrics.computedAt} />
+          <MetricCard metric={metrics.approvalAgeing} computedAt={metrics.computedAt} />
+          <MetricCard metric={metrics.caseSlaCompliance} computedAt={metrics.computedAt} />
         </div>
       )}
     </div>

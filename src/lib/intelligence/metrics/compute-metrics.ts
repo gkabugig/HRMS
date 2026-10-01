@@ -26,6 +26,12 @@ export type WorkforceMetrics = {
   performanceAppraisalCompletion: ComputedMetric;
   learningCompletionRate: ComputedMetric;
   complianceExpiringDocuments: ComputedMetric;
+  // Area 10 §5.3 additions.
+  fte: ComputedMetric;
+  vacancyRate: ComputedMetric;
+  overtimeHours: ComputedMetric;
+  approvalAgeing: ComputedMetric;
+  caseSlaCompliance: ComputedMetric;
   headcountByDepartment: SegmentBreakdown[];
   costByDepartment: SegmentBreakdown[];
   presenceByDepartment: SegmentBreakdown[];
@@ -74,12 +80,15 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
     { data: leaveRequests },
     { data: leavePolicies },
     { data: requisitions },
+    { data: positionsRows },
+    { data: openApprovals },
+    { data: slaServiceRequests },
     { data: appraisalGoals },
     { data: appraisals },
     { data: enrollments },
     { data: complianceDocs },
   ] = await Promise.all([
-    supabase.from("employees").select("id, department, status, date_of_hire"),
+    supabase.from("employees").select("id, department, status, date_of_hire, employment_type"),
     supabase
       .from("offboarding_records")
       .select("employee_id, status, last_working_day, employees(department)")
@@ -96,6 +105,9 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
     supabase.from("leave_requests").select("days, leave_type, status").eq("status", "Approved").gte("start_date", `${now.getFullYear()}-01-01`),
     supabase.from("leave_policies").select("leave_type, annual_entitlement_days"),
     supabase.from("requisitions").select("id, status, raised_on"),
+    supabase.from("positions").select("id, status, is_active"),
+    supabase.from("approval_requests").select("id, status, created_at").in("status", ["draft", "submitted", "pending_approval", "returned"]),
+    supabase.from("service_requests").select("id, status, sla_due_at, resolved_at").not("sla_due_at", "is", null),
     supabase.from("appraisal_goals").select("id, manager_rating, appraisals!inner(status)"),
     supabase.from("appraisals").select("id, status"),
     supabase.from("training_enrollments").select("id, status"),
@@ -165,6 +177,50 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
 
   const expiringDocs = (complianceDocs ?? []).length;
 
+  // Area 10 §5.3 additions.
+  // FTE: no dedicated fractional-FTE field exists on employees yet, so a
+  // configured default fraction is used per employment_type (documented in
+  // the metric's own definition card, same disclosed-approximation pattern
+  // as recruitment_time_to_fill above). Part-time/casual count as 0.5,
+  // everything else (permanent, contract, probation) counts as 1.0.
+  const fteFraction = (employmentType: string | null) => {
+    const t = (employmentType ?? "").toLowerCase();
+    if (t.includes("part") || t.includes("casual")) return 0.5;
+    return 1.0;
+  };
+  const fte = activeEmployees.reduce((s, e) => s + fteFraction((e as { employment_type?: string | null }).employment_type ?? null), 0);
+
+  const activePositions = (positionsRows ?? []).filter((p) => p.is_active);
+  const vacantPositions = activePositions.filter((p) => p.status === "vacant");
+  const vacancyRate = activePositions.length > 0 ? (vacantPositions.length / activePositions.length) * 100 : 0;
+
+  // Overtime: computed from the same classifyDay() logic attendance uses
+  // elsewhere (actual hours worked beyond the standard shift length), since
+  // this build has no separate overtime-approval workflow — recorded, not
+  // "approved", overtime. Approximation disclosed in the definition card.
+  const overtimeHours = attRows.reduce((sum, r) => {
+    if (!r.clock_in || !r.clock_out) return sum;
+    const [inH, inM] = r.clock_in.split(":").map(Number);
+    const [outH, outM] = r.clock_out.split(":").map(Number);
+    const hours = outH + outM / 60 - (inH + inM / 60);
+    const standardHours = 8;
+    return sum + Math.max(0, hours - standardHours);
+  }, 0);
+
+  const approvalsOpen = openApprovals ?? [];
+  const approvalAgeing =
+    approvalsOpen.length > 0
+      ? approvalsOpen.reduce((s, r) => s + (now.getTime() - new Date(r.created_at).getTime()) / 86400000, 0) / approvalsOpen.length
+      : 0;
+
+  const slaCases = slaServiceRequests ?? [];
+  const slaCompliant = slaCases.filter((c) => {
+    const due = new Date(c.sla_due_at as string).getTime();
+    const measuredAt = c.resolved_at ? new Date(c.resolved_at).getTime() : now.getTime();
+    return measuredAt <= due;
+  });
+  const caseSlaCompliance = slaCases.length > 0 ? (slaCompliant.length / slaCases.length) * 100 : 100;
+
   const metrics: WorkforceMetrics = {
     headcountActive: withDef("headcount_active", headcountActive, headcountActive, defs),
     headcountNewHires: withDef("headcount_new_hires", newHires, newHires, defs),
@@ -181,6 +237,11 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
     performanceAppraisalCompletion: withDef("performance_appraisal_completion", appraisalCompletion, (appraisals ?? []).length, defs),
     learningCompletionRate: withDef("learning_completion_rate", learningCompletion, (enrollments ?? []).length, defs),
     complianceExpiringDocuments: withDef("compliance_expiring_documents", expiringDocs, expiringDocs, defs),
+    fte: withDef("fte", fte, activeEmployees.length, defs),
+    vacancyRate: withDef("vacancy_rate", vacancyRate, activePositions.length, defs),
+    overtimeHours: withDef("overtime_hours", overtimeHours, attRows.length, defs),
+    approvalAgeing: withDef("approval_ageing", approvalAgeing, approvalsOpen.length, defs),
+    caseSlaCompliance: withDef("case_sla_compliance", caseSlaCompliance, slaCases.length, defs),
     headcountByDepartment: Array.from(headcountByDeptMap.entries()).map(([dept, count]) => ({
       segmentLabel: dept,
       segmentValue: dept,
@@ -211,6 +272,11 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
       { org_id: orgId, metric_key: "payroll_cost_gross", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: payrollCostGross, population_count: payslips.length },
       { org_id: orgId, metric_key: "turnover_rate", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: turnoverRate, population_count: headcountActive },
       { org_id: orgId, metric_key: "attendance_presence_rate", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: attendancePresenceRate, population_count: attRows.length },
+      { org_id: orgId, metric_key: "fte", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: fte, population_count: activeEmployees.length },
+      { org_id: orgId, metric_key: "vacancy_rate", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: vacancyRate, population_count: activePositions.length },
+      { org_id: orgId, metric_key: "overtime_hours", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: overtimeHours, population_count: attRows.length },
+      { org_id: orgId, metric_key: "approval_ageing", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: approvalAgeing, population_count: approvalsOpen.length },
+      { org_id: orgId, metric_key: "case_sla_compliance", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: caseSlaCompliance, population_count: slaCases.length },
     ];
     await supabase.from("metric_snapshots").upsert(rows, { onConflict: "org_id,metric_key,dimension_key,dimension_value,snapshot_date" });
   } catch {
