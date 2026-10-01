@@ -110,7 +110,8 @@ export async function createPosition(formData: FormData) {
       location_id: String(formData.get("location_id") || "") || null,
       cost_centre_id: String(formData.get("cost_centre_id") || "") || null,
       reports_to_position_id: String(formData.get("reports_to_position_id") || "") || null,
-      headcount_approved: Number(formData.get("headcount_approved") || 1),
+      approved_headcount: Number(formData.get("approved_headcount") || 1),
+      position_code: String(formData.get("position_code") || "") || null,
     })
     .select("id")
     .single();
@@ -129,49 +130,77 @@ export async function createPosition(formData: FormData) {
   revalidatePath("/dashboard/organogram");
 }
 
-// Links an employee to a position, effective-dated (spec §5.3 — history is
-// never rewritten, only closed out and superseded). Also flips the old
-// primary position's status back to vacant and the new one to occupied so
-// headcount reporting stays accurate.
+// Links an employee to a position — and, authoritative as of Area 04,
+// optionally changes their line manager in the same action. Delegates to
+// change_employee_assignment() (supabase/migrations/0059), the single
+// transactional path for every assignment change: it closes out the
+// previous employee_positions/reporting_relationships rows (never rewrites
+// history), flips position statuses, keeps employees.department/
+// reporting_manager_id in sync for every reader that hasn't migrated onto
+// the resolvers/view yet, and records both a domain event and an audit
+// event. Admin/HR only — enforced inside the function itself, independent
+// of this action's own RLS-scoped client.
 export async function assignEmployeePosition(formData: FormData) {
   const supabase = await createClient();
-  const { orgId, userId } = await requireOrgAndActor(supabase);
+  await requireOrgAndActor(supabase);
 
   const employeeId = String(formData.get("employee_id") || "");
   const positionId = String(formData.get("position_id") || "");
+  const managerId = String(formData.get("manager_id") || "") || null;
   const reason = String(formData.get("reason") || "") || null;
+  const effectiveFrom = String(formData.get("effective_from") || "") || new Date().toISOString().slice(0, 10);
   if (!employeeId || !positionId) throw new Error("Employee and position are required.");
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  await supabase
-    .from("employee_positions")
-    .update({ effective_to: today })
-    .eq("employee_id", employeeId)
-    .eq("is_primary", true)
-    .is("effective_to", null);
-
-  const { error } = await supabase.from("employee_positions").insert({
-    employee_id: employeeId,
-    position_id: positionId,
-    effective_from: today,
-    is_primary: true,
-    reason,
+  const { error } = await supabase.rpc("change_employee_assignment", {
+    p_employee_id: employeeId,
+    p_position_id: positionId,
+    p_manager_id: managerId,
+    p_effective_from: effectiveFrom,
+    p_reason: reason,
   });
   if (error) throw new Error(error.message);
 
-  await supabase.from("positions").update({ status: "occupied" }).eq("id", positionId).eq("org_id", orgId);
+  revalidatePath("/dashboard/organogram");
+  revalidatePath(`/dashboard/employees/${employeeId}`);
+}
+
+// Marks a position active/inactive (spec §8 "retire instead of hard-delete
+// when history exists") — a position with assignment history can't be
+// cleanly removed, so this is the primary way to close one out instead of
+// deleteOrgUnit-style hard deletion.
+export async function setPositionActive(positionId: string, isActive: boolean) {
+  const supabase = await createClient();
+  const { orgId, userId } = await requireOrgAndActor(supabase);
+
+  const { error } = await supabase
+    .from("positions")
+    .update({ is_active: isActive })
+    .eq("id", positionId)
+    .eq("org_id", orgId);
+  if (error) throw new Error(error.message);
 
   await recordAuditEvent(supabase, {
     orgId,
     actorUserId: userId,
-    action: "employee.position_assigned",
-    resourceType: "employee_position",
-    resourceId: employeeId,
-    eventCategory: "data",
-    after: { employeeId, positionId, reason },
+    action: isActive ? "position.reactivated" : "position.retired",
+    resourceType: "position",
+    resourceId: positionId,
+    eventCategory: "configuration",
   });
 
   revalidatePath("/dashboard/organogram");
-  revalidatePath(`/dashboard/employees/${employeeId}`);
+}
+
+// Runs the Area 04 data-quality checks (spec §27/§28) and refreshes the
+// findings shown on the organogram page. Thin wrapper over the SQL function
+// so every finding is computed in one transactional pass server-side.
+export async function runOrganisationDataQuality() {
+  const supabase = await createClient();
+  await requireOrgAndActor(supabase);
+
+  const { data, error } = await supabase.rpc("run_organisation_data_quality");
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/organogram");
+  return data as number;
 }
