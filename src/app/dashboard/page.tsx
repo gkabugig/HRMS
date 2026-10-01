@@ -3,6 +3,7 @@
 // Centre, workforce/payroll/attendance/recruitment snapshots, recent
 // activity and quick actions — all fed by a single server-side aggregator
 // (getDashboard) rather than one query per widget.
+import { redirect } from "next/navigation";
 import { getDashboard } from "@/lib/dashboard/get-dashboard";
 import DashboardHeader from "./components/dashboard-header";
 import KpiGrid from "./components/kpi-grid";
@@ -36,6 +37,17 @@ export default async function DashboardHome({
   const criticalCount = actions.filter((a) => a.severity === "critical").length;
   const isEmployeeOnly = context.role === "employee";
 
+  // Area 05 build sequence item 19 — "convert existing employee dashboard
+  // into Employee Home": rather than maintaining the stripped-down
+  // ActionCentre+AttendanceSnapshotCard view inline here AND the full
+  // command centre at /dashboard/me, /dashboard stays the one entry point
+  // (login/nav both land here already) and simply hands an employee role
+  // straight to the real implementation — the same alias relationship
+  // /dashboard/employees/me already has with Employee 360.
+  if (isEmployeeOnly) {
+    redirect("/dashboard/me");
+  }
+
   return (
     <div className="space-y-6">
       <DashboardHeader
@@ -47,36 +59,27 @@ export default async function DashboardHome({
 
       <KpiGrid kpis={kpis} />
 
-      {isEmployeeOnly ? (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <WorkforceTrend workforce={workforce} />
+        <ActionCentre alerts={actions} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {payroll?.visible && <PayrollSnapshotCard payroll={payroll} />}
+        <AttendanceSnapshotCard attendance={attendance} />
+        {recruitment?.visible && <RecruitmentSnapshotCard recruitment={recruitment} />}
+      </div>
+
+      {workforce.departmentBreakdown.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ActionCentre alerts={actions} />
-          <AttendanceSnapshotCard attendance={attendance} />
+          <WorkforceBreakdown workforce={workforce} />
+          <RecentActivity activity={activity} />
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <WorkforceTrend workforce={workforce} />
-            <ActionCentre alerts={actions} />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {payroll?.visible && <PayrollSnapshotCard payroll={payroll} />}
-            <AttendanceSnapshotCard attendance={attendance} />
-            {recruitment?.visible && <RecruitmentSnapshotCard recruitment={recruitment} />}
-          </div>
-
-          {workforce.departmentBreakdown.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <WorkforceBreakdown workforce={workforce} />
-              <RecentActivity activity={activity} />
-            </div>
-          )}
-
-          <QuickActions role={context.role} />
-
-          {workforce.departmentBreakdown.length === 0 && <RecentActivity activity={activity} />}
-        </>
       )}
+
+      <QuickActions role={context.role} />
+
+      {workforce.departmentBreakdown.length === 0 && <RecentActivity activity={activity} />}
     </div>
   );
 }

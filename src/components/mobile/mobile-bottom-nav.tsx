@@ -25,11 +25,14 @@ type BottomItem = { key: string; label: string; href: string; icon: LucideIcon; 
 // treatment as the employee row plus Notifications, since they still need
 // a usable phone view.
 const ITEMS_BY_ROLE: Record<UserRole, BottomItem[]> = {
+  // Area 05: repointed at the portal's own pages — /dashboard still works
+  // (it redirects an employee straight to /dashboard/me), but the bottom
+  // nav's "Home" link goes directly there to skip the extra hop.
   employee: [
-    { key: "home", label: "Home", href: "/dashboard", icon: Home },
-    { key: "attendance", label: "Attendance", href: "/dashboard/attendance", icon: Clock },
-    { key: "leave", label: "Leave", href: "/dashboard/leave", icon: CalendarDays },
-    { key: "payslips", label: "Payslips", href: "/dashboard/payroll", icon: Wallet },
+    { key: "home", label: "Home", href: "/dashboard/me", icon: Home },
+    { key: "attendance", label: "Attendance", href: "/dashboard/me/attendance", icon: Clock },
+    { key: "leave", label: "Leave", href: "/dashboard/me/leave", icon: CalendarDays },
+    { key: "payslips", label: "Payslips", href: "/dashboard/me/pay", icon: Wallet },
     { key: "notifications", label: "Alerts", href: "/dashboard/notifications", icon: Bell },
   ],
   manager: [

@@ -32,7 +32,10 @@ export type NavIcon =
   | "life-buoy"
   | "line-chart"
   | "shield-alert"
-  | "sparkles";
+  | "sparkles"
+  | "user"
+  | "check-square"
+  | "help-circle";
 
 export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
@@ -83,13 +86,45 @@ export const ALL_MODULES: NavTab[] = [
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
+
+  // Area 05 Employee Portal — employee-only nav pointing at /dashboard/me/*
+  // instead of the shared admin/manager/hr routes above (whose module keys
+  // — "leave", "attendance", "payroll", "documents" — stay pointed at
+  // /dashboard/leave etc. for those roles, unchanged). A module key has one
+  // href, so a role that needs a different destination for conceptually
+  // the same thing gets its own key rather than overloading an existing
+  // one's href per-role. "service-requests" and "notifications" are NOT
+  // duplicated here — their existing destinations already ARE the
+  // employee's self-service surface (confirmed self-scoped by RLS), and
+  // /dashboard/me/requests + /dashboard/me/notifications simply redirect to
+  // them, so the existing keys keep working for the employee role as-is.
+  { key: "me-profile", label: "My Profile", href: "/dashboard/me/profile", icon: "user", group: "Overview" },
+  { key: "me-attendance", label: "My Attendance", href: "/dashboard/me/attendance", icon: "clock", group: "Overview" },
+  { key: "me-leave", label: "My Leave", href: "/dashboard/me/leave", icon: "calendar-days", group: "Overview" },
+  { key: "me-pay", label: "My Pay", href: "/dashboard/me/pay", icon: "wallet", group: "Overview" },
+  { key: "me-documents", label: "My Documents", href: "/dashboard/me/documents", icon: "folder", group: "Overview" },
+  { key: "me-tasks", label: "My Tasks", href: "/dashboard/me/tasks", icon: "check-square", group: "Overview" },
+  { key: "me-help", label: "Help", href: "/dashboard/me/help", icon: "help-circle", group: "Overview" },
 ];
 
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
   hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
   manager: ["dashboard", "notifications", "approvals", "service-requests", "attendance", "leave", "assignments", "performance", "performance-insights", "disciplinary"],
-  employee: ["dashboard", "notifications", "service-requests", "leave", "payroll", "performance", "documents", "assignments"],
+  employee: [
+    "dashboard",
+    "notifications",
+    "service-requests",
+    "me-profile",
+    "me-attendance",
+    "me-leave",
+    "me-pay",
+    "me-documents",
+    "me-tasks",
+    "me-help",
+    "performance",
+    "assignments",
+  ],
 };
 
 // Role-specific labels for a handful of shared modules (managers/employees
@@ -105,10 +140,8 @@ export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> 
     "service-requests": "My HR Requests",
   },
   employee: {
-    leave: "My Leave",
-    payroll: "My Payslips",
+    dashboard: "Home",
     performance: "My Appraisals",
-    documents: "My Documents",
     assignments: "My Assignments",
     "service-requests": "My HR Requests",
   },

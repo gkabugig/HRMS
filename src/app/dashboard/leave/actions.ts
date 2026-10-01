@@ -113,6 +113,8 @@ export async function applyForLeave(formData: FormData) {
   });
 
   revalidatePath("/dashboard/leave");
+  revalidatePath("/dashboard/me/leave");
+  revalidatePath("/dashboard/me");
 }
 
 export async function decideLeave(id: string, decision: "Approved" | "Rejected") {
@@ -177,6 +179,8 @@ export async function decideLeave(id: string, decision: "Approved" | "Rejected")
 
   revalidatePath("/dashboard/leave");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/me/leave");
+  revalidatePath("/dashboard/me");
 }
 
 export async function cancelLeaveRequest(id: string) {
@@ -196,4 +200,5 @@ export async function cancelLeaveRequest(id: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/leave");
+  revalidatePath("/dashboard/me/leave");
 }
