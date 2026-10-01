@@ -32,6 +32,30 @@ export type EventDefinition = {
 };
 
 export const EVENT_CATALOGUE: Record<string, EventDefinition> = {
+  // Area 11 §10.3 domain events: risk.detected -> Area 09 (this entry) and
+  // Area 03 (remediation workflow, started separately when an action is
+  // created); risk.resolved -> Area 10 (re-measure, no notification side
+  // effect needed there) and Area 09 (this entry). ownerUserId is resolved
+  // server-side by the risk engine (owner resolution, §6.6) before emit —
+  // never a value supplied by the browser.
+  "risk.detected": {
+    eventType: "risk.detected",
+    description: "A new (or reopened) workforce risk was detected and needs an owner's attention.",
+    category: "risk",
+    defaultPriority: "action_required",
+    mandatory: false,
+    recipients: [{ kind: "static_user", userIdField: "ownerUserId" }, { kind: "hr_role" }],
+    requiredPayloadFields: ["riskId", "ruleCode"],
+  },
+  "risk.resolved": {
+    eventType: "risk.resolved",
+    description: "A workforce risk was marked resolved.",
+    category: "risk",
+    defaultPriority: "information",
+    mandatory: false,
+    recipients: [{ kind: "hr_role" }],
+    requiredPayloadFields: ["riskId", "ruleCode"],
+  },
   "approval.requested": {
     eventType: "approval.requested",
     description: "An approval step needs a decision from its assignee(s).",

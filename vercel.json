@@ -31,6 +31,10 @@
     {
       "path": "/api/cron/analytics-snapshot",
       "schedule": "30 1 * * *"
+    },
+    {
+      "path": "/api/cron/risk-scan",
+      "schedule": "0 2 * * *"
     }
   ]
 }

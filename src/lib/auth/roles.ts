@@ -83,6 +83,10 @@ export const ALL_MODULES: NavTab[] = [
   { key: "performance-insights", label: "Performance Insights", href: "/dashboard/performance/insights", icon: "sparkles", group: "Insights" },
   { key: "audit-log", label: "Audit Centre", href: "/dashboard/audit-log", icon: "history", group: "Insights" },
   { key: "workflows", label: "Workflows", href: "/dashboard/workflows", icon: "sitemap", group: "Insights" },
+  // Area 11 Workforce Risk Centre — admin/hr see the full register;
+  // managers get a narrower view (manager-risk below) scoped to risks
+  // concerning their own reports (workforce_risks_manager_read RLS).
+  { key: "risk", label: "Workforce Risk", href: "/dashboard/risk", icon: "shield-alert", group: "Insights" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
@@ -155,6 +159,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "manager-organisation",
     "assignments",
     "performance-insights",
+    "risk",
   ],
   employee: [
     "dashboard",
@@ -179,6 +184,7 @@ export const LABEL_OVERRIDES: Partial<Record<UserRole, Record<string, string>>> 
     "performance-insights": "Team Performance Insights",
     assignments: "Team Assignments",
     "service-requests": "My HR Requests",
+    risk: "Team Risk",
   },
   employee: {
     dashboard: "Home",

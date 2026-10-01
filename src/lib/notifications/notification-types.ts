@@ -11,7 +11,8 @@ export type NotificationCategory =
   | "system"
   | "self_service"
   | "service_request"
-  | "approval";
+  | "approval"
+  | "risk";
 
 export type NotificationPriority = "critical" | "action_required" | "reminder" | "information";
 

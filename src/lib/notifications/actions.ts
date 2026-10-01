@@ -91,6 +91,8 @@ const PREFERENCE_TYPES = [
   "approval",
   "service_request",
   "self_service",
+  // Area 11 — risk.detected/risk.resolved notifications.
+  "risk",
 ] as const;
 
 export type NotificationPreferenceRow = {
