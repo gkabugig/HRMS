@@ -189,6 +189,8 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
           <MetricCard metric={metrics.overtimeHours} computedAt={metrics.computedAt} />
           <MetricCard metric={metrics.approvalAgeing} computedAt={metrics.computedAt} />
           <MetricCard metric={metrics.caseSlaCompliance} computedAt={metrics.computedAt} />
+          <MetricCard metric={metrics.workforcePlanVariance} computedAt={metrics.computedAt} />
+          <MetricCard metric={metrics.compensationBudgetVariance} computedAt={metrics.computedAt} />
         </div>
       )}
     </div>

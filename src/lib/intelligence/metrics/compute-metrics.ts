@@ -32,6 +32,9 @@ export type WorkforceMetrics = {
   overtimeHours: ComputedMetric;
   approvalAgeing: ComputedMetric;
   caseSlaCompliance: ComputedMetric;
+  // Area 10 extension once Areas 16/17 existed (spec §5.11).
+  workforcePlanVariance: ComputedMetric;
+  compensationBudgetVariance: ComputedMetric;
   headcountByDepartment: SegmentBreakdown[];
   costByDepartment: SegmentBreakdown[];
   presenceByDepartment: SegmentBreakdown[];
@@ -87,6 +90,8 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
     { data: appraisals },
     { data: enrollments },
     { data: complianceDocs },
+    { data: activeWorkforcePlans },
+    { data: activeCompensationBudgets },
   ] = await Promise.all([
     supabase.from("employees").select("id, department, status, date_of_hire, employment_type"),
     supabase
@@ -112,6 +117,8 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
     supabase.from("appraisals").select("id, status"),
     supabase.from("training_enrollments").select("id, status"),
     supabase.from("compliance_documents").select("id, expiry_date").lte("expiry_date", trailing60),
+    supabase.from("workforce_plans").select("id, planning_period_start, planning_period_end, status, workforce_plan_lines(planned_headcount)").eq("org_id", orgId).eq("status", "active").lte("planning_period_start", today).gte("planning_period_end", today),
+    supabase.from("compensation_budgets").select("id, budgeted_amount, budget_period_start, budget_period_end").eq("org_id", orgId).lte("budget_period_start", today).gte("budget_period_end", today),
   ]);
 
   const activeEmployees = (employees ?? []).filter((e) => e.status === "Active");
@@ -221,6 +228,23 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
   });
   const caseSlaCompliance = slaCases.length > 0 ? (slaCompliant.length / slaCases.length) * 100 : 100;
 
+  // Area 10 extension (spec §5.11): sum planned headcount across every
+  // workforce plan whose status is "active" and whose period covers today,
+  // compared against actual active headcount. Zero active plans -> no
+  // denominator, reported as 0 variance rather than dividing by zero (there
+  // is simply nothing to vary from yet).
+  type PlanWithLines = { workforce_plan_lines: { planned_headcount: number }[] };
+  const plannedHeadcountTotal = (activeWorkforcePlans ?? []).reduce(
+    (sum, plan) => sum + ((plan as unknown as PlanWithLines).workforce_plan_lines ?? []).reduce((s, l) => s + (l.planned_headcount ?? 0), 0),
+    0
+  );
+  const workforcePlanVariance = plannedHeadcountTotal > 0 ? ((headcountActive - plannedHeadcountTotal) / plannedHeadcountTotal) * 100 : 0;
+
+  // Area 10 extension: sum approved compensation budgets covering today vs
+  // current gross payroll cost. Same zero-denominator convention as above.
+  const budgetedAmountTotal = (activeCompensationBudgets ?? []).reduce((sum, b) => sum + Number(b.budgeted_amount), 0);
+  const compensationBudgetVariance = budgetedAmountTotal > 0 ? ((payrollCostGross - budgetedAmountTotal) / budgetedAmountTotal) * 100 : 0;
+
   const metrics: WorkforceMetrics = {
     headcountActive: withDef("headcount_active", headcountActive, headcountActive, defs),
     headcountNewHires: withDef("headcount_new_hires", newHires, newHires, defs),
@@ -242,6 +266,8 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
     overtimeHours: withDef("overtime_hours", overtimeHours, attRows.length, defs),
     approvalAgeing: withDef("approval_ageing", approvalAgeing, approvalsOpen.length, defs),
     caseSlaCompliance: withDef("case_sla_compliance", caseSlaCompliance, slaCases.length, defs),
+    workforcePlanVariance: withDef("workforce_plan_variance", workforcePlanVariance, plannedHeadcountTotal, defs),
+    compensationBudgetVariance: withDef("compensation_budget_variance", compensationBudgetVariance, (activeCompensationBudgets ?? []).length, defs),
     headcountByDepartment: Array.from(headcountByDeptMap.entries()).map(([dept, count]) => ({
       segmentLabel: dept,
       segmentValue: dept,
@@ -277,6 +303,8 @@ export async function computeWorkforceMetrics(supabase: SupabaseClient, orgId: s
       { org_id: orgId, metric_key: "overtime_hours", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: overtimeHours, population_count: attRows.length },
       { org_id: orgId, metric_key: "approval_ageing", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: approvalAgeing, population_count: approvalsOpen.length },
       { org_id: orgId, metric_key: "case_sla_compliance", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: caseSlaCompliance, population_count: slaCases.length },
+      { org_id: orgId, metric_key: "workforce_plan_variance", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: workforcePlanVariance, population_count: plannedHeadcountTotal },
+      { org_id: orgId, metric_key: "compensation_budget_variance", dimension_key: "all", dimension_value: "all", snapshot_date: today, value: compensationBudgetVariance, population_count: (activeCompensationBudgets ?? []).length },
     ];
     await supabase.from("metric_snapshots").upsert(rows, { onConflict: "org_id,metric_key,dimension_key,dimension_value,snapshot_date" });
   } catch {

@@ -231,6 +231,85 @@ export async function runRiskScan(supabase: SupabaseClient, orgId: string, actor
     }
   }
 
+  // POS-VAC-001 — an open vacancy older than the rule's max_age_days.
+  // Activated once Area 16's vacancies table (with a real opened_at
+  // timestamp) existed — previously deferred since positions.status=
+  // 'vacant' alone carries no age information.
+  if (ruleByCode.has("POS-VAC-001")) {
+    const maxAgeDays = (ruleByCode.get("POS-VAC-001")?.threshold_config as { max_age_days?: number } | null)?.max_age_days ?? 30;
+    const threshold = new Date(today);
+    threshold.setDate(threshold.getDate() - maxAgeDays);
+    const { data: vacancies } = await supabase
+      .from("vacancies")
+      .select("id, position_id, opened_at, positions(title)")
+      .eq("org_id", orgId)
+      .eq("status", "open")
+      .lt("opened_at", threshold.toISOString());
+    for (const v of vacancies ?? []) {
+      const ageDays = Math.floor((today.getTime() - new Date(v.opened_at).getTime()) / 86400000);
+      const position = v.positions as unknown as { title: string } | null;
+      findings.push({
+        ruleCode: "POS-VAC-001",
+        title: `Vacancy open ${ageDays}d: ${position?.title ?? "position"}`,
+        description: `The vacancy for ${position?.title ?? "a position"} has been open for ${ageDays} days, past the ${maxAgeDays}-day threshold.`,
+        entityType: "position",
+        entityId: v.position_id,
+        evidence: [{ vacancy_id: v.id, opened_at: v.opened_at, age_days: ageDays }],
+        weightOverrides: { urgency: Math.min(0.5 + ageDays / 90, 0.95) },
+      });
+    }
+  }
+
+  // COMP-001 — an employee's current basic falls outside their grade's
+  // currently-effective band. Activated once Area 17's compensation_grades/
+  // compensation_bands existed — previously deferred for lack of a band to
+  // compare against. Reads the grade off the employee's most recent
+  // employee_compensation_history row (where the grade link is recorded),
+  // not off a live employees.grade_id column (none exists).
+  if (ruleByCode.has("COMP-001")) {
+    const { data: currentComp } = await supabase
+      .from("employee_compensation_history")
+      .select("employee_id, grade_id, basic, effective_from, employees!inner(org_id, name, staff_no, basic)")
+      .is("effective_to", null)
+      .not("grade_id", "is", null);
+    for (const c of currentComp ?? []) {
+      const emp = c.employees as unknown as { org_id: string; name: string; staff_no: string; basic: number } | null;
+      if (!emp || emp.org_id !== orgId) continue;
+      const { data: band } = await supabase
+        .from("compensation_bands")
+        .select("min_amount, max_amount")
+        .eq("grade_id", c.grade_id)
+        .lte("effective_from", todayStr)
+        .or(`effective_to.is.null,effective_to.gte.${todayStr}`)
+        .order("effective_from", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!band) continue;
+      const basic = Number(emp.basic);
+      if (basic < Number(band.min_amount) || basic > Number(band.max_amount)) {
+        // Skip if this out-of-band position was already authorised via an
+        // unexpired Area 17 compensation_exceptions record for this
+        // employee — an approved exception isn't a fresh risk to re-flag.
+        const { data: exception } = await supabase
+          .from("compensation_exceptions")
+          .select("id, compensation_change_requests!inner(employee_id)")
+          .eq("compensation_change_requests.employee_id", c.employee_id)
+          .or(`expiry_date.is.null,expiry_date.gte.${todayStr}`)
+          .limit(1)
+          .maybeSingle();
+        if (exception) continue;
+        findings.push({
+          ruleCode: "COMP-001",
+          title: `${emp.name} outside approved compensation band`,
+          description: `${emp.name} (${emp.staff_no})'s current basic (${basic}) falls outside the band (${band.min_amount}–${band.max_amount}) for their grade.`,
+          entityType: "employee",
+          entityId: c.employee_id,
+          evidence: [{ basic, band_min: band.min_amount, band_max: band.max_amount, grade_id: c.grade_id }],
+        });
+      }
+    }
+  }
+
   // Deterministic dedupe + create/reopen, scored, owner-resolved, notified.
   let created = 0;
   let reopened = 0;
