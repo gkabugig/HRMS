@@ -93,6 +93,11 @@ export const ALL_MODULES: NavTab[] = [
   // managers still get a plain-English "my team's positions" view, if
   // needed, through manager-organisation).
   { key: "positions", label: "Position & Workforce Planning", href: "/dashboard/positions", icon: "sitemap", group: "People" },
+  // Area 17 Compensation Management — admin/hr only; grades/bands are
+  // reference data readable org-wide at the RLS layer, but the nav entry
+  // itself (change requests, reviews, budgets, payroll export) is sensitive
+  // enough to keep out of every role's sidebar.
+  { key: "compensation", label: "Compensation Management", href: "/dashboard/compensation", icon: "wallet", group: "People" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
@@ -143,6 +148,11 @@ export const ALL_MODULES: NavTab[] = [
   { key: "manager-requests", label: "Team Requests", href: "/dashboard/manager/requests", icon: "life-buoy", group: "Overview" },
   { key: "manager-analytics", label: "Team Analytics", href: "/dashboard/manager/analytics", icon: "line-chart", group: "Insights" },
   { key: "manager-organisation", label: "Organisation", href: "/dashboard/manager/organisation", icon: "sitemap", group: "People" },
+  // Area 17 §8.6 — where a manager submits review-cycle recommendations and
+  // proposes compensation changes for their own direct reports (RLS:
+  // compensation_change_requests_manager_create/_read,
+  // compensation_review_items_manager_read/_recommend).
+  { key: "manager-compensation", label: "Team Compensation", href: "/dashboard/manager/compensation", icon: "wallet", group: "Workforce" },
 ];
 
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
@@ -163,6 +173,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "manager-requests",
     "manager-analytics",
     "manager-organisation",
+    "manager-compensation",
     "assignments",
     "performance-insights",
     "risk",
