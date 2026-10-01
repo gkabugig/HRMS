@@ -11,6 +11,22 @@
     {
       "path": "/api/cron/document-expiry",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/notifications-process",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/notifications-dispatch",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/notifications-escalate",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/notifications-digest",
+      "schedule": "0 6 * * *"
     }
   ]
 }

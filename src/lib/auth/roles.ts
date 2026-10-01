@@ -86,6 +86,12 @@ export const ALL_MODULES: NavTab[] = [
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
+  // Area 09 §23 Admin Notification Centre — templates, event→policy
+  // mapping, failed/dead-letter queues, suppressions, test-send, search.
+  // RLS (notification_templates_hr_all etc.) restricts the actual data to
+  // admin/hr regardless of nav visibility; this key just keeps it out of
+  // the manager/employee sidebar.
+  { key: "notifications-admin", label: "Notification Centre", href: "/dashboard/notifications/admin", icon: "settings", group: "Admin" },
 
   // Area 05 Employee Portal — employee-only nav pointing at /dashboard/me/*
   // instead of the shared admin/manager/hr routes above (whose module keys
@@ -113,6 +119,12 @@ export const ALL_MODULES: NavTab[] = [
   // from the manager role entirely (see migration 0074) rather than kept
   // pointing at a page managers can no longer read anything on.
   { key: "manager-team", label: "My Team", href: "/dashboard/manager/team", icon: "users", group: "Overview" },
+  // Area 09 §21 — a dedicated workspace distinct from the shared
+  // "notifications" key above: that one is the manager's own personal
+  // inbox (approvals/cases addressed to them); this one is the team-scoped
+  // worklist (overdue team workflow tasks, open team HR cases, escalation
+  // queue) that only RLS-permitted team data can populate.
+  { key: "manager-notifications", label: "Team Notifications", href: "/dashboard/manager/notifications", icon: "bell", group: "Overview" },
   { key: "manager-attendance", label: "Team Attendance", href: "/dashboard/manager/attendance", icon: "clock", group: "Workforce" },
   { key: "manager-leave", label: "Team Leave", href: "/dashboard/manager/leave", icon: "calendar-days", group: "Workforce" },
   { key: "manager-performance", label: "Team Performance", href: "/dashboard/manager/performance", icon: "target", group: "Workforce" },
@@ -132,6 +144,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "approvals",
     "service-requests",
     "manager-team",
+    "manager-notifications",
     "manager-attendance",
     "manager-leave",
     "manager-performance",

@@ -1,4 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 
 // Hard-wired priority-workflow run history (Phase 2 spec §20 — "Foundation +
 // priority workflows first" scope: no visual builder, just the five named
@@ -50,15 +53,38 @@ export async function startWorkflowRun(
   if (error || !run) return null;
 
   if (input.tasks && input.tasks.length > 0) {
-    await supabase.from("workflow_tasks").insert(
-      input.tasks.map((t) => ({
-        workflow_run_id: run.id,
-        task: t.task,
-        assignee_user_id: t.assigneeUserId ?? null,
-        assignee_role: t.assigneeRole ?? null,
-        due_at: t.dueAt ?? null,
-      }))
-    );
+    const { data: insertedTasks } = await supabase
+      .from("workflow_tasks")
+      .insert(
+        input.tasks.map((t) => ({
+          workflow_run_id: run.id,
+          task: t.task,
+          assignee_user_id: t.assigneeUserId ?? null,
+          assignee_role: t.assigneeRole ?? null,
+          due_at: t.dueAt ?? null,
+        }))
+      )
+      .select("id, task");
+
+    // Area 09 workflow.task.assigned (spec §3 Area 03 row). Only tasks
+    // with an owner at creation time (user or role) have anyone to tell —
+    // a task with neither is picked up manually, same as before.
+    for (const t of insertedTasks ?? []) {
+      const eventId = await emitNotificationEvent(supabase, {
+        orgId: input.orgId,
+        eventType: "workflow.task.assigned",
+        aggregateType: "workflow_task",
+        aggregateId: t.id,
+        idempotencyKey: `workflow.task.assigned:${t.id}`,
+        payload: {
+          taskId: t.id,
+          defaultTitle: "New workflow task assigned",
+          defaultMessage: t.task,
+          defaultActionUrl: "/dashboard/me/tasks",
+        },
+      });
+      if (eventId) await processEventImmediately(createAdminClient(), eventId).catch((err) => console.error("processEventImmediately failed:", err));
+    }
   }
 
   await supabase.from("workflow_logs").insert({

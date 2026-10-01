@@ -3,6 +3,9 @@ import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 import { authorize } from "@/lib/authz/authorize";
 import type { RbacAction, RbacResource, RbacSensitivity } from "@/lib/authz/types";
 import { isValidDelegate } from "./delegation";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 
 // Sequential, single-active-step approval (spec §10.2: steps execute in
 // order; the request only becomes fully approved once every step has). No
@@ -149,6 +152,38 @@ export async function decideApprovalStep(
         .update({ started_at: new Date().toISOString() })
         .eq("approval_request_id", request.id)
         .eq("step_order", step.step_order + 1);
+    }
+  }
+
+  // Area 09 approval.approved / approval.rejected (spec §3 Area 02 row).
+  // Only the two outcomes the catalogue defines — "returned" sends the
+  // request back a step rather than concluding it, so it has no terminal
+  // notification of its own today (same scope note as other partial
+  // coverage this engagement has disclosed). requesterUserId comes from
+  // the `request` row just read from approval_requests, never from caller
+  // input, so it's a trusted value for the static_user selector even
+  // though notification_events can otherwise be inserted by any
+  // authenticated org member.
+  if (requestStatus === "approved" || requestStatus === "rejected") {
+    const eventId = await emitNotificationEvent(supabase, {
+      orgId: input.orgId,
+      eventType: requestStatus === "approved" ? "approval.approved" : "approval.rejected",
+      aggregateType: "approval_request",
+      aggregateId: request.id,
+      actorId: actorUserId,
+      idempotencyKey: `approval.${requestStatus}:${request.id}`,
+      payload: {
+        requestId: request.id,
+        requesterUserId: request.requested_by,
+        defaultTitle: requestStatus === "approved" ? "Your request was approved" : "Your request was rejected",
+        defaultMessage:
+          input.comment ??
+          (requestStatus === "approved" ? "Your approval request was approved." : "Your approval request was rejected."),
+        defaultActionUrl: "/dashboard/approvals",
+      },
+    });
+    if (eventId) {
+      await processEventImmediately(createAdminClient(), eventId).catch((err) => console.error("processEventImmediately failed:", err));
     }
   }
 

@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createApprovalRequest, type ApprovalStepInput } from "./create-approval-request";
-import { resolveApprover, resolveUsersByRole, ApproverResolutionError } from "./resolve-approver";
+import { resolveApprover, ApproverResolutionError } from "./resolve-approver";
 import { evaluateCondition, type ConditionRule } from "./evaluate-condition";
-import { createNotification, createNotificationForMany } from "@/lib/notifications/create-notification";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 
 // Universal Approval Engine — definition-driven submission (Area 02 spec
 // §6/§19.A-C). This is the dynamic counterpart to createApprovalRequest:
@@ -53,10 +55,6 @@ export async function startApproval(
 
   const metadata = input.metadata ?? {};
   const steps: ApprovalStepInput[] = [];
-  // { stepIndex, kind: "role", role } entries get fanned out to once the
-  // request exists and we know its id for the deep link.
-  const roleNotifications: { role: string; stepOrder: number }[] = [];
-  const userNotifications: { userId: string; stepOrder: number }[] = [];
 
   for (const step of defSteps) {
     const matches = evaluateCondition(step.condition_json as ConditionRule, metadata);
@@ -80,13 +78,10 @@ export async function startApproval(
     if (resolved.kind === "auto") continue; // auto-pass steps need no human decision at all
 
     const dueAt = step.sla_hours ? new Date(Date.now() + step.sla_hours * 3600_000).toISOString() : null;
-    const stepOrder = steps.length + 1;
     if (resolved.kind === "user") {
       steps.push({ approverUserId: resolved.userId, definitionStepId: step.id, dueAt });
-      userNotifications.push({ userId: resolved.userId, stepOrder });
     } else {
       steps.push({ approverRole: resolved.role, definitionStepId: step.id, dueAt });
-      roleNotifications.push({ role: resolved.role, stepOrder });
     }
   }
 
@@ -137,35 +132,42 @@ export async function startApproval(
   const deepLink = `${input.deepLinkBase ?? "/dashboard/approvals"}`;
   // Only the first (now-active) step's assignees are notified at
   // submission — later steps are notified when the request reaches them
-  // (decideApprovalStep's job, not this one).
-  const firstUser = userNotifications.find((n) => n.stepOrder === 1);
-  const firstRole = roleNotifications.find((n) => n.stepOrder === 1);
-  if (firstUser) {
-    await createNotification(supabase, {
-      orgId: input.orgId,
-      recipientUserId: firstUser.userId,
-      type: "approval.step_assigned",
-      category: "approval",
-      priority: "action_required",
-      title: "Approval needed",
-      message: input.summary,
-      entityType: "approval_request",
-      entityId: requestId,
-      actionUrl: deepLink,
-    });
-  } else if (firstRole) {
-    const recipients = await resolveUsersByRole(supabase, input.orgId, firstRole.role);
-    await createNotificationForMany(supabase, recipients, {
-      orgId: input.orgId,
-      type: "approval.step_assigned",
-      category: "approval",
-      priority: "action_required",
-      title: "Approval needed",
-      message: input.summary,
-      entityType: "approval_request",
-      entityId: requestId,
-      actionUrl: deepLink,
-    });
+  // (decideApprovalStep's job, not this one). Routed through the Area 09
+  // governed pipeline (emit → immediate best-effort process) instead of a
+  // direct createNotification call: the recipient is re-derived from the
+  // real approval_steps row at processing time (never trusted off this
+  // payload), so this also picks up email delivery, dedupe, policy and
+  // escalation for free, per spec §3's Area 02 integration row.
+  const firstStepOrder = steps.length > 0 ? 1 : null;
+  if (firstStepOrder) {
+    const { data: firstStepRow } = await supabase
+      .from("approval_steps")
+      .select("id")
+      .eq("approval_request_id", requestId)
+      .eq("step_order", firstStepOrder)
+      .maybeSingle();
+    if (firstStepRow) {
+      const eventId = await emitNotificationEvent(supabase, {
+        orgId: input.orgId,
+        eventType: "approval.requested",
+        aggregateType: "approval_step",
+        aggregateId: firstStepRow.id,
+        actorId: input.requesterId,
+        idempotencyKey: `approval.requested:${firstStepRow.id}`,
+        payload: {
+          requestId,
+          stepId: firstStepRow.id,
+          summary: input.summary,
+          actionUrl: deepLink,
+          defaultTitle: "Approval needed",
+          defaultMessage: input.summary,
+          defaultActionUrl: deepLink,
+        },
+      });
+      if (eventId) {
+        await processEventImmediately(createAdminClient(), eventId).catch((err) => console.error("processEventImmediately failed:", err));
+      }
+    }
   }
 
   await recordAuditEvent(supabase, {

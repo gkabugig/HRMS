@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 import { getHrAndManagerRecipients, getEmployeeUserId } from "@/lib/notifications/recipients";
 import { createNotification, createNotificationForMany } from "@/lib/notifications/create-notification";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 
 // HR Service Requests / Service Centre (Phase 2 spec §9). A lightweight
 // ticketing flow on top of the seeded service_catalogue — not a full
@@ -65,18 +68,29 @@ export async function submitServiceRequest(formData: FormData) {
   });
 
   const empName = (created.employees as unknown as { name: string } | null)?.name ?? "An employee";
-  const recipients = await getHrAndManagerRecipients(supabase, appUser.org_id, appUser.employee_id);
-  await createNotificationForMany(supabase, recipients, {
+  // Routed through the Area 09 governed pipeline (spec §3's Area 07 row:
+  // "Case creation ... events"). The catalogue's hr.case.created resolves
+  // to hr_role directly off the case's own org — the direct manager isn't
+  // included here (that's a deliberate narrowing vs. the old
+  // getHrAndManagerRecipients call; the Manager Workspace's own case list
+  // covers that visibility instead, see Area 09 summary).
+  const caseCreatedEventId = await emitNotificationEvent(supabase, {
     orgId: appUser.org_id,
-    type: "SERVICE_REQUEST_SUBMITTED",
-    category: "service_request",
-    priority: priority === "urgent" ? "action_required" : "information",
-    title: "New HR service request",
-    message: `${empName}: ${subject}`,
-    entityType: "service_request",
-    entityId: created.id,
-    actionUrl: `/dashboard/service-requests/${created.id}`,
+    eventType: "hr.case.created",
+    aggregateType: "service_request",
+    aggregateId: created.id,
+    actorId: user.id,
+    idempotencyKey: `hr.case.created:${created.id}`,
+    payload: {
+      caseId: created.id,
+      defaultTitle: "New HR service request",
+      defaultMessage: `${empName}: ${subject}`,
+      defaultActionUrl: `/dashboard/service-requests/${created.id}`,
+    },
   });
+  if (caseCreatedEventId) {
+    await processEventImmediately(createAdminClient(), caseCreatedEventId).catch((err) => console.error("processEventImmediately failed:", err));
+  }
 
   revalidatePath("/dashboard/service-requests");
 }
@@ -130,7 +144,7 @@ export async function updateServiceRequestStatus(requestId: string, newStatus: s
 export async function assignServiceRequest(requestId: string, assignedTo: string) {
   const supabase = await createClient();
   const { data: appUser } = await supabase.auth.getUser();
-  const { data: caller } = await supabase.from("app_users").select("role").eq("id", appUser.user!.id).maybeSingle();
+  const { data: caller } = await supabase.from("app_users").select("org_id, role").eq("id", appUser.user!.id).maybeSingle();
   if (!caller || !["admin", "hr"].includes(caller.role)) throw new Error("Only admin/HR can assign.");
 
   const { error } = await supabase.from("service_requests").update({ assigned_to: assignedTo, status: "Assigned" }).eq("id", requestId);
@@ -141,6 +155,30 @@ export async function assignServiceRequest(requestId: string, assignedTo: string
     to_status: "Assigned",
     changed_by: appUser.user!.id,
   });
+
+  // Area 09 hr.case.assigned — previously this action had NO notification
+  // at all (confirmed during the Area 09 survey); the "case_assignee"
+  // recipient selector re-reads service_requests.assigned_to by this exact
+  // request id (just updated above), never trusting the assignedTo
+  // argument directly.
+  const assignedEventId = await emitNotificationEvent(supabase, {
+    orgId: caller.org_id,
+    eventType: "hr.case.assigned",
+    aggregateType: "service_request",
+    aggregateId: requestId,
+    actorId: appUser.user!.id,
+    idempotencyKey: `hr.case.assigned:${requestId}:${assignedTo}`,
+    payload: {
+      caseId: requestId,
+      assigneeUserId: assignedTo,
+      defaultTitle: "An HR case was assigned to you",
+      defaultMessage: "Review and action this HR service request.",
+      defaultActionUrl: `/dashboard/service-requests/${requestId}`,
+    },
+  });
+  if (assignedEventId) {
+    await processEventImmediately(createAdminClient(), assignedEventId).catch((err) => console.error("processEventImmediately failed:", err));
+  }
 
   revalidatePath(`/dashboard/service-requests/${requestId}`);
 }

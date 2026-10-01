@@ -71,8 +71,17 @@ export default function NotificationBell() {
     function onClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false);
     }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    if (open) {
+      document.addEventListener("mousedown", onClickOutside);
+      document.addEventListener("keydown", onKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   async function onItemClick(n: NotificationRow) {
@@ -96,6 +105,8 @@ export default function NotificationBell() {
       <button
         onClick={openPanel}
         aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
+        aria-haspopup="true"
+        aria-expanded={open}
         className="relative flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border-subtle)] text-neutral-500 hover:border-neutral-300 transition-colors"
       >
         <Bell size={16} />
@@ -136,7 +147,7 @@ export default function NotificationBell() {
                       <span className="text-sm font-medium text-neutral-900 truncate">{n.title}</span>
                       {!n.is_read && <span className="h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0" />}
                     </span>
-                    <span className="block text-xs text-neutral-500 mt-0.5 line-clamp-2">{n.message}</span>
+                    <span className="block text-xs text-neutral-500 mt-0.5 line-clamp-2">{n.safe_preview ?? n.message}</span>
                     <span className="block text-[10px] text-neutral-400 mt-1 uppercase tracking-wide">
                       {PRIORITY_LABEL[n.priority]} · {timeAgo(n.created_at)}
                     </span>

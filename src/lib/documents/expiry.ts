@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { writeDocumentEvent } from "./events";
-import { createNotification } from "@/lib/notifications/create-notification";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 
 // Area 08 §20 Expiry & Renewal Engine. Intended to run under the service
 // role (via the cron route), which bypasses RLS entirely — this evaluates
@@ -51,24 +52,28 @@ export async function evaluateDocumentExpiries(supabase: SupabaseClient): Promis
       metadata: { warningDays: row.warning_days, expiryDate: doc.expiry_date },
     });
 
-    const { data: hrUsers } = await supabase.from("app_users").select("id").eq("org_id", orgId).in("role", ["admin", "hr"]);
-    const { data: employeeUser } = await supabase.from("app_users").select("id").eq("employee_id", doc.employee_id).maybeSingle();
-    const recipients = new Set<string>((hrUsers ?? []).map((u) => u.id as string));
-    if (employeeUser) recipients.add(employeeUser.id as string);
-
-    for (const recipientUserId of recipients) {
-      await createNotification(supabase, {
-        orgId,
-        recipientUserId,
-        type: "DOCUMENT_EXPIRING",
-        category: "documents",
-        priority: row.warning_days <= 7 ? "action_required" : "reminder",
-        title: "Document expiring soon",
-        message: `${doc.title ?? doc.doc_type} expires on ${doc.expiry_date} (${row.warning_days} days' notice).`,
-        entityType: "employee_documents",
-        entityId: doc.id,
-        actionUrl: "/dashboard/documents/expiring",
-      });
+    // Routed through the governed pipeline — the catalogue's
+    // document.expiry.warning event already resolves both the employee
+    // and hr_role, so this replaces the hand-rolled recipient set above.
+    // `supabase` here is already the service-role admin client (this
+    // function only ever runs from the cron route), so processing can
+    // happen inline without a second client.
+    const expiryEventId = await emitNotificationEvent(supabase, {
+      orgId,
+      eventType: "document.expiry.warning",
+      aggregateType: "employee_documents",
+      aggregateId: doc.id,
+      idempotencyKey: `document.expiry.warning:${doc.id}:${row.id}`,
+      payload: {
+        documentId: doc.id,
+        employeeId: doc.employee_id,
+        defaultTitle: "Document expiring soon",
+        defaultMessage: `${doc.title ?? doc.doc_type} expires on ${doc.expiry_date} (${row.warning_days} days' notice).`,
+        defaultActionUrl: "/dashboard/documents/expiring",
+      },
+    });
+    if (expiryEventId) {
+      await processEventImmediately(supabase, expiryEventId).catch((err) => console.error("processEventImmediately failed:", err));
     }
     warningsSent++;
   }
@@ -88,6 +93,26 @@ export async function evaluateDocumentExpiries(supabase: SupabaseClient): Promis
     const orgId = Array.isArray(orgRow) ? orgRow[0]?.org_id : orgRow?.org_id;
     if (orgId) {
       await writeDocumentEvent(supabase, { orgId, documentId: doc.id as string, eventType: "document.expired" });
+      const { data: fullDoc } = await supabase.from("employee_documents").select("employee_id, title, doc_type").eq("id", doc.id).maybeSingle();
+      if (fullDoc?.employee_id) {
+        const expiredEventId = await emitNotificationEvent(supabase, {
+          orgId,
+          eventType: "document.expired",
+          aggregateType: "employee_documents",
+          aggregateId: doc.id as string,
+          idempotencyKey: `document.expired:${doc.id}`,
+          payload: {
+            documentId: doc.id,
+            employeeId: fullDoc.employee_id,
+            defaultTitle: "A document has expired",
+            defaultMessage: `${fullDoc.title ?? fullDoc.doc_type ?? "A document"} has expired and requires action.`,
+            defaultActionUrl: "/dashboard/documents/expiring",
+          },
+        });
+        if (expiredEventId) {
+          await processEventImmediately(supabase, expiredEventId).catch((err) => console.error("processEventImmediately failed:", err));
+        }
+      }
     }
   }
 

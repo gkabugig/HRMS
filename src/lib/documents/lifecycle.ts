@@ -22,7 +22,9 @@ import { createDocumentVersion } from "./versions";
 import { writeDocumentEvent } from "./events";
 import { requestAcknowledgement } from "./acknowledgement-engine";
 import { assertNotUnderRetentionHold, computeRetentionUntil } from "./retention";
-import { createNotification } from "@/lib/notifications/create-notification";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 import type { DocumentTypeConfig } from "./types";
 
 async function requireHrOrAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
@@ -142,20 +144,23 @@ export async function createDocument(input: {
   } else {
     if (docType?.requires_acknowledgement) {
       await requestAcknowledgement(supabase, { orgId, documentId: doc.id, employeeId: input.employeeId, versionId });
-      const employeeUserId = await getRecipientUserId(supabase, input.employeeId);
-      if (employeeUserId) {
-        await createNotification(supabase, {
-          orgId,
-          recipientUserId: employeeUserId,
-          type: "DOCUMENT_ACKNOWLEDGEMENT_REQUESTED",
-          category: "documents",
-          priority: "action_required",
-          title: "Document requires your acknowledgement",
-          message: `Please review and acknowledge: ${input.title ?? input.docTypeLabel}`,
-          entityType: "employee_documents",
-          entityId: doc.id,
-          actionUrl: "/dashboard/me/documents",
-        });
+      const ackEventId = await emitNotificationEvent(supabase, {
+        orgId,
+        eventType: "document.acknowledgement.required",
+        aggregateType: "employee_documents",
+        aggregateId: doc.id as string,
+        actorId: userId,
+        idempotencyKey: `document.acknowledgement.required:${doc.id}:${versionId}`,
+        payload: {
+          documentId: doc.id,
+          employeeId: input.employeeId,
+          defaultTitle: "Document requires your acknowledgement",
+          defaultMessage: `Please review and acknowledge: ${input.title ?? input.docTypeLabel}`,
+          defaultActionUrl: "/dashboard/me/documents",
+        },
+      });
+      if (ackEventId) {
+        await processEventImmediately(createAdminClient(), ackEventId).catch((err) => console.error("processEventImmediately failed:", err));
       }
     }
     await scheduleExpiryWarnings(supabase, doc.id, docType?.expiry_warning_days_schedule ?? []);
@@ -165,10 +170,6 @@ export async function createDocument(input: {
   return { documentId: doc.id as string, versionId, lifecycleState: needsApproval ? "review" : "issued" };
 }
 
-async function getRecipientUserId(supabase: Awaited<ReturnType<typeof createClient>>, employeeId: string) {
-  const { data } = await supabase.from("app_users").select("id").eq("employee_id", employeeId).maybeSingle();
-  return data?.id ?? null;
-}
 
 // Dispatched from the universal approvals inbox for request_type ===
 // 'document_issue' — mirrors decideAttendanceCorrectionRequest's exact
@@ -255,20 +256,23 @@ export async function decideDocumentApproval(stepId: string, decision: "approved
       actorId: user.id,
     });
 
-    const employeeUserId = await getRecipientUserId(supabase, doc.employee_id);
-    if (employeeUserId) {
-      await createNotification(supabase, {
-        orgId: appUser.org_id,
-        recipientUserId: employeeUserId,
-        type: "DOCUMENT_ISSUED",
-        category: "documents",
-        priority: "information",
-        title: "A document has been issued",
-        message: `${doc.title ?? doc.doc_type} has been approved and issued.`,
-        entityType: "employee_documents",
-        entityId: doc.id,
-        actionUrl: "/dashboard/me/documents",
-      });
+    const issuedEventId = await emitNotificationEvent(supabase, {
+      orgId: appUser.org_id,
+      eventType: "document.issued",
+      aggregateType: "employee_documents",
+      aggregateId: doc.id as string,
+      actorId: user.id,
+      idempotencyKey: `document.issued:${doc.id}:${versionId}`,
+      payload: {
+        documentId: doc.id,
+        employeeId: doc.employee_id,
+        defaultTitle: "A document has been issued",
+        defaultMessage: `${doc.title ?? doc.doc_type} has been approved and issued.`,
+        defaultActionUrl: "/dashboard/me/documents",
+      },
+    });
+    if (issuedEventId) {
+      await processEventImmediately(createAdminClient(), issuedEventId).catch((err) => console.error("processEventImmediately failed:", err));
     }
   } else {
     const newLifecycle = decision === "rejected" ? "rejected" : "returned";

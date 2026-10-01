@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createNotification, createNotificationForMany } from "@/lib/notifications/create-notification";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
-import { resolveUsersByRole } from "./resolve-approver";
+import { emitNotificationEvent } from "@/lib/notifications/outbox";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { processEventImmediately } from "@/lib/notifications/scheduler";
 
 // Universal Approval Engine — SLA escalation (Area 02 spec §13/§19.G).
 // Reassigns an overdue, still-pending step to the next person up the chain
@@ -111,32 +112,27 @@ export async function escalateStep(
   });
   if (escErr) throw new Error(escErr.message);
 
-  if (toUserId) {
-    await createNotification(supabase, {
-      orgId: request.org_id,
-      recipientUserId: toUserId,
-      type: "approval.escalated",
-      category: "approval",
-      priority: "action_required",
-      title: "Escalated approval needs your decision",
-      message: request.summary,
-      entityType: "approval_request",
-      entityId: request.id,
-      actionUrl: "/dashboard/approvals",
-    });
-  } else if (toRole) {
-    const recipients = await resolveUsersByRole(supabase, request.org_id, toRole);
-    await createNotificationForMany(supabase, recipients, {
-      orgId: request.org_id,
-      type: "approval.escalated",
-      category: "approval",
-      priority: "action_required",
-      title: "Escalated approval needs a decision",
-      message: request.summary,
-      entityType: "approval_request",
-      entityId: request.id,
-      actionUrl: "/dashboard/approvals",
-    });
+  // Routed through the Area 09 governed pipeline — the "approver"
+  // recipient selector re-reads approver_user_id/approver_role off this
+  // exact step (just updated above), so it resolves to toUserId or every
+  // app_user holding toRole without needing to branch here.
+  const escalationEventId = await emitNotificationEvent(supabase, {
+    orgId: request.org_id,
+    eventType: "approval.escalated",
+    aggregateType: "approval_step",
+    aggregateId: step.id,
+    actorId: input.actorUserId ?? null,
+    idempotencyKey: `approval.escalated:${step.id}:${new Date().toISOString().slice(0, 16)}`,
+    payload: {
+      requestId: request.id,
+      stepId: step.id,
+      defaultTitle: toUserId ? "Escalated approval needs your decision" : "Escalated approval needs a decision",
+      defaultMessage: request.summary,
+      defaultActionUrl: "/dashboard/approvals",
+    },
+  });
+  if (escalationEventId) {
+    await processEventImmediately(createAdminClient(), escalationEventId).catch((err) => console.error("processEventImmediately failed:", err));
   }
 
   await recordAuditEvent(supabase, {
