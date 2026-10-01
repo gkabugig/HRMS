@@ -66,6 +66,65 @@ export async function updatePayrollControls(formData: FormData) {
   revalidatePath("/dashboard/settings");
 }
 
+// Toggle a single role/permission/scope cell in the Universal RBAC "Roles &
+// Access" grid (supabase/migrations/0033-0038). Unlike toggleModulePermission
+// below, this *does* change what the underlying RESTRICTIVE RLS policies and
+// authorize_request() allow — it edits rbac_role_permissions directly, the
+// same table the Employees/Documents/Payroll record-level resolvers read
+// from. Gated on the legacy admin role (not on the RBAC system's own
+// rbac.manage permission) by design: migration 0033's bootstrap comment
+// explains why — the screen that configures RBAC can't be gated by the
+// system it configures, or an admin could lock themselves out of fixing a
+// bad grant.
+export async function toggleRolePermissionAction(formData: FormData) {
+  const { supabase, userId, orgId } = await requireAdmin();
+
+  const roleCode = String(formData.get("role_code") || "");
+  const permissionId = String(formData.get("permission_id") || "");
+  const scope = String(formData.get("scope") || "");
+  const grant = formData.get("grant") === "true";
+  const resource = String(formData.get("resource") || "");
+  const action = String(formData.get("action") || "");
+  const sensitivity = String(formData.get("sensitivity") || "");
+  if (!roleCode || !permissionId || !scope) throw new Error("Missing role, permission, or scope.");
+
+  const { data: role } = await supabase
+    .from("rbac_roles")
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("code", roleCode)
+    .maybeSingle();
+  if (!role) throw new Error("Role not found for this organisation.");
+
+  if (grant) {
+    const { error } = await supabase
+      .from("rbac_role_permissions")
+      .upsert({ role_id: role.id, permission_id: permissionId, scope }, { onConflict: "role_id,permission_id,scope" });
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase
+      .from("rbac_role_permissions")
+      .delete()
+      .eq("role_id", role.id)
+      .eq("permission_id", permissionId)
+      .eq("scope", scope);
+    if (error) throw new Error(error.message);
+  }
+
+  await recordAuditEvent(supabase, {
+    orgId,
+    actorUserId: userId,
+    action: grant ? "rbac.permission_granted" : "rbac.permission_revoked",
+    resourceType: "rbac_role_permission",
+    resourceId: role.id,
+    eventCategory: "security",
+    riskLevel: sensitivity === "highly_restricted" ? "high" : sensitivity === "confidential" ? "elevated" : "normal",
+    after: { role: roleCode, resource, action, sensitivity, scope, grant },
+  });
+
+  revalidatePath("/dashboard/settings");
+}
+
 // Toggle a single role/module cell in the Roles & Permissions matrix. This
 // is a UI-visibility layer only (see 0014_role_module_permissions.sql) — it
 // hides/shows a nav item for that role, it does not change what the

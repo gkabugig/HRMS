@@ -9,11 +9,21 @@ import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 import { startWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 import { recordJobHistoryChange, recordCompensationHistoryChange } from "@/lib/employees/history";
 import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
+import { authorize } from "@/lib/authz/authorize";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function createEmployee(formData: FormData) {
   const supabase = await createClient();
+
+  // Employees is one of the three resources the Universal RBAC rollout
+  // enforces explicitly (spec §12's route-by-route migration pattern), on
+  // top of the RESTRICTIVE RLS policies that are the real backstop. No
+  // existing record yet, so this is the coarse "can create at all" check —
+  // the same organisation-scope grant the employees_insert_rbac RLS policy
+  // checks inline.
+  const decision = await authorize(supabase, { resource: "employees", action: "create" });
+  if (!decision.allowed) throw new Error("You do not have permission to add employees.");
 
   const dateOfHire = String(formData.get("date_of_hire") || "");
   const probationEndDate =
@@ -109,6 +119,13 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const decision = await authorize(supabase, {
+    resource: "employees",
+    action: "edit",
+    recordId: employeeId,
+  });
+  if (!decision.allowed) throw new Error("You do not have permission to edit this employee record.");
 
   const { data: before } = await supabase
     .from("employees")

@@ -1,13 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { updateRates, updatePayrollControls } from "./actions";
 import { PermissionToggle } from "./permission-toggle";
+import { RolesAccess } from "./roles-access";
 import { ALL_MODULES } from "@/lib/auth/roles";
 import ManageUsers from "./manage-users";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 const ROLES = ["admin", "hr", "manager", "employee"] as const;
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
+  const { role: roleParam } = await searchParams;
+  const selectedRole = (ROLES as readonly string[]).includes(roleParam ?? "")
+    ? (roleParam as (typeof ROLES)[number])
+    : "admin";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -15,7 +25,16 @@ export default async function SettingsPage() {
   const { data: currentAppUser } = await supabase.from("app_users").select("role").eq("id", user!.id).maybeSingle();
   const isAdmin = currentAppUser?.role === "admin";
 
-  const [{ data: rates }, { data: permissions }, { data: org }, { data: appUsers }, { data: employees }] = await Promise.all([
+  const [
+    { data: rates },
+    { data: permissions },
+    { data: org },
+    { data: appUsers },
+    { data: employees },
+    { data: rbacRoles },
+    { data: rbacPermissions },
+    { data: rbacGrants },
+  ] = await Promise.all([
     supabase
       .from("statutory_rates")
       .select("*")
@@ -32,6 +51,13 @@ export default async function SettingsPage() {
       ? supabase.from("app_users").select("id, role, employee_id, created_at, employees(name)").order("created_at", { ascending: true })
       : Promise.resolve({ data: null }),
     isAdmin ? supabase.from("employees").select("id, name").order("name") : Promise.resolve({ data: null }),
+    isAdmin
+      ? supabase.from("rbac_roles").select("id, code").eq("org_id", DEFAULT_ORG_ID)
+      : Promise.resolve({ data: null }),
+    isAdmin
+      ? supabase.from("rbac_permissions").select("id, resource, action, sensitivity, description").order("resource")
+      : Promise.resolve({ data: null }),
+    isAdmin ? supabase.from("rbac_role_permissions").select("role_id, permission_id, scope") : Promise.resolve({ data: null }),
   ]);
 
   const permByKey = new Map(
@@ -95,6 +121,20 @@ export default async function SettingsPage() {
           </table>
         </div>
       </div>
+
+      {isAdmin && (
+        <div
+          id="roles-access"
+          className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4"
+        >
+          <RolesAccess
+            roles={rbacRoles ?? []}
+            permissions={rbacPermissions ?? []}
+            grants={rbacGrants ?? []}
+            selectedRole={selectedRole}
+          />
+        </div>
+      )}
 
       <form action={updateRates} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-4 text-sm">
         <h2 className="text-sm font-semibold text-neutral-900">Statutory Rates</h2>
