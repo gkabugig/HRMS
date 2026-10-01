@@ -34,6 +34,7 @@ import {
   User,
   CheckSquare,
   HelpCircle,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
@@ -70,6 +71,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   user: User,
   "check-square": CheckSquare,
   "help-circle": HelpCircle,
+  bot: Bot,
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {

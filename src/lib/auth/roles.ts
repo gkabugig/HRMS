@@ -35,7 +35,8 @@ export type NavIcon =
   | "sparkles"
   | "user"
   | "check-square"
-  | "help-circle";
+  | "help-circle"
+  | "bot";
 
 export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
@@ -98,6 +99,12 @@ export const ALL_MODULES: NavTab[] = [
   // itself (change requests, reviews, budgets, payroll export) is sensitive
   // enough to keep out of every role's sidebar.
   { key: "compensation", label: "Compensation Management", href: "/dashboard/compensation", icon: "wallet", group: "People" },
+
+  // Area 12 AI HR Assistant — a secure natural-language interface that
+  // inherits the caller's own RBAC/RLS scope (spec §9.1), so it is visible
+  // to every role; what it can actually answer or do narrows per role at
+  // the tool layer (ai_tool_permissions), not the nav.
+  { key: "assistant", label: "AI Assistant", href: "/dashboard/assistant", icon: "bot", group: "Insights" },
 
   { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings", group: "Admin" },
   { key: "branches", label: "Branches", href: "/dashboard/branches", icon: "building", group: "Admin" },
@@ -177,6 +184,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "assignments",
     "performance-insights",
     "risk",
+    "assistant",
   ],
   employee: [
     "dashboard",
@@ -191,6 +199,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "me-help",
     "performance",
     "assignments",
+    "assistant",
   ],
 };
 
