@@ -19,6 +19,12 @@ export function BioTab({
   pendingChanges?: PendingChange[];
 }) {
   const e = data.employee;
+  // The sensitive fields below are redacted to null server-side
+  // (getEmployee360) for anyone other than admin/hr/the employee themselves.
+  // Distinguish that from "genuinely blank" so a manager sees "Restricted"
+  // rather than the misleading "Not on file".
+  const restricted = "Restricted";
+  const sensitive = (value: string | null | undefined) => (data.canViewSensitivePII ? value || "Not on file" : restricted);
 
   return (
     <div className="space-y-6">
@@ -28,26 +34,28 @@ export function BioTab({
           <Row
             label="Date of birth"
             value={
-              e.date_of_birth
-                ? new Date(e.date_of_birth as string).toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" })
-                : "Not on file"
+              !data.canViewSensitivePII
+                ? restricted
+                : e.date_of_birth
+                  ? new Date(e.date_of_birth as string).toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" })
+                  : "Not on file"
             }
           />
           <Row label="Gender" value={(e.gender as string) || "Not on file"} />
-          <Row label="Marital status" value={(e.marital_status as string) || "Not on file"} />
+          <Row label="Marital status" value={sensitive(e.marital_status as string | null)} />
           <Row label="Nationality" value={(e.nationality as string) || "Not on file"} />
-          <Row label="National ID" value={(e.national_id as string) || "Not on file"} />
-          <Row label="Passport no." value={(e.passport_no as string) || "Not on file"} />
+          <Row label="National ID" value={sensitive(e.national_id as string | null)} />
+          <Row label="Passport no." value={sensitive(e.passport_no as string | null)} />
         </dl>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Contact Details</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-          <Row label="Phone number" value={(e.phone_number as string) || "Not on file"} />
-          <Row label="Personal email" value={(e.personal_email as string) || "Not on file"} />
-          <Row label="Physical address" value={(e.physical_address as string) || "Not on file"} />
-          <Row label="Postal address" value={(e.postal_address as string) || "Not on file"} />
+          <Row label="Phone number" value={sensitive(e.phone_number as string | null)} />
+          <Row label="Personal email" value={sensitive(e.personal_email as string | null)} />
+          <Row label="Physical address" value={sensitive(e.physical_address as string | null)} />
+          <Row label="Postal address" value={sensitive(e.postal_address as string | null)} />
         </dl>
       </div>
 

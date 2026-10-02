@@ -51,20 +51,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ level: "department", breakdown: segmentField });
   }
 
+  // SEC-003: a manager was previously authorised for a department as soon
+  // as ANY one of their in-scope employees happened to sit in it (the
+  // `authorised` check below), but the query that followed then returned
+  // the entire department's population unfiltered - every active employee
+  // in that department, not just the ones inside the manager's own scope.
+  // A manager with a single direct report in "Engineering" could pull the
+  // names/staff numbers/status of everyone else in Engineering too. The fix
+  // keeps the same authorisation gate (being in-scope for the department at
+  // all is still what unlocks drilling into it) but additionally filters
+  // the returned population to the manager's own scope.employeeIds, same as
+  // every other manager-workspace query in this codebase already does.
+  let scopeEmployeeIds: string[] | null = null;
   if (!isAdminOrHr) {
     const scope = await getManagerScope(supabase, appUser.employee_id as string, appUser.org_id);
     const { data: deptEmployees } = await supabase.from("employees").select("id").eq("org_id", appUser.org_id).eq("department", department);
     const deptIds = new Set((deptEmployees ?? []).map((e) => e.id));
     const authorised = scope.scopeTier === "organisation" || Array.from(deptIds).some((id) => scope.employeeIds.includes(id));
     if (!authorised) return NextResponse.json({ error: "Department is outside your authorised scope." }, { status: 403 });
+    if (scope.scopeTier !== "organisation") scopeEmployeeIds = scope.employeeIds;
   }
 
-  const { data: employees } = await supabase
+  let employeeQuery = supabase
     .from("employees")
     .select("id, name, staff_no, status")
     .eq("org_id", appUser.org_id)
     .eq("department", department)
     .eq("status", "Active");
+  if (scopeEmployeeIds) employeeQuery = employeeQuery.in("id", scopeEmployeeIds);
+  const { data: employees } = await employeeQuery;
 
   return NextResponse.json({ level: "employee_population", department, population: employees ?? [] });
 }

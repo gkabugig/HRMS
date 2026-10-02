@@ -155,6 +155,11 @@ export type ActivityItem = {
 
 export type Employee360 = {
   employee: EmployeeRow;
+  // True only for admin/hr or the employee viewing their own record - mirrors
+  // payroll.visible. The UI uses this to show "Restricted" rather than "Not
+  // on file" for the sensitive fields redacted above, so a manager doesn't
+  // mistake "hidden from you" for "nothing on record".
+  canViewSensitivePII: boolean;
   manager: ManagerSummary;
   leave: LeaveSummary;
   attendance: AttendanceSummary;
@@ -190,6 +195,40 @@ export async function getEmployee360(supabase: SupabaseClient<any>, employeeId: 
   if (error || !employee) throw new Error("Employee not found");
 
   const canViewPayroll = viewer.role === "admin" || viewer.role === "hr" || viewer.employeeId === employeeId;
+  // SEC-006: select("*") above pulls every employees column - including
+  // national ID, passport number, date of birth, marital status, personal
+  // contact details, and bank/statutory account numbers - with nothing
+  // gating who sees them. The page route puts no role check in front of
+  // this at all (any manager with is_manager_of() RLS visibility into a
+  // report's row reaches the same object), so a manager viewing a direct
+  // report's profile was seeing the same sensitive identity/financial
+  // fields HR and the employee themselves see. RLS alone can't fix this -
+  // it's a single-row read that legitimately passes row-level checks; the
+  // redaction has to happen at the column level, same pattern already used
+  // for payroll figures via canViewPayroll just above. Scope is identical:
+  // admin/hr, or the employee viewing their own record.
+  const canViewSensitivePII = canViewPayroll;
+  const SENSITIVE_EMPLOYEE_FIELDS = [
+    "date_of_birth",
+    "marital_status",
+    "national_id",
+    "passport_no",
+    "personal_email",
+    "phone_number",
+    "physical_address",
+    "postal_address",
+    "bank_name",
+    "bank_account_no",
+    "bank_branch_code",
+    "kra_pin",
+    "nssf_no",
+    "shif_no",
+  ] as const;
+  if (!canViewSensitivePII) {
+    for (const field of SENSITIVE_EMPLOYEE_FIELDS) {
+      (employee as Record<string, unknown>)[field] = null;
+    }
+  }
 
   const [
     { data: leavePolicy },
@@ -440,6 +479,7 @@ export async function getEmployee360(supabase: SupabaseClient<any>, employeeId: 
 
   return {
     employee: employee as EmployeeRow,
+    canViewSensitivePII,
     manager: (employee.manager as ManagerSummary) ?? null,
     leave,
     attendance,

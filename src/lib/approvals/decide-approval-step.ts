@@ -92,7 +92,14 @@ export async function decideApprovalStep(
     if (validDelegate) delegatedFrom = step.approver_user_id;
   }
 
-  await supabase
+  // Atomic compare-and-swap: the earlier status==='pending' read above is
+  // only an advisory check for a clean error message, not an enforcement
+  // boundary - two concurrent decisions can both pass it before either
+  // writes. Gating the UPDATE itself on status='pending' makes only the
+  // first writer's update actually match a row; the second gets back zero
+  // affected rows and is rejected here instead of silently flipping an
+  // already-decided step to a second, conflicting status.
+  const { data: updatedStep, error: updateErr } = await supabase
     .from("approval_steps")
     .update({
       status: input.decision,
@@ -100,7 +107,14 @@ export async function decideApprovalStep(
       comment: input.comment ?? null,
       ...(delegatedFrom ? { delegated_from: delegatedFrom, delegated_to: actorUserId } : {}),
     })
-    .eq("id", step.id);
+    .eq("id", step.id)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
+  if (updateErr) throw new Error(updateErr.message);
+  if (!updatedStep) {
+    throw new Error("This step was just decided by someone else.");
+  }
 
   const { error: actionErr } = await supabase.from("approval_actions").insert({
     approval_request_id: request.id,
