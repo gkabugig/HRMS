@@ -107,6 +107,37 @@ export async function removeConversationAttachment(attachmentId: string, convers
   });
 }
 
+// Wipes the messages (and any attachments) in the current conversation but
+// keeps the conversation row itself - the chat starts empty again without
+// changing which conversation is "active". ai_action_requests rows are left
+// alone: the owner-level RLS policy only grants them insert/select on that
+// table (update/delete is hr/admin-only, for audit integrity), so a pending
+// request can't be deleted here - it stays resolvable via confirm/reject.
+export async function clearConversation(conversationId: string): Promise<ActionResult<void>> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const { error: messagesError } = await supabase.from("ai_messages").delete().eq("conversation_id", conversationId);
+    if (messagesError) throw new Error(messagesError.message);
+    const { error: attachmentsError } = await supabase.from("ai_conversation_attachments").delete().eq("conversation_id", conversationId);
+    if (attachmentsError) throw new Error(attachmentsError.message);
+    revalidatePath("/dashboard/assistant");
+  });
+}
+
+// Ends the current conversation (status: closed) without deleting it - it
+// stays in history for the user and for hr/admin audit read access. The
+// assistant page always loads the most recent *active* conversation and
+// creates a new one if none exists, so closing this one is enough to make
+// the next page load start a brand new chat.
+export async function startNewConversation(conversationId: string): Promise<ActionResult<void>> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const { error } = await supabase.from("ai_conversations").update({ status: "closed" }).eq("id", conversationId);
+    if (error) throw new Error(error.message);
+    revalidatePath("/dashboard/assistant");
+  });
+}
+
 export async function decideAction(actionRequestId: string, decision: "confirmed" | "rejected"): Promise<ActionResult<Awaited<ReturnType<typeof confirmActionRequest>>>> {
   return safe(async () => {
     const supabase = await createClient();
