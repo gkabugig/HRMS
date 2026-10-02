@@ -29,7 +29,7 @@ export default async function AssistantPage() {
     conversation = { id };
   }
 
-  const [{ data: messages }, { data: pendingActions }] = await Promise.all([
+  const [{ data: messages }, { data: pendingActions }, { data: attachments }] = await Promise.all([
     supabase
       .from("ai_messages")
       .select("id, role, content, created_at, safety_metadata")
@@ -40,6 +40,11 @@ export default async function AssistantPage() {
       .select("id, tool_name, arguments, status")
       .eq("conversation_id", conversation.id)
       .eq("status", "pending"),
+    supabase
+      .from("ai_conversation_attachments")
+      .select("id, file_name, char_count, created_at")
+      .eq("conversation_id", conversation.id)
+      .order("created_at", { ascending: true }),
   ]);
 
   const hasApiKey = Boolean(process.env.ANTHROPIC_API_KEY);
@@ -72,6 +77,7 @@ export default async function AssistantPage() {
         conversationId={conversation.id}
         initialMessages={messages ?? []}
         pendingActions={(pendingActions ?? []) as { id: string; tool_name: string; arguments: Record<string, unknown>; status: string }[]}
+        attachments={attachments ?? []}
       />
     </div>
   );

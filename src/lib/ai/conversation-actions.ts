@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sendMessage } from "./gateway";
 import { confirmActionRequest } from "./confirm-action";
+import { validateAttachment, extractAttachmentText } from "./attachments";
 
 export async function startConversation(title?: string) {
   const supabase = await createClient();
@@ -40,6 +41,44 @@ export async function postMessage(conversationId: string, text: string) {
   const result = await sendMessage(supabase, conversationId, trimmed);
   revalidatePath("/dashboard/assistant");
   return result;
+}
+
+export async function uploadConversationAttachment(conversationId: string, formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+  const { data: appUser } = await supabase.from("app_users").select("org_id").eq("id", user.id).maybeSingle();
+  if (!appUser) throw new Error("No org context.");
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) throw new Error("Choose a file to attach.");
+
+  const validation = validateAttachment(file);
+  if (!validation.ok) throw new Error(validation.error);
+
+  const text = await extractAttachmentText(file);
+
+  const { error } = await supabase.from("ai_conversation_attachments").insert({
+    org_id: appUser.org_id,
+    conversation_id: conversationId,
+    uploaded_by: user.id,
+    file_name: file.name,
+    char_count: text.length,
+    content_text: text,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard/assistant");
+}
+
+export async function removeConversationAttachment(attachmentId: string, conversationId: string) {
+  const supabase = await createClient();
+  // conversation_id in the filter is defense-in-depth alongside RLS, not a
+  // substitute for it - same belt-and-braces pattern as the rest of this file.
+  const { error } = await supabase.from("ai_conversation_attachments").delete().eq("id", attachmentId).eq("conversation_id", conversationId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard/assistant");
 }
 
 export async function decideAction(actionRequestId: string, decision: "confirmed" | "rejected") {

@@ -17,7 +17,7 @@ export async function listDocuments(supabase: SupabaseClient, filters: DocumentL
   let query = supabase
     .from("employee_documents")
     .select(
-      "id, title, doc_type, lifecycle_state, sensitivity, visibility, issue_date, expiry_date, effective_date, legal_hold, archived_at, requires_acknowledgement, uploaded_at, employees(id, name, staff_no), document_types(id, name)"
+      "id, title, doc_type, lifecycle_state, sensitivity, visibility, issue_date, expiry_date, effective_date, legal_hold, archived_at, requires_acknowledgement, uploaded_at, employees!employee_id(id, name, staff_no), document_types(id, name)"
     )
     .order("uploaded_at", { ascending: false })
     .limit(200);
@@ -50,7 +50,7 @@ export async function getDocumentDetail(supabase: SupabaseClient, documentId: st
   const { data: doc, error } = await supabase
     .from("employee_documents")
     .select(
-      "id, title, doc_type, lifecycle_state, sensitivity, visibility, issue_date, expiry_date, effective_date, legal_hold, retention_until, archived_at, archived_by, requires_acknowledgement, current_version_id, owner_id, employee_id, employees(id, name, staff_no), document_types(id, name, requires_acknowledgement, acknowledgement_reset_on_new_version)"
+      "id, title, doc_type, lifecycle_state, sensitivity, visibility, issue_date, expiry_date, effective_date, legal_hold, retention_until, archived_at, archived_by, requires_acknowledgement, current_version_id, owner_id, employee_id, employees!employee_id(id, name, staff_no), document_types(id, name, requires_acknowledgement, acknowledgement_reset_on_new_version)"
     )
     .eq("id", documentId)
     .maybeSingle();
@@ -81,7 +81,7 @@ export async function listExpiringDocuments(supabase: SupabaseClient, withinDays
   cutoff.setDate(cutoff.getDate() + withinDays);
   const { data, error } = await supabase
     .from("employee_documents")
-    .select("id, title, doc_type, expiry_date, lifecycle_state, employees(id, name, staff_no)")
+    .select("id, title, doc_type, expiry_date, lifecycle_state, employees!employee_id(id, name, staff_no)")
     .in("lifecycle_state", ["issued", "acknowledged"])
     .not("expiry_date", "is", null)
     .lte("expiry_date", cutoff.toISOString().slice(0, 10))
@@ -93,7 +93,7 @@ export async function listExpiringDocuments(supabase: SupabaseClient, withinDays
 export async function listArchivedDocuments(supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from("employee_documents")
-    .select("id, title, doc_type, archived_at, employees(id, name, staff_no)")
+    .select("id, title, doc_type, archived_at, employees!employee_id(id, name, staff_no)")
     .eq("lifecycle_state", "archived")
     .order("archived_at", { ascending: false });
   if (error) throw new Error(error.message);

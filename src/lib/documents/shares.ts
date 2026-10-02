@@ -34,7 +34,7 @@ export async function createDocumentShare(
   });
   if (error) throw new Error(error.message);
 
-  const { data: doc } = await supabase.from("employee_documents").select("employees(org_id)").eq("id", input.documentId).maybeSingle();
+  const { data: doc } = await supabase.from("employee_documents").select("employees!employee_id(org_id)").eq("id", input.documentId).maybeSingle();
   const orgRow = doc?.employees as unknown as { org_id: string } | { org_id: string }[] | null;
   const orgId = Array.isArray(orgRow) ? orgRow[0]?.org_id : orgRow?.org_id;
   if (orgId) {
@@ -56,7 +56,7 @@ export async function revokeDocumentShare(supabase: SupabaseClient, shareId: str
     .from("document_shares")
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", shareId)
-    .select("document_id, version_id, employee_documents(employees(org_id))")
+    .select("document_id, version_id, employee_documents(employees!employee_id(org_id))")
     .single();
   if (error || !share) throw new Error(error?.message ?? "Share not found.");
 
@@ -120,7 +120,7 @@ export async function redeemDocumentShare(
 
   await supabase.from("document_shares").update({ view_count: share.view_count + 1 }).eq("id", share.id);
 
-  const { data: doc } = await supabase.from("employee_documents").select("employees(org_id)").eq("id", share.document_id).maybeSingle();
+  const { data: doc } = await supabase.from("employee_documents").select("employees!employee_id(org_id)").eq("id", share.document_id).maybeSingle();
   const orgRow = doc?.employees as unknown as { org_id: string } | { org_id: string }[] | null;
   const orgId = Array.isArray(orgRow) ? orgRow[0]?.org_id : orgRow?.org_id;
   if (orgId) {

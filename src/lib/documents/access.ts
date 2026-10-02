@@ -22,7 +22,7 @@ export async function getDocumentAccess(
 
   const { data: doc, error: docErr } = await supabase
     .from("employee_documents")
-    .select("id, employee_id, org_id:employees(org_id), current_version_id, file_path, file_name")
+    .select("id, employee_id, org_id:employees!employee_id(org_id), current_version_id, file_path, file_name")
     .eq("id", input.documentId)
     .maybeSingle();
   if (docErr || !doc) throw new Error("Document not found, or you don't have access to it.");

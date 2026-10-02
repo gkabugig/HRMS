@@ -18,7 +18,7 @@ export async function evaluateDocumentExpiries(supabase: SupabaseClient): Promis
   const { data: pending, error } = await supabase
     .from("document_expiries")
     .select(
-      "id, document_id, warning_days, notified_at, employee_documents(id, org_id:employees(org_id), employee_id, expiry_date, title, doc_type, lifecycle_state)"
+      "id, document_id, warning_days, notified_at, employee_documents(id, org_id:employees!employee_id(org_id), employee_id, expiry_date, title, doc_type, lifecycle_state)"
     )
     .is("notified_at", null);
   if (error) throw new Error(error.message);
@@ -82,7 +82,7 @@ export async function evaluateDocumentExpiries(supabase: SupabaseClient): Promis
   // actually passed and hasn't already been voided/superseded/archived.
   const { data: expiredDocs, error: expiredErr } = await supabase
     .from("employee_documents")
-    .select("id, employees(org_id)")
+    .select("id, employees!employee_id(org_id)")
     .lt("expiry_date", todayStr)
     .in("lifecycle_state", ["issued", "acknowledged"]);
   if (expiredErr) throw new Error(expiredErr.message);

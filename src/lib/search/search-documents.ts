@@ -13,13 +13,13 @@ export async function searchDocuments(supabase: SupabaseClient, query: string): 
   const [{ data: byType }, { data: byName }] = await Promise.all([
     supabase
       .from("employee_documents")
-      .select("id, doc_type, title, file_name, employee_id, lifecycle_state, employees(name)")
+      .select("id, doc_type, title, file_name, employee_id, lifecycle_state, employees!employee_id(name)")
       .ilike("doc_type", `%${query}%`)
       .not("lifecycle_state", "in", `(${HIDDEN_LIFECYCLE_STATES.join(",")})`)
       .limit(6),
     supabase
       .from("employee_documents")
-      .select("id, doc_type, title, file_name, employee_id, lifecycle_state, employees(name)")
+      .select("id, doc_type, title, file_name, employee_id, lifecycle_state, employees!employee_id(name)")
       .ilike("file_name", `%${query}%`)
       .not("lifecycle_state", "in", `(${HIDDEN_LIFECYCLE_STATES.join(",")})`)
       .limit(6),

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { postMessage, decideAction, submitFeedback } from "@/lib/ai/conversation-actions";
+import { Paperclip, X } from "lucide-react";
+import { postMessage, decideAction, submitFeedback, uploadConversationAttachment, removeConversationAttachment } from "@/lib/ai/conversation-actions";
 
 type Message = {
   id: string;
@@ -19,11 +20,59 @@ type PendingAction = {
   status: string;
 };
 
-export default function ChatClient({ conversationId, initialMessages, pendingActions }: { conversationId: string; initialMessages: Message[]; pendingActions: PendingAction[] }) {
+type Attachment = {
+  id: string;
+  file_name: string;
+  char_count: number;
+  created_at: string;
+};
+
+export default function ChatClient({
+  conversationId,
+  initialMessages,
+  pendingActions,
+  attachments,
+}: {
+  conversationId: string;
+  initialMessages: Message[];
+  pendingActions: PendingAction[];
+  attachments: Attachment[];
+}) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isUploading, startUploading] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  function handleAttach(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    const formData = new FormData();
+    formData.set("file", file);
+    startUploading(async () => {
+      try {
+        await uploadConversationAttachment(conversationId, formData);
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Couldn't attach that file.");
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    });
+  }
+
+  function removeAttachment(attachmentId: string) {
+    startUploading(async () => {
+      try {
+        await removeConversationAttachment(attachmentId, conversationId);
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Couldn't remove that attachment.");
+      }
+    });
+  }
 
   function send() {
     const value = text.trim();
@@ -110,9 +159,50 @@ export default function ChatClient({ conversationId, initialMessages, pendingAct
         ))}
       </div>
 
-      {error && <p className="px-4 text-xs text-red-600">{error}</p>}
+      {error && <p className="px-4 text-xs text-red-600 dark:text-red-400">{error}</p>}
 
-      <div className="border-t border-[var(--border-subtle)] p-3 flex gap-2">
+      {attachments.length > 0 && (
+        <div className="px-3 pt-2 flex flex-wrap gap-1.5 border-t border-[var(--border-subtle)]">
+          {attachments.map((a) => (
+            <span
+              key={a.id}
+              className="inline-flex items-center gap-1.5 text-xs bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-full pl-2.5 pr-1.5 py-1"
+              title={`${a.char_count.toLocaleString()} characters`}
+            >
+              <Paperclip size={11} />
+              {a.file_name}
+              <button
+                type="button"
+                onClick={() => removeAttachment(a.id)}
+                disabled={isUploading}
+                aria-label={`Remove ${a.file_name}`}
+                className="hover:text-red-600 hover:dark:text-red-400 disabled:opacity-50"
+              >
+                <X size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className={`border-[var(--border-subtle)] p-3 flex gap-2 items-end ${attachments.length > 0 ? "" : "border-t"}`}>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          aria-label="Attach a document"
+          title="Attach a document (.txt, .md, .csv, .pdf, .docx)"
+          className="shrink-0 border border-neutral-300 dark:border-neutral-600 rounded-lg p-2 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 hover:dark:bg-neutral-900 disabled:opacity-50"
+        >
+          <Paperclip size={16} />
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".txt,.md,.csv,.pdf,.docx,text/plain,text/markdown,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
+          onChange={handleAttach}
+        />
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
