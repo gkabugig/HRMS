@@ -116,6 +116,12 @@ export async function removeConversationAttachment(attachmentId: string, convers
 export async function clearConversation(conversationId: string): Promise<ActionResult<void>> {
   return safe(async () => {
     const supabase = await createClient();
+    // ai_assistant_feedback.message_id -> ai_messages(id) has no ON DELETE
+    // behavior, so a message with a 👍/👎 on it would otherwise block the
+    // delete below with a foreign-key violation. Feedback is meaningless
+    // once the message it rated is gone, so it's cleared along with it.
+    const { error: feedbackError } = await supabase.from("ai_assistant_feedback").delete().eq("conversation_id", conversationId);
+    if (feedbackError) throw new Error(feedbackError.message);
     const { error: messagesError } = await supabase.from("ai_messages").delete().eq("conversation_id", conversationId);
     if (messagesError) throw new Error(messagesError.message);
     const { error: attachmentsError } = await supabase.from("ai_conversation_attachments").delete().eq("conversation_id", conversationId);
