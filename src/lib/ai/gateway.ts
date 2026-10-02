@@ -156,7 +156,17 @@ export async function sendMessage(supabase: SupabaseClient, conversationId: stri
   }
 
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const anthropic = new Anthropic({ apiKey });
+  // An organization-level (unscoped) Anthropic API key requires the request
+  // to name which workspace's resources/limits to use via this header; a
+  // workspace-scoped key doesn't need it. Rather than require a code change,
+  // we support both: if ANTHROPIC_WORKSPACE_ID is set, it's attached to every
+  // request automatically. The simpler fix needing no env var at all is to
+  // generate a workspace-scoped key in the Anthropic Console instead.
+  const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID;
+  const anthropic = new Anthropic({
+    apiKey,
+    defaultHeaders: workspaceId ? { "anthropic-workspace-id": workspaceId } : undefined,
+  });
 
   const toolDefs = await loadToolDefinitions(supabase, ctx.role);
   const anthropicTools = toolDefs.map((t) => ({
