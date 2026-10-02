@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   createCourse,
-  updateCourse,
   enrollSelf,
   enrollEmployee,
   markEnrollmentComplete,
 } from "./actions";
 import DeleteCourseButton from "./components/delete-course-button";
+import EditCourseModal from "./components/edit-course-modal";
 
 export default async function LearningDevelopmentPage() {
   const supabase = await createClient();
@@ -103,69 +103,7 @@ export default async function LearningDevelopmentPage() {
                   {isHrLike && (
                     <td className="px-4 py-2 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-3">
-                        <details className="relative">
-                          <summary className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer list-none">
-                            Edit
-                          </summary>
-                          <form
-                            action={updateCourse.bind(null, c.id)}
-                            className="absolute right-0 z-10 mt-2 w-72 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg p-3 flex flex-col gap-2 text-left"
-                          >
-                            <input
-                              name="name"
-                              defaultValue={c.name}
-                              required
-                              placeholder="Course name"
-                              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1.5 text-xs"
-                            />
-                            <input
-                              name="provider"
-                              defaultValue={c.provider ?? ""}
-                              placeholder="Provider"
-                              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1.5 text-xs"
-                            />
-                            <select
-                              name="mode"
-                              defaultValue={c.mode ?? ""}
-                              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1.5 text-xs"
-                            >
-                              <option value="">Mode</option>
-                              <option>In-person</option>
-                              <option>Online</option>
-                              <option>Blended</option>
-                            </select>
-                            <input
-                              name="duration"
-                              defaultValue={c.duration ?? ""}
-                              placeholder="Duration (e.g. 2 days)"
-                              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1.5 text-xs"
-                            />
-                            <input
-                              name="cost"
-                              type="number"
-                              step="0.01"
-                              defaultValue={c.cost ?? 0}
-                              placeholder="Cost (KES)"
-                              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1.5 text-xs"
-                            />
-                            <input
-                              name="validity_months"
-                              type="number"
-                              defaultValue={c.validity_months ?? ""}
-                              placeholder="Validity (months, optional)"
-                              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1.5 text-xs"
-                            />
-                            <label className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-300">
-                              <input type="checkbox" name="mandatory" defaultChecked={c.mandatory} /> Mandatory course
-                            </label>
-                            <button
-                              type="submit"
-                              className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-1.5 text-xs font-medium"
-                            >
-                              Save changes
-                            </button>
-                          </form>
-                        </details>
+                        <EditCourseModal course={c} />
                         <DeleteCourseButton courseId={c.id} courseName={c.name} />
                       </div>
                     </td>
