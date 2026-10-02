@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addAdjustment } from "../../actions";
+import PayslipDocument from "@/components/payroll/payslip-document";
 import PrintButton from "./print-button";
 
 function money(n: number): string {
@@ -34,7 +35,9 @@ export default async function PayrollEmployeeDetailPage({
     supabase.from("employees").select("id, name, staff_no, department, job_title").eq("id", employeeId).maybeSingle(),
     supabase
       .from("payslips")
-      .select("gross, paye, nssf, shif, housing_levy, other_deductions, net, employees(basic, house_allowance, transport_allowance, other_allowance)")
+      .select(
+        "gross, paye, nssf, shif, housing_levy, other_deductions, leave_deduction, deduction_capped, net, employer_nssf, employer_housing_levy, employees(basic, house_allowance, transport_allowance, other_allowance)"
+      )
       .eq("payroll_run_id", payrollRunId)
       .eq("employee_id", employeeId)
       .maybeSingle(),
@@ -58,16 +61,15 @@ export default async function PayrollEmployeeDetailPage({
         ← Back to {run.period} payroll
       </Link>
 
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 print:hidden">
         <div>
           <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{employee.name}</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             {employee.staff_no} • {employee.department} • {employee.job_title}
           </p>
-          <p className="text-xs text-neutral-400 dark:text-neutral-500 print:block hidden mt-1">{run.period} payslip</p>
         </div>
         {payslip && (
-          <div className="print:hidden shrink-0">
+          <div className="shrink-0">
             <PrintButton />
           </div>
         )}
@@ -78,27 +80,32 @@ export default async function PayrollEmployeeDetailPage({
           No payslip for this employee on this run.
         </div>
       ) : (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-6 print:border-none print:shadow-none">
-          <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide mb-2">Earnings</p>
-          <Row label="Basic salary" value={comp?.basic ?? 0} />
-          <Row label="House allowance" value={comp?.house_allowance ?? 0} />
-          <Row label="Transport" value={comp?.transport_allowance ?? 0} />
-          <Row label="Other" value={comp?.other_allowance ?? 0} />
-          <Row label="Gross" value={payslip.gross} strong />
-
-          <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide mt-4 mb-2">Deductions</p>
-          <Row label="PAYE" value={payslip.paye} />
-          <Row label="NSSF" value={payslip.nssf} />
-          <Row label="SHIF" value={payslip.shif} />
-          <Row label="Housing Levy" value={payslip.housing_levy} />
-          <Row label="Other" value={payslip.other_deductions} />
-
-          {adjustmentTotal !== 0 && <Row label="Adjustments" value={adjustmentTotal} />}
-
-          <div className="border-t border-[var(--border-subtle)] mt-3 pt-3">
-            <Row label="Net" value={payslip.net + adjustmentTotal} strong big />
-          </div>
-        </div>
+        <PayslipDocument
+          period={run.period}
+          employeeName={employee.name}
+          staffNo={employee.staff_no}
+          department={employee.department}
+          basicSalary={comp?.basic ?? 0}
+          allowances={(comp?.house_allowance ?? 0) + (comp?.transport_allowance ?? 0) + (comp?.other_allowance ?? 0)}
+          grossPay={payslip.gross}
+          nssf={payslip.nssf}
+          shif={payslip.shif}
+          housingLevy={payslip.housing_levy}
+          paye={payslip.paye}
+          netPay={payslip.net + adjustmentTotal}
+          employerNssf={payslip.employer_nssf}
+          employerHousingLevy={payslip.employer_housing_levy}
+          extraDeductions={[
+            ...(payslip.leave_deduction > 0 ? [{ label: "Leave deduction", amount: payslip.leave_deduction }] : []),
+            ...(payslip.other_deductions > 0 ? [{ label: "Other deductions", amount: payslip.other_deductions }] : []),
+            ...(adjustmentTotal !== 0 ? [{ label: "Adjustments", amount: adjustmentTotal }] : []),
+          ]}
+          deductionCapNote={
+            payslip.deduction_capped
+              ? "Statutory deductions were capped at two-thirds of gross pay (Employment Act s.19(3)); the remainder rolls to next period."
+              : undefined
+          }
+        />
       )}
 
       {adjustments && adjustments.length > 0 && (
@@ -162,15 +169,6 @@ export default async function PayrollEmployeeDetailPage({
           </ul>
         </div>
       )}
-    </div>
-  );
-}
-
-function Row({ label, value, strong, big }: { label: string; value: number; strong?: boolean; big?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between py-0.5">
-      <span className="text-sm text-neutral-500 dark:text-neutral-400">{label}</span>
-      <span className={`font-mono ${strong ? "font-semibold text-neutral-900 dark:text-neutral-50" : "text-neutral-700 dark:text-neutral-200"} ${big ? "text-lg" : "text-sm"}`}>{money(value)}</span>
     </div>
   );
 }

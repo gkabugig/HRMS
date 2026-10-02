@@ -10,15 +10,16 @@
 // there's no payslip storage bucket to add, and the viewer is already
 // re-authorized and audited on every render, so a print-to-PDF button adds
 // no new access path beyond what viewing it already logs.
+//
+// The document itself (PayslipDocument) is the one shared template also
+// used by the HR/admin payroll-run employee view, so the payslip looks
+// identical everywhere it's viewed, downloaded or printed from.
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-context";
 import { getMyPayslipDetail } from "@/lib/employee-portal/get-my-pay";
+import PayslipDocument from "@/components/payroll/payslip-document";
 import PrintButton from "./print-button";
-
-function fmt(n: number) {
-  return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
-}
 
 export default async function MyPayslipDetailPage({ params }: { params: Promise<{ payslipId: string }> }) {
   const { payslipId } = await params;
@@ -28,14 +29,9 @@ export default async function MyPayslipDetailPage({ params }: { params: Promise<
 
   if (!payslip) return notFound();
 
-  const rows: [string, number][] = [
-    ["Gross pay", payslip.gross],
-    ["PAYE", -payslip.paye],
-    ["NSSF", -payslip.nssf],
-    ["SHIF", -payslip.shif],
-    ["Housing Levy", -payslip.housingLevy],
-    ...(payslip.leaveDeduction > 0 ? ([["Leave deduction", -payslip.leaveDeduction]] as [string, number][]) : []),
-    ...(payslip.otherDeductions > 0 ? ([["Other deductions", -payslip.otherDeductions]] as [string, number][]) : []),
+  const extraDeductions = [
+    ...(payslip.leaveDeduction > 0 ? [{ label: "Leave deduction", amount: payslip.leaveDeduction }] : []),
+    ...(payslip.otherDeductions > 0 ? [{ label: "Other deductions", amount: payslip.otherDeductions }] : []),
   ];
 
   return (
@@ -45,45 +41,30 @@ export default async function MyPayslipDetailPage({ params }: { params: Promise<
         <PrintButton />
       </div>
 
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-8 print:border-none print:shadow-none print:p-0">
-        <h1 className="text-lg font-semibold text-center mb-1">PAYSLIP</h1>
-        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mb-6">{payslip.period}</p>
+      <PayslipDocument
+        period={payslip.period}
+        employeeName={payslip.employeeName}
+        staffNo={payslip.staffNo}
+        department={payslip.department}
+        basicSalary={payslip.basicSalary}
+        allowances={payslip.allowances}
+        grossPay={payslip.gross}
+        nssf={payslip.nssf}
+        shif={payslip.shif}
+        housingLevy={payslip.housingLevy}
+        paye={payslip.paye}
+        netPay={payslip.net}
+        employerNssf={payslip.employerNssf}
+        employerHousingLevy={payslip.employerHousingLevy}
+        extraDeductions={extraDeductions}
+        deductionCapNote={
+          payslip.deductionCapped
+            ? "Statutory deductions were capped at two-thirds of gross pay (Employment Act s.19(3)); the remainder rolls to next period."
+            : undefined
+        }
+      />
 
-        <dl className="grid grid-cols-2 gap-y-1 text-sm mb-6">
-          <dt className="text-neutral-500 dark:text-neutral-400">Name</dt>
-          <dd className="text-right">{payslip.employeeName}</dd>
-          <dt className="text-neutral-500 dark:text-neutral-400">Staff No.</dt>
-          <dd className="text-right">{payslip.staffNo}</dd>
-          <dt className="text-neutral-500 dark:text-neutral-400">Job title</dt>
-          <dd className="text-right">{payslip.jobTitle}</dd>
-          <dt className="text-neutral-500 dark:text-neutral-400">Department</dt>
-          <dd className="text-right">{payslip.department}</dd>
-        </dl>
-
-        <table className="w-full text-sm">
-          <tbody>
-            {rows.map(([label, amount]) => (
-              <tr key={label} className="border-t border-neutral-100 dark:border-neutral-800">
-                <td className="py-1.5 text-neutral-600 dark:text-neutral-300">{label}</td>
-                <td className="py-1.5 text-right font-mono">{amount < 0 ? `-${fmt(Math.abs(amount))}` : fmt(amount)}</td>
-              </tr>
-            ))}
-            <tr className="border-t-2 border-neutral-300 dark:border-neutral-600">
-              <td className="py-2 font-semibold">Net pay</td>
-              <td className="py-2 text-right font-mono font-semibold">{fmt(payslip.net)}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        {payslip.deductionCapped && (
-          <p className="text-xs text-amber-600 mt-4">
-            Statutory deductions were capped at two-thirds of gross pay (Employment Act s.19(3)); the remainder rolls to next period.
-          </p>
-        )}
-
-        <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-6">Bank payment details are not shown here for security — contact HR to verify your payment account.</p>
-      </div>
-
+      <p className="print:hidden text-xs text-neutral-400 dark:text-neutral-500">Bank payment details are not shown here for security — contact HR to verify your payment account.</p>
       <p className="print:hidden text-xs text-neutral-500 dark:text-neutral-400">Use your browser&apos;s Print (Cmd/Ctrl+P) to save this as a PDF.</p>
     </div>
   );

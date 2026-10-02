@@ -53,6 +53,10 @@ export type MyPayslipDetail = MyPayslipRow & {
   staffNo: string;
   jobTitle: string;
   department: string;
+  basicSalary: number;
+  allowances: number;
+  employerNssf: number;
+  employerHousingLevy: number;
 };
 
 // Secure single-payslip viewer (spec §8 "secure payslip viewer/download" +
@@ -70,7 +74,7 @@ export async function getMyPayslipDetail(
   const { data, error } = await supabase
     .from("payslips")
     .select(
-      "id, gross, paye, nssf, shif, housing_levy, leave_deduction, net, deduction_capped, other_deductions, published_at, payroll_runs(period), employees(name, staff_no, job_title, department)"
+      "id, gross, paye, nssf, shif, housing_levy, leave_deduction, net, deduction_capped, other_deductions, employer_nssf, employer_housing_levy, published_at, payroll_runs(period), employees(name, staff_no, job_title, department, basic, house_allowance, transport_allowance, other_allowance)"
     )
     .eq("id", payslipId)
     .eq("employee_id", employeeId)
@@ -78,7 +82,16 @@ export async function getMyPayslipDetail(
     .maybeSingle();
   if (error || !data) return null;
 
-  const employee = data.employees as unknown as { name: string; staff_no: string; job_title: string; department: string } | null;
+  const employee = data.employees as unknown as {
+    name: string;
+    staff_no: string;
+    job_title: string;
+    department: string;
+    basic: number;
+    house_allowance: number;
+    transport_allowance: number;
+    other_allowance: number;
+  } | null;
 
   await recordAuditEvent(supabase, {
     orgId,
@@ -107,5 +120,9 @@ export async function getMyPayslipDetail(
     staffNo: employee?.staff_no ?? "",
     jobTitle: employee?.job_title ?? "",
     department: employee?.department ?? "",
+    basicSalary: employee?.basic ?? 0,
+    allowances: (employee?.house_allowance ?? 0) + (employee?.transport_allowance ?? 0) + (employee?.other_allowance ?? 0),
+    employerNssf: data.employer_nssf ?? 0,
+    employerHousingLevy: data.employer_housing_levy ?? 0,
   };
 }
