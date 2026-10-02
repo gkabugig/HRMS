@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { validatePhoto, buildPhotoStoragePath } from "@/lib/employees/photo";
 
 const ASSET_STATUSES = ["Assigned", "Returned", "Lost", "Damaged"] as const;
 const NOTE_VISIBILITIES = ["HR", "Manager"] as const;
@@ -56,6 +57,46 @@ export async function addContact(employeeId: string, formData: FormData) {
 export async function deleteContact(contactId: string, employeeId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("employee_contacts").delete().eq("id", contactId);
+  if (error) throw new Error(error.message);
+  revalidateProfile(employeeId);
+}
+
+// Authorization for who may set a photo is enforced by storage.objects RLS
+// (employee_photos_hr_write / employee_photos_self_write, migration 0121) -
+// HR/admin for any employee, or an employee for their own photo - the same
+// self-or-hr shape as employees_self_update on the employees table itself.
+// A re-upload overwrites the previous file (fixed path, upsert:true) rather
+// than accumulating old photos.
+export async function uploadEmployeePhoto(employeeId: string, formData: FormData) {
+  const supabase = await createClient();
+  const file = formData.get("photo");
+  if (!(file instanceof File)) throw new Error("Choose a photo to upload.");
+
+  const validation = validatePhoto(file);
+  if (!validation.ok) throw new Error(validation.error);
+
+  const path = buildPhotoStoragePath(employeeId, validation.extension);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  const { error: uploadError } = await supabase.storage
+    .from("employee-photos")
+    .upload(path, bytes, { upsert: true, contentType: file.type });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { error: updateError } = await supabase.from("employees").update({ photo_path: path }).eq("id", employeeId);
+  if (updateError) throw new Error(updateError.message);
+
+  revalidateProfile(employeeId);
+}
+
+export async function removeEmployeePhoto(employeeId: string, photoPath: string) {
+  const supabase = await createClient();
+  // Best-effort delete of the stored file; even if this fails (e.g. the
+  // file is already gone), still clear photo_path so the UI falls back to
+  // the initials avatar rather than a broken image.
+  await supabase.storage.from("employee-photos").remove([photoPath]);
+
+  const { error } = await supabase.from("employees").update({ photo_path: null }).eq("id", employeeId);
   if (error) throw new Error(error.message);
   revalidateProfile(employeeId);
 }

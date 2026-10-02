@@ -1,16 +1,33 @@
 import Link from "next/link";
 import type { Employee360 } from "@/lib/employees/get-employee-360";
 import { EmployeeAvatar } from "./employee-avatar";
+import { PhotoUploadControl } from "./photo-upload-control";
+import { createClient } from "@/lib/supabase/server";
 
 const STATUS_STYLES: Record<string, string> = {
   Active: "bg-emerald-100 text-emerald-700",
   Terminated: "bg-neutral-200 text-neutral-600",
 };
 
-export function EmployeeHeader({ data, canEdit }: { data: Employee360; canEdit: boolean }) {
+export async function EmployeeHeader({
+  data,
+  canEdit,
+  canEditPhoto,
+}: {
+  data: Employee360;
+  canEdit: boolean;
+  canEditPhoto: boolean;
+}) {
   const e = data.employee;
   const today = new Date().toISOString().slice(0, 10);
   const onProbation = e.probation_end_date && (e.probation_end_date as string) >= today;
+
+  const photoPath = (e.photo_path as string | null) ?? null;
+  let photoUrl: string | null = null;
+  if (photoPath) {
+    const supabase = await createClient();
+    photoUrl = supabase.storage.from("employee-photos").getPublicUrl(photoPath).data.publicUrl;
+  }
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-6">
@@ -19,7 +36,11 @@ export function EmployeeHeader({ data, canEdit }: { data: Employee360; canEdit: 
       </Link>
 
       <div className="mt-3 flex flex-col sm:flex-row sm:items-start gap-4">
-        <EmployeeAvatar name={e.name as string} />
+        {canEditPhoto ? (
+          <PhotoUploadControl employeeId={e.id as string} name={e.name as string} photoUrl={photoUrl} photoPath={photoPath} />
+        ) : (
+          <EmployeeAvatar name={e.name as string} photoUrl={photoUrl} />
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">

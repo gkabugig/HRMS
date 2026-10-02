@@ -40,6 +40,7 @@ export default async function Employee360Page({
   const role = (appUser?.role ?? "employee") as UserRole;
   const isHrLike = role === "admin" || role === "hr";
   const isManagerLike = isHrLike || role === "manager";
+  const isSelf = appUser?.employee_id === employeeId;
 
   let data;
   try {
@@ -57,7 +58,7 @@ export default async function Employee360Page({
 
   return (
     <div className="space-y-6">
-      <EmployeeHeader data={data} canEdit={isHrLike} />
+      <EmployeeHeader data={data} canEdit={isHrLike} canEditPhoto={isHrLike || isSelf} />
       <EmployeeTabs employeeId={employeeId} active={activeTab} />
 
       {activeTab === "overview" && <EmployeeOverview data={data} employeeId={employeeId} />}
