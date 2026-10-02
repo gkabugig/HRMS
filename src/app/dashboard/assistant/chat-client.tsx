@@ -52,25 +52,24 @@ export default function ChatClient({
     const formData = new FormData();
     formData.set("file", file);
     startUploading(async () => {
-      try {
-        await uploadConversationAttachment(conversationId, formData);
-        router.refresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Couldn't attach that file.");
-      } finally {
-        if (fileInputRef.current) fileInputRef.current.value = "";
+      const result = await uploadConversationAttachment(conversationId, formData);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 
   function removeAttachment(attachmentId: string) {
     startUploading(async () => {
-      try {
-        await removeConversationAttachment(attachmentId, conversationId);
-        router.refresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Couldn't remove that attachment.");
+      const result = await removeConversationAttachment(attachmentId, conversationId);
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 
@@ -80,29 +79,30 @@ export default function ChatClient({
     setText("");
     setError(null);
     startTransition(async () => {
-      try {
-        await postMessage(conversationId, value);
-        router.refresh();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to send message.");
+      const result = await postMessage(conversationId, value);
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 
   function respondToAction(actionId: string, decision: "confirmed" | "rejected") {
     startTransition(async () => {
-      try {
-        await decideAction(actionId, decision);
-        router.refresh();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to record your decision.");
+      const result = await decideAction(actionId, decision);
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 
   function giveFeedback(messageId: string, rating: "up" | "down") {
     startTransition(async () => {
-      await submitFeedback(conversationId, messageId, rating);
+      const result = await submitFeedback(conversationId, messageId, rating);
+      if (!result.ok) setError(result.error);
       router.refresh();
     });
   }
