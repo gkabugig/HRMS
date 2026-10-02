@@ -67,22 +67,32 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const displayName = user.email?.split("@")[0] ?? "User";
 
   return (
-    <div className="min-h-screen bg-[var(--surface-muted)]">
-      <Sidebar
-        tabs={tabs}
-        role={role}
-        displayName={displayName}
-        leavePendingCount={pendingLeaveCount ?? 0}
-        unreadNotificationCount={unreadNotificationCount ?? 0}
-      />
-      <main className="lg:pl-64 pb-16 lg:pb-0">
-        <div className="hidden lg:flex items-center justify-end gap-3 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <div className="min-h-screen bg-[var(--surface-muted)] print:bg-white">
+      {/* Sidebar, the search/notifications bar, and the mobile bottom nav
+          are app chrome, never part of a page's printable content - a page
+          that wants a clean print/"Save as PDF" (a payslip, a certificate)
+          marks its own non-document parts print:hidden, but without this,
+          that still prints inside the full dashboard shell (sidebar, top
+          bar, bottom nav) since those live in this layout, not the page. */}
+      <div className="print:hidden">
+        <Sidebar
+          tabs={tabs}
+          role={role}
+          displayName={displayName}
+          leavePendingCount={pendingLeaveCount ?? 0}
+          unreadNotificationCount={unreadNotificationCount ?? 0}
+        />
+      </div>
+      <main className="lg:pl-64 pb-16 lg:pb-0 print:pl-0 print:pb-0">
+        <div className="hidden lg:flex items-center justify-end gap-3 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 print:hidden">
           <CommandSearch role={role} />
           <NotificationBell />
         </div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:max-w-none print:p-0">{children}</div>
       </main>
-      <MobileBottomNav role={role} />
+      <div className="print:hidden">
+        <MobileBottomNav role={role} />
+      </div>
     </div>
   );
 }
