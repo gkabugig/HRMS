@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addAdjustment } from "../../actions";
+import PrintButton from "./print-button";
 
 function money(n: number): string {
   return `KES ${n.toLocaleString("en-KE", { maximumFractionDigits: 0 })}`;
@@ -52,16 +53,24 @@ export default async function PayrollEmployeeDetailPage({
   const adjustmentTotal = (adjustments ?? []).reduce((s, a) => s + Number(a.amount), 0);
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <Link href={`/dashboard/payroll/${run.id}`} className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 hover:dark:text-neutral-300 inline-block">
+    <div className="space-y-6 max-w-2xl print:mx-0">
+      <Link href={`/dashboard/payroll/${run.id}`} className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 hover:dark:text-neutral-300 inline-block print:hidden">
         ← Back to {run.period} payroll
       </Link>
 
-      <div>
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{employee.name}</h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {employee.staff_no} • {employee.department} • {employee.job_title}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{employee.name}</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {employee.staff_no} • {employee.department} • {employee.job_title}
+          </p>
+          <p className="text-xs text-neutral-400 dark:text-neutral-500 print:block hidden mt-1">{run.period} payslip</p>
+        </div>
+        {payslip && (
+          <div className="print:hidden shrink-0">
+            <PrintButton />
+          </div>
+        )}
       </div>
 
       {!payslip ? (
@@ -69,7 +78,7 @@ export default async function PayrollEmployeeDetailPage({
           No payslip for this employee on this run.
         </div>
       ) : (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-6">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-6 print:border-none print:shadow-none">
           <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide mb-2">Earnings</p>
           <Row label="Basic salary" value={comp?.basic ?? 0} />
           <Row label="House allowance" value={comp?.house_allowance ?? 0} />
@@ -93,7 +102,7 @@ export default async function PayrollEmployeeDetailPage({
       )}
 
       {adjustments && adjustments.length > 0 && (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5 print:hidden">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Adjustments on this run</h2>
           <ul className="space-y-1.5 text-sm">
             {adjustments.map((a) => (
@@ -109,7 +118,7 @@ export default async function PayrollEmployeeDetailPage({
       )}
 
       {!run.locked && (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5 print:hidden">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add a controlled adjustment</h2>
           <form action={addAdjustment} className="space-y-2.5 text-sm">
             <input type="hidden" name="run_id" value={run.id} />
@@ -141,7 +150,7 @@ export default async function PayrollEmployeeDetailPage({
       )}
 
       {history && history.length > 1 && (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5 print:hidden">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Payslip history</h2>
           <ul className="space-y-1.5 text-sm">
             {history.map((h) => (
