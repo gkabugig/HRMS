@@ -27,8 +27,8 @@ export default async function DashboardHome({
   if (!data) {
     return (
       <div className="max-w-sm mx-auto text-center py-16">
-        <h1 className="text-lg font-semibold text-neutral-900 mb-2">Account not yet set up</h1>
-        <p className="text-sm text-neutral-500">Ask an admin to invite you from the Employees screen.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Account not yet set up</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Ask an admin to invite you from the Employees screen.</p>
       </div>
     );
   }

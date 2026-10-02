@@ -7,8 +7,8 @@ const NODE_STATUS_STYLE: Record<string, string> = {
   waiting: "bg-amber-50 text-amber-700 border-amber-200",
   active: "bg-amber-50 text-amber-700 border-amber-200",
   failed: "bg-red-50 text-red-700 border-red-200",
-  pending: "bg-neutral-50 text-neutral-500 border-neutral-200",
-  skipped: "bg-neutral-50 text-neutral-400 border-neutral-200",
+  pending: "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700",
+  skipped: "bg-neutral-50 dark:bg-neutral-900 text-neutral-400 dark:text-neutral-500 border-neutral-200 dark:border-neutral-700",
 };
 
 // Run-detail view (the other half of the chosen read-only scope, alongside
@@ -51,11 +51,11 @@ export default async function WorkflowRunDetailPage({ params }: { params: Promis
         <Link href="/dashboard/workflows" className="text-xs text-brand-600">
           ← Back to Workflows
         </Link>
-        <h1 className="text-lg font-semibold text-neutral-900 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mt-1">
           {def?.name ?? "Workflow run"}
-          {version ? <span className="text-neutral-400 font-normal"> · v{version.version}</span> : null}
+          {version ? <span className="text-neutral-400 dark:text-neutral-500 font-normal"> · v{version.version}</span> : null}
         </h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {run.entity_type.replace(/_/g, " ")} · started {new Date(run.started_at as string).toLocaleString("en-KE")}
           {run.completed_at ? ` · completed ${new Date(run.completed_at).toLocaleString("en-KE")}` : ""}
           {" · "}
@@ -64,17 +64,17 @@ export default async function WorkflowRunDetailPage({ params }: { params: Promis
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-900">Steps</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Steps</h2>
         {(runNodes ?? []).map((rn) => {
           const node = rn.workflow_nodes as unknown as { node_key: string; node_type: string; name: string } | null;
           return (
-            <div key={rn.id} className="flex items-start justify-between gap-3 text-sm border-b border-neutral-50 last:border-0 pb-2 last:pb-0">
+            <div key={rn.id} className="flex items-start justify-between gap-3 text-sm border-b border-neutral-50 dark:border-neutral-900 last:border-0 pb-2 last:pb-0">
               <div>
-                <p className="text-neutral-900">
-                  {node?.name ?? node?.node_key ?? "—"} <span className="text-neutral-400">({node?.node_type})</span>
-                  {rn.attempt > 1 ? <span className="text-neutral-400"> · attempt {rn.attempt}</span> : null}
+                <p className="text-neutral-900 dark:text-neutral-50">
+                  {node?.name ?? node?.node_key ?? "—"} <span className="text-neutral-400 dark:text-neutral-500">({node?.node_type})</span>
+                  {rn.attempt > 1 ? <span className="text-neutral-400 dark:text-neutral-500"> · attempt {rn.attempt}</span> : null}
                 </p>
-                <p className="text-xs text-neutral-400">
+                <p className="text-xs text-neutral-400 dark:text-neutral-500">
                   {rn.started_at ? `Started ${new Date(rn.started_at).toLocaleString("en-KE")}` : "Not started"}
                   {rn.completed_at ? ` · finished ${new Date(rn.completed_at).toLocaleString("en-KE")}` : ""}
                   {rn.approval_request_id ? (
@@ -94,20 +94,20 @@ export default async function WorkflowRunDetailPage({ params }: { params: Promis
             </div>
           );
         })}
-        {(!runNodes || runNodes.length === 0) && <p className="text-sm text-neutral-400">No steps recorded yet.</p>}
+        {(!runNodes || runNodes.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">No steps recorded yet.</p>}
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-900">Execution log</h2>
-        {(logs ?? []).length === 0 && <p className="text-sm text-neutral-400">No log entries yet.</p>}
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Execution log</h2>
+        {(logs ?? []).length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500">No log entries yet.</p>}
         <ol className="space-y-2">
           {(logs ?? []).map((l) => (
             <li key={l.id} className="text-sm flex items-baseline gap-2">
-              <span className="text-xs text-neutral-400 shrink-0 w-36">{new Date(l.created_at as string).toLocaleString("en-KE")}</span>
+              <span className="text-xs text-neutral-400 dark:text-neutral-500 shrink-0 w-36">{new Date(l.created_at as string).toLocaleString("en-KE")}</span>
               <span>
-                <span className="font-medium text-neutral-900">{l.step}</span>{" "}
-                <span className="text-neutral-600">{l.event}</span>
-                {l.result ? <span className="text-neutral-400"> ({l.result})</span> : null}
+                <span className="font-medium text-neutral-900 dark:text-neutral-50">{l.step}</span>{" "}
+                <span className="text-neutral-600 dark:text-neutral-300">{l.event}</span>
+                {l.result ? <span className="text-neutral-400 dark:text-neutral-500"> ({l.result})</span> : null}
               </span>
             </li>
           ))}

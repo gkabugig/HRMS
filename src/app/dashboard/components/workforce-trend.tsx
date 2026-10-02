@@ -38,21 +38,21 @@ export default function WorkforceTrend({ workforce }: { workforce: WorkforceAnal
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-5 h-full">
       <div className="flex items-center justify-between mb-1">
-        <h2 className="text-sm font-semibold text-neutral-900">Workforce Trend</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Workforce Trend</h2>
         {workforce.turnoverRate12mo !== null && (
-          <span className="text-xs text-neutral-500">Turnover (12mo): {workforce.turnoverRate12mo}%</span>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">Turnover (12mo): {workforce.turnoverRate12mo}%</span>
         )}
       </div>
       {workforce.headcountTrend.length > 0 ? (
         <>
           <Sparkline points={workforce.headcountTrend} />
-          <div className="flex justify-between text-xs text-neutral-400 mt-1">
+          <div className="flex justify-between text-xs text-neutral-400 dark:text-neutral-500 mt-1">
             <span>{first}</span>
             <span>{last}</span>
           </div>
         </>
       ) : (
-        <p className="text-sm text-neutral-400 py-8 text-center">Not enough data yet.</p>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500 py-8 text-center">Not enough data yet.</p>
       )}
     </div>
   );

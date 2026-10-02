@@ -38,13 +38,13 @@ export default async function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold text-neutral-900">
+      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
         {isHrLike ? "Attendance Command Centre" : role === "manager" ? "Team Attendance" : "My Attendance"}
       </h1>
 
       {showCommandCentre && commandCentre && (
         <div id="team" className="space-y-6 scroll-mt-20">
-          <p className="text-sm text-neutral-500">Today · {new Date(today).toLocaleDateString("en-KE", { weekday: "long", year: "numeric", month: "short", day: "numeric" })}</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Today · {new Date(today).toLocaleDateString("en-KE", { weekday: "long", year: "numeric", month: "short", day: "numeric" })}</p>
           <AttendanceKpiGrid kpis={commandCentre.kpis} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AttendanceTrend trend={commandCentre.trend} />
@@ -58,10 +58,10 @@ export default async function AttendancePage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-          <h2 className="text-sm font-semibold text-neutral-900">Recent records</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Recent records</h2>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               {canPickEmployee && <th className="px-4 py-2 font-medium">Employee</th>}
               <th className="px-4 py-2 font-medium">Date</th>
@@ -71,7 +71,7 @@ export default async function AttendancePage() {
           </thead>
           <tbody>
             {(myRecords ?? []).map((r) => (
-              <tr key={r.id} className="border-t border-neutral-100">
+              <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 {canPickEmployee && <td className="px-4 py-2">{(r.employees as unknown as { name: string } | null)?.name ?? "—"}</td>}
                 <td className="px-4 py-2">{r.work_date}</td>
                 <td className="px-4 py-2 font-mono">{r.clock_in ?? "—"}</td>
@@ -80,7 +80,7 @@ export default async function AttendancePage() {
             ))}
             {(!myRecords || myRecords.length === 0) && (
               <tr>
-                <td colSpan={canPickEmployee ? 4 : 3} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={canPickEmployee ? 4 : 3} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No attendance records yet.
                 </td>
               </tr>
@@ -90,10 +90,10 @@ export default async function AttendancePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">{canPickEmployee ? "Record attendance" : "Clock in / out"}</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">{canPickEmployee ? "Record attendance" : "Clock in / out"}</h2>
         <form action={recordAttendance} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
           {canPickEmployee && (
-            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -107,10 +107,10 @@ export default async function AttendancePage() {
             type="date"
             required
             defaultValue={today}
-            className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+            className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
           />
-          <input name="clock_in" type="time" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-          <input name="clock_out" type="time" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+          <input name="clock_in" type="time" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+          <input name="clock_out" type="time" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
           <button
             type="submit"
             className={`bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium ${canPickEmployee ? "sm:col-span-4" : "sm:col-span-1"}`}

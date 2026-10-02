@@ -70,9 +70,9 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
       kind: "action" as const,
       node: (
         <>
-          <span className="font-medium text-neutral-900">{userName(a.actor) ?? "Someone"}</span>{" "}
+          <span className="font-medium text-neutral-900 dark:text-neutral-50">{userName(a.actor) ?? "Someone"}</span>{" "}
           {(ACTION_LABEL[a.action as string] ?? a.action).toLowerCase()}
-          {a.reason ? <span className="text-neutral-500"> — “{a.reason}”</span> : null}
+          {a.reason ? <span className="text-neutral-500 dark:text-neutral-400"> — “{a.reason}”</span> : null}
         </>
       ),
     })),
@@ -81,9 +81,9 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
       kind: "escalation" as const,
       node: (
         <>
-          Escalated from <span className="font-medium text-neutral-900">{userName(e.from) ?? "the assigned approver"}</span> to{" "}
-          <span className="font-medium text-neutral-900">{userName(e.to) ?? "HR/admin"}</span>
-          <span className="text-neutral-500"> — {e.reason}</span>
+          Escalated from <span className="font-medium text-neutral-900 dark:text-neutral-50">{userName(e.from) ?? "the assigned approver"}</span> to{" "}
+          <span className="font-medium text-neutral-900 dark:text-neutral-50">{userName(e.to) ?? "HR/admin"}</span>
+          <span className="text-neutral-500 dark:text-neutral-400"> — {e.reason}</span>
         </>
       ),
     })),
@@ -95,8 +95,8 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
         <Link href="/dashboard/approvals" className="text-xs text-brand-600">
           ← Back to Approvals Centre
         </Link>
-        <h1 className="text-lg font-semibold text-neutral-900 mt-1">{request.summary}</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mt-1">{request.summary}</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {(request.request_type as string).replace(/_/g, " ")}
           {request.employees ? ` · ${(request.employees as unknown as { name: string }).name}` : ""} · submitted by{" "}
           {userName(request.requester) ?? "—"} on {new Date(request.created_at as string).toLocaleString("en-KE")}
@@ -104,33 +104,33 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-900">Steps</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Steps</h2>
         {(steps ?? []).map((s) => (
-          <div key={s.id} className="flex items-center justify-between gap-3 text-sm border-b border-neutral-50 last:border-0 pb-2 last:pb-0">
+          <div key={s.id} className="flex items-center justify-between gap-3 text-sm border-b border-neutral-50 dark:border-neutral-900 last:border-0 pb-2 last:pb-0">
             <div>
-              <p className="text-neutral-900">
+              <p className="text-neutral-900 dark:text-neutral-50">
                 Step {s.step_order}: {userName(s.approver) ?? (s.approver_role ? `Anyone with role "${s.approver_role}"` : "—")}
                 {s.delegated_to ? ` (decided by ${userName(s.delegate) ?? "a delegate"})` : ""}
               </p>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">
                 {s.due_at ? `Due ${new Date(s.due_at).toLocaleString("en-KE")}` : "No SLA set"}
                 {s.decided_at ? ` · decided ${new Date(s.decided_at).toLocaleString("en-KE")}` : ""}
                 {s.comment ? ` · “${s.comment}”` : ""}
               </p>
             </div>
-            <span className="text-xs font-medium text-neutral-600 capitalize">{s.status}</span>
+            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300 capitalize">{s.status}</span>
           </div>
         ))}
-        {(!steps || steps.length === 0) && <p className="text-sm text-neutral-400">No human steps — this request was auto-approved.</p>}
+        {(!steps || steps.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">No human steps — this request was auto-approved.</p>}
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-900">Timeline</h2>
-        {timeline.length === 0 && <p className="text-sm text-neutral-400">No activity recorded yet.</p>}
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Timeline</h2>
+        {timeline.length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500">No activity recorded yet.</p>}
         <ol className="space-y-2">
           {timeline.map((t, i) => (
             <li key={i} className="text-sm flex items-baseline gap-2">
-              <span className="text-xs text-neutral-400 shrink-0 w-36">{new Date(t.at).toLocaleString("en-KE")}</span>
+              <span className="text-xs text-neutral-400 dark:text-neutral-500 shrink-0 w-36">{new Date(t.at).toLocaleString("en-KE")}</span>
               <span>{t.node}</span>
             </li>
           ))}

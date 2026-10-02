@@ -53,31 +53,31 @@ export default async function PayrollEmployeeDetailPage({
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <Link href={`/dashboard/payroll/${run.id}`} className="text-xs text-neutral-400 hover:text-neutral-600 inline-block">
+      <Link href={`/dashboard/payroll/${run.id}`} className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 hover:dark:text-neutral-300 inline-block">
         ← Back to {run.period} payroll
       </Link>
 
       <div>
-        <h1 className="text-xl font-semibold text-neutral-900">{employee.name}</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{employee.name}</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {employee.staff_no} • {employee.department} • {employee.job_title}
         </p>
       </div>
 
       {!payslip ? (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-6 text-sm text-neutral-500">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-6 text-sm text-neutral-500 dark:text-neutral-400">
           No payslip for this employee on this run.
         </div>
       ) : (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-6">
-          <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-2">Earnings</p>
+          <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide mb-2">Earnings</p>
           <Row label="Basic salary" value={comp?.basic ?? 0} />
           <Row label="House allowance" value={comp?.house_allowance ?? 0} />
           <Row label="Transport" value={comp?.transport_allowance ?? 0} />
           <Row label="Other" value={comp?.other_allowance ?? 0} />
           <Row label="Gross" value={payslip.gross} strong />
 
-          <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mt-4 mb-2">Deductions</p>
+          <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide mt-4 mb-2">Deductions</p>
           <Row label="PAYE" value={payslip.paye} />
           <Row label="NSSF" value={payslip.nssf} />
           <Row label="SHIF" value={payslip.shif} />
@@ -94,11 +94,11 @@ export default async function PayrollEmployeeDetailPage({
 
       {adjustments && adjustments.length > 0 && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Adjustments on this run</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Adjustments on this run</h2>
           <ul className="space-y-1.5 text-sm">
             {adjustments.map((a) => (
               <li key={a.id} className="flex items-center justify-between">
-                <span className="text-neutral-600">
+                <span className="text-neutral-600 dark:text-neutral-300">
                   {a.adjustment_type} — {a.reason}
                 </span>
                 <span className={`font-mono ${Number(a.amount) >= 0 ? "text-emerald-600" : "text-red-600"}`}>{money(Number(a.amount))}</span>
@@ -110,14 +110,14 @@ export default async function PayrollEmployeeDetailPage({
 
       {!run.locked && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Add a controlled adjustment</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add a controlled adjustment</h2>
           <form action={addAdjustment} className="space-y-2.5 text-sm">
             <input type="hidden" name="run_id" value={run.id} />
             <input type="hidden" name="employee_id" value={employee.id} />
             <div className="grid grid-cols-2 gap-2.5">
               <div>
-                <label className="block text-xs text-neutral-500 mb-1">Type</label>
-                <select name="adjustment_type" className="w-full border border-neutral-300 rounded-lg px-2.5 py-1.5">
+                <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Type</label>
+                <select name="adjustment_type" className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-2.5 py-1.5">
                   <option>Correction</option>
                   <option>Bonus</option>
                   <option>Recovery</option>
@@ -125,13 +125,13 @@ export default async function PayrollEmployeeDetailPage({
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-neutral-500 mb-1">Amount (KES)</label>
-                <input name="amount" type="number" step="0.01" required className="w-full border border-neutral-300 rounded-lg px-2.5 py-1.5" />
+                <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Amount (KES)</label>
+                <input name="amount" type="number" step="0.01" required className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-2.5 py-1.5" />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-neutral-500 mb-1">Reason (required)</label>
-              <input name="reason" required className="w-full border border-neutral-300 rounded-lg px-2.5 py-1.5" />
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Reason (required)</label>
+              <input name="reason" required className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-2.5 py-1.5" />
             </div>
             <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 font-medium">
               Add adjustment
@@ -142,12 +142,12 @@ export default async function PayrollEmployeeDetailPage({
 
       {history && history.length > 1 && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Payslip history</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Payslip history</h2>
           <ul className="space-y-1.5 text-sm">
             {history.map((h) => (
               <li key={h.id} className="flex items-center justify-between">
-                <span className="text-neutral-600">{(h.payroll_runs as unknown as { period: string } | null)?.period}</span>
-                <span className="font-mono text-neutral-700">{money(h.net)}</span>
+                <span className="text-neutral-600 dark:text-neutral-300">{(h.payroll_runs as unknown as { period: string } | null)?.period}</span>
+                <span className="font-mono text-neutral-700 dark:text-neutral-200">{money(h.net)}</span>
               </li>
             ))}
           </ul>
@@ -160,8 +160,8 @@ export default async function PayrollEmployeeDetailPage({
 function Row({ label, value, strong, big }: { label: string; value: number; strong?: boolean; big?: boolean }) {
   return (
     <div className="flex items-baseline justify-between py-0.5">
-      <span className="text-sm text-neutral-500">{label}</span>
-      <span className={`font-mono ${strong ? "font-semibold text-neutral-900" : "text-neutral-700"} ${big ? "text-lg" : "text-sm"}`}>{money(value)}</span>
+      <span className="text-sm text-neutral-500 dark:text-neutral-400">{label}</span>
+      <span className={`font-mono ${strong ? "font-semibold text-neutral-900 dark:text-neutral-50" : "text-neutral-700 dark:text-neutral-200"} ${big ? "text-lg" : "text-sm"}`}>{money(value)}</span>
     </div>
   );
 }

@@ -15,22 +15,22 @@ function timeAgo(dateStr: string): string {
 export default function RecentActivity({ activity }: { activity: ActivityItem[] }) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-5">
-      <h2 className="text-sm font-semibold text-neutral-900 mb-3">Recent Activity</h2>
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Recent Activity</h2>
       {activity.length === 0 ? (
-        <p className="text-sm text-neutral-400">Nothing material has happened yet.</p>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500">Nothing material has happened yet.</p>
       ) : (
         <ul className="space-y-3">
           {activity.map((a) => (
             <li key={a.id} className="flex items-start gap-2.5 text-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-400 mt-1.5 shrink-0" />
               {a.href ? (
-                <Link href={a.href} className="text-neutral-700 hover:text-brand-700 flex-1">
+                <Link href={a.href} className="text-neutral-700 dark:text-neutral-200 hover:text-brand-700 flex-1">
                   {a.description}
                 </Link>
               ) : (
-                <span className="text-neutral-700 flex-1">{a.description}</span>
+                <span className="text-neutral-700 dark:text-neutral-200 flex-1">{a.description}</span>
               )}
-              <span className="text-xs text-neutral-400 shrink-0">{timeAgo(a.occurredAt)}</span>
+              <span className="text-xs text-neutral-400 dark:text-neutral-500 shrink-0">{timeAgo(a.occurredAt)}</span>
             </li>
           ))}
         </ul>

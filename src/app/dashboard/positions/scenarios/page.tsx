@@ -12,7 +12,7 @@ export default async function WorkforceScenariosPage() {
   const { data: appUser } = await supabase.from("app_users").select("role, org_id").eq("id", user!.id).maybeSingle();
 
   if (appUser?.role !== "admin" && appUser?.role !== "hr") {
-    return <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">Visible to HR and admin roles.</div>;
+    return <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">Visible to HR and admin roles.</div>;
   }
 
   const [{ data: scenarios }, { data: plans }] = await Promise.all([
@@ -23,15 +23,15 @@ export default async function WorkforceScenariosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Workforce Scenarios</h1>
-        <p className="text-sm text-neutral-500 mt-1">What-if headcount/cost deltas — not committed plans.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Workforce Scenarios</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">What-if headcount/cost deltas — not committed plans.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-2">New scenario</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">New scenario</h2>
         <form action={createWorkforceScenario} className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
-          <input name="name" placeholder="Scenario name" required className="border border-neutral-200 rounded px-2 py-1.5 sm:col-span-2" />
-          <select name="base_plan_id" className="border border-neutral-200 rounded px-2 py-1.5">
+          <input name="name" placeholder="Scenario name" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 sm:col-span-2" />
+          <select name="base_plan_id" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5">
             <option value="">No base plan…</option>
             {(plans ?? []).map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
           </select>
@@ -45,19 +45,19 @@ export default async function WorkforceScenariosPage() {
             {(scenarios ?? []).map((s) => {
               const basePlan = s.workforce_plans as unknown as { name: string } | null;
               return (
-                <tr key={s.id} className="border-t border-neutral-100">
+                <tr key={s.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">
-                    <Link href={`/dashboard/positions/scenarios/${s.id}`} className="text-neutral-800 hover:underline">{s.name}</Link>
+                    <Link href={`/dashboard/positions/scenarios/${s.id}`} className="text-neutral-800 dark:text-neutral-100 hover:underline">{s.name}</Link>
                   </td>
-                  <td className="px-4 py-2 text-xs text-neutral-500">{basePlan?.name ?? "No base plan"}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-500 dark:text-neutral-400">{basePlan?.name ?? "No base plan"}</td>
                   <td className="px-4 py-2">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-neutral-100 text-neutral-600">{s.status}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">{s.status}</span>
                   </td>
                 </tr>
               );
             })}
             {(scenarios ?? []).length === 0 && (
-              <tr><td className="px-4 py-4 text-xs text-neutral-400">No scenarios yet.</td></tr>
+              <tr><td className="px-4 py-4 text-xs text-neutral-400 dark:text-neutral-500">No scenarios yet.</td></tr>
             )}
           </tbody>
         </table>

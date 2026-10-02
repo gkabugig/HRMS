@@ -33,8 +33,8 @@ export default function ManageUsers({
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-4">
       <div>
-        <h2 className="text-sm font-semibold text-neutral-900">Manage Users</h2>
-        <p className="text-xs text-neutral-500 mt-1">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Manage Users</h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
           Create a login for someone and assign their role. Removing access here deletes their app role — it doesn&apos;t delete
           their sign-in, so re-adding them later restores access without a new password. Admin only.
         </p>
@@ -42,7 +42,7 @@ export default function ManageUsers({
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-neutral-600 text-left">
+          <thead className="text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-3 py-2 font-medium">Role</th>
               <th className="px-3 py-2 font-medium">Linked employee</th>
@@ -68,14 +68,14 @@ function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
   const [removeState, removeAccess, removing] = useActionState(removeUserAccessAction, initialActionState);
 
   return (
-    <tr className="border-t border-neutral-100 align-top">
+    <tr className="border-t border-neutral-100 dark:border-neutral-800 align-top">
       <td className="px-3 py-2">
         <form action={updateRole} className="flex items-center gap-2 flex-wrap">
           <input type="hidden" name="user_id" value={user.id} />
           <select
             name="role"
             defaultValue={user.role}
-            className="border border-neutral-300 rounded-lg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+            className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -89,8 +89,8 @@ function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
         </form>
         {roleState.error && <p className="text-xs text-red-600 mt-1 max-w-xs">{roleState.error}</p>}
       </td>
-      <td className="px-3 py-2 text-neutral-600">{user.employees?.name ?? "—"}</td>
-      <td className="px-3 py-2 text-neutral-400 text-xs">{new Date(user.created_at).toLocaleDateString()}</td>
+      <td className="px-3 py-2 text-neutral-600 dark:text-neutral-300">{user.employees?.name ?? "—"}</td>
+      <td className="px-3 py-2 text-neutral-400 dark:text-neutral-500 text-xs">{new Date(user.created_at).toLocaleDateString()}</td>
       <td className="px-3 py-2">
         {!isSelf && (
           <>
@@ -103,7 +103,7 @@ function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
             {removeState.error && <p className="text-xs text-red-600 mt-1 max-w-xs">{removeState.error}</p>}
           </>
         )}
-        {isSelf && <span className="text-xs text-neutral-400">You</span>}
+        {isSelf && <span className="text-xs text-neutral-400 dark:text-neutral-500">You</span>}
       </td>
     </tr>
   );
@@ -133,31 +133,31 @@ function CreateLoginForm({
     <div className="border-t border-[var(--border-subtle)] pt-4">
       <form key={formKey} action={formAction} className="flex items-end gap-2 flex-wrap">
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Email</label>
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Email</label>
           <input
             name="email"
             type="email"
             required
-            className="border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
+            className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
           />
         </div>
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Temporary password</label>
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Temporary password</label>
           <input
             name="password"
             type="text"
             required
             minLength={8}
             placeholder="8+ characters"
-            className="border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
+            className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
           />
         </div>
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Role</label>
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Role</label>
           <select
             name="role"
             defaultValue="employee"
-            className="border border-neutral-300 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+            className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -167,11 +167,11 @@ function CreateLoginForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Link to employee (optional)</label>
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Link to employee (optional)</label>
           <select
             name="employee_id"
             defaultValue=""
-            className="border border-neutral-300 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+            className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
           >
             <option value="">Not linked</option>
             {employees
@@ -193,7 +193,7 @@ function CreateLoginForm({
       </form>
       {state.error && <p className="text-xs text-red-600 mt-2">{state.error}</p>}
       {state.success && <p className="text-xs text-green-600 mt-2">Login created. Share the email and password with them directly.</p>}
-      <p className="text-xs text-neutral-400 mt-2">
+      <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
         Share the email and temporary password with them directly — no invite email is sent. They can sign in right away at{" "}
         <span className="font-mono">/login</span>.
       </p>

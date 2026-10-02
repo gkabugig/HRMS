@@ -41,34 +41,34 @@ export default async function MyPayslipDetailPage({ params }: { params: Promise<
   return (
     <div className="max-w-xl mx-auto space-y-4 print:mx-0">
       <div className="flex justify-between items-center print:hidden">
-        <p className="text-sm text-neutral-500">Payslip for {payslip.period}</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Payslip for {payslip.period}</p>
         <PrintButton />
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-8 print:border-none print:shadow-none print:p-0">
         <h1 className="text-lg font-semibold text-center mb-1">PAYSLIP</h1>
-        <p className="text-center text-sm text-neutral-500 mb-6">{payslip.period}</p>
+        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mb-6">{payslip.period}</p>
 
         <dl className="grid grid-cols-2 gap-y-1 text-sm mb-6">
-          <dt className="text-neutral-500">Name</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">Name</dt>
           <dd className="text-right">{payslip.employeeName}</dd>
-          <dt className="text-neutral-500">Staff No.</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">Staff No.</dt>
           <dd className="text-right">{payslip.staffNo}</dd>
-          <dt className="text-neutral-500">Job title</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">Job title</dt>
           <dd className="text-right">{payslip.jobTitle}</dd>
-          <dt className="text-neutral-500">Department</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">Department</dt>
           <dd className="text-right">{payslip.department}</dd>
         </dl>
 
         <table className="w-full text-sm">
           <tbody>
             {rows.map(([label, amount]) => (
-              <tr key={label} className="border-t border-neutral-100">
-                <td className="py-1.5 text-neutral-600">{label}</td>
+              <tr key={label} className="border-t border-neutral-100 dark:border-neutral-800">
+                <td className="py-1.5 text-neutral-600 dark:text-neutral-300">{label}</td>
                 <td className="py-1.5 text-right font-mono">{amount < 0 ? `-${fmt(Math.abs(amount))}` : fmt(amount)}</td>
               </tr>
             ))}
-            <tr className="border-t-2 border-neutral-300">
+            <tr className="border-t-2 border-neutral-300 dark:border-neutral-600">
               <td className="py-2 font-semibold">Net pay</td>
               <td className="py-2 text-right font-mono font-semibold">{fmt(payslip.net)}</td>
             </tr>
@@ -81,10 +81,10 @@ export default async function MyPayslipDetailPage({ params }: { params: Promise<
           </p>
         )}
 
-        <p className="text-xs text-neutral-400 mt-6">Bank payment details are not shown here for security — contact HR to verify your payment account.</p>
+        <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-6">Bank payment details are not shown here for security — contact HR to verify your payment account.</p>
       </div>
 
-      <p className="print:hidden text-xs text-neutral-500">Use your browser&apos;s Print (Cmd/Ctrl+P) to save this as a PDF.</p>
+      <p className="print:hidden text-xs text-neutral-500 dark:text-neutral-400">Use your browser&apos;s Print (Cmd/Ctrl+P) to save this as a PDF.</p>
     </div>
   );
 }

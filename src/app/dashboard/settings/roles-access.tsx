@@ -66,8 +66,8 @@ export function RolesAccess({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-sm font-semibold text-neutral-900">Roles &amp; Access</h2>
-        <p className="text-xs text-neutral-500 mt-1">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Roles &amp; Access</h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
           Fine-grained, per-resource access control (Universal RBAC) — separate from the module
           visibility matrix above. This controls what a role can actually read, edit, or export,
           enforced by database-level security policies, not just what shows in the sidebar.
@@ -76,15 +76,15 @@ export function RolesAccess({
         </p>
       </div>
 
-      <div className="flex gap-1 border-b border-neutral-200">
+      <div className="flex gap-1 border-b border-neutral-200 dark:border-neutral-700">
         {ROLES.map((r) => (
           <a
             key={r}
             href={`/dashboard/settings?role=${r}#roles-access`}
             className={`px-3 py-1.5 text-sm rounded-t-lg capitalize transition-colors ${
               r === selectedRole
-                ? "bg-[var(--surface)] border border-b-0 border-[var(--border-subtle)] text-neutral-900 font-medium"
-                : "text-neutral-500 hover:text-neutral-700"
+                ? "bg-[var(--surface)] border border-b-0 border-[var(--border-subtle)] text-neutral-900 dark:text-neutral-50 font-medium"
+                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 hover:dark:text-neutral-200"
             }`}
           >
             {r}
@@ -101,7 +101,7 @@ export function RolesAccess({
         <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-neutral-600 text-left">
+              <thead className="text-neutral-600 dark:text-neutral-300 text-left">
                 <tr>
                   <th className="px-3 py-2 font-medium">Permission</th>
                   {EDITABLE_SCOPES.map((s) => (
@@ -110,7 +110,7 @@ export function RolesAccess({
                     </th>
                   ))}
                   {UNIMPLEMENTED_SCOPES.map((s) => (
-                    <th key={s} className="px-3 py-2 font-medium text-center capitalize text-neutral-300">
+                    <th key={s} className="px-3 py-2 font-medium text-center capitalize text-neutral-300 dark:text-neutral-600">
                       {s.replace("_", " ")}
                     </th>
                   ))}
@@ -119,13 +119,13 @@ export function RolesAccess({
               <tbody>
                 {[...byResource.entries()].map(([resource, perms]) => (
                   <Fragment key={resource}>
-                    <tr className="border-t border-neutral-200 bg-neutral-50">
-                      <td colSpan={EDITABLE_SCOPES.length + UNIMPLEMENTED_SCOPES.length + 1} className="px-3 py-1.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                    <tr className="border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900">
+                      <td colSpan={EDITABLE_SCOPES.length + UNIMPLEMENTED_SCOPES.length + 1} className="px-3 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                         {resource.replace("_", " ")}
                       </td>
                     </tr>
                     {perms.map((p) => (
-                      <tr key={p.id} className="border-t border-neutral-100">
+                      <tr key={p.id} className="border-t border-neutral-100 dark:border-neutral-800">
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             <span>{p.action}</span>
@@ -141,7 +141,7 @@ export function RolesAccess({
                               </span>
                             )}
                           </div>
-                          {p.description && <div className="text-xs text-neutral-400 mt-0.5">{p.description}</div>}
+                          {p.description && <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{p.description}</div>}
                         </td>
                         {EDITABLE_SCOPES.map((scope) => (
                           <td key={scope} className="px-3 py-2 text-center">
@@ -157,8 +157,8 @@ export function RolesAccess({
                           </td>
                         ))}
                         {UNIMPLEMENTED_SCOPES.map((scope) => (
-                          <td key={scope} className="px-3 py-2 text-center text-neutral-300" title="No organisation-hierarchy table exists yet for this scope">
-                            <input type="checkbox" disabled className="h-4 w-4 rounded border-neutral-200" />
+                          <td key={scope} className="px-3 py-2 text-center text-neutral-300 dark:text-neutral-600" title="No organisation-hierarchy table exists yet for this scope">
+                            <input type="checkbox" disabled className="h-4 w-4 rounded border-neutral-200 dark:border-neutral-700" />
                           </td>
                         ))}
                       </tr>
@@ -169,14 +169,14 @@ export function RolesAccess({
             </table>
           </div>
 
-          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
-            <h3 className="text-xs font-semibold text-neutral-700 mb-2">
+          <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3">
+            <h3 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 mb-2">
               Effective access preview — what &quot;{selectedRole}&quot; can do right now
             </h3>
             {summaryLines.length === 0 ? (
-              <p className="text-xs text-neutral-400">No permissions granted to this role.</p>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">No permissions granted to this role.</p>
             ) : (
-              <ul className="text-xs text-neutral-600 space-y-0.5 columns-1 sm:columns-2">
+              <ul className="text-xs text-neutral-600 dark:text-neutral-300 space-y-0.5 columns-1 sm:columns-2">
                 {summaryLines.map((line) => (
                   <li key={line}>{line}</li>
                 ))}

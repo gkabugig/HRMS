@@ -62,22 +62,22 @@ export default function ChatClient({ conversationId, initialMessages, pendingAct
     <div className="flex flex-col h-[70vh] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {initialMessages.length === 0 && (
-          <p className="text-sm text-neutral-500">Ask about your workforce KPIs, risk signals, approval/case status, HR policy, or start a request. Anything that changes a record will ask you to confirm first.</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Ask about your workforce KPIs, risk signals, approval/case status, HR policy, or start a request. Anything that changes a record will ask you to confirm first.</p>
         )}
         {initialMessages.map((m) => (
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
-                m.role === "user" ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-900"
+                m.role === "user" ? "bg-brand-600 text-white" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50"
               }`}
             >
               {m.content}
               {m.role === "assistant" && (
-                <div className="mt-1 flex gap-2 text-xs text-neutral-400">
-                  <button onClick={() => giveFeedback(m.id, "up")} className="hover:text-neutral-700">
+                <div className="mt-1 flex gap-2 text-xs text-neutral-400 dark:text-neutral-500">
+                  <button onClick={() => giveFeedback(m.id, "up")} className="hover:text-neutral-700 hover:dark:text-neutral-200">
                     👍
                   </button>
-                  <button onClick={() => giveFeedback(m.id, "down")} className="hover:text-neutral-700">
+                  <button onClick={() => giveFeedback(m.id, "down")} className="hover:text-neutral-700 hover:dark:text-neutral-200">
                     👎
                   </button>
                 </div>
@@ -124,7 +124,7 @@ export default function ChatClient({ conversationId, initialMessages, pendingAct
           }}
           placeholder="Ask the HR Assistant…"
           rows={1}
-          className="flex-1 resize-none text-sm border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="flex-1 resize-none text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
         <button
           disabled={isPending || !text.trim()}

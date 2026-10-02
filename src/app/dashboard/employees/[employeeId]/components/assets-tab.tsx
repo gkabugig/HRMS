@@ -3,7 +3,7 @@ import { addAsset, updateAssetStatus } from "../actions";
 
 const STATUS_STYLES: Record<string, string> = {
   Assigned: "bg-emerald-100 text-emerald-700",
-  Returned: "bg-neutral-200 text-neutral-600",
+  Returned: "bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300",
   Lost: "bg-red-100 text-red-700",
   Damaged: "bg-amber-100 text-amber-700",
 };
@@ -13,7 +13,7 @@ export function AssetsTab({ data, employeeId, canManage }: { data: Employee360; 
     <div className="space-y-6">
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Asset</th>
               <th className="px-4 py-2 font-medium">Tag / Serial</th>
@@ -24,9 +24,9 @@ export function AssetsTab({ data, employeeId, canManage }: { data: Employee360; 
           </thead>
           <tbody>
             {data.assets.map((a) => (
-              <tr key={a.id} className="border-t border-neutral-100">
+              <tr key={a.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{a.asset_type}</td>
-                <td className="px-4 py-2 text-neutral-500">
+                <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">
                   {[a.asset_tag, a.serial_no].filter(Boolean).join(" / ") || "—"}
                 </td>
                 <td className="px-4 py-2">{a.issued_on}</td>
@@ -49,7 +49,7 @@ export function AssetsTab({ data, employeeId, canManage }: { data: Employee360; 
             ))}
             {data.assets.length === 0 && (
               <tr>
-                <td colSpan={canManage ? 5 : 4} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={canManage ? 5 : 4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No assets assigned.
                 </td>
               </tr>
@@ -60,12 +60,12 @@ export function AssetsTab({ data, employeeId, canManage }: { data: Employee360; 
 
       {canManage && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Assign an asset</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Assign an asset</h2>
           <form action={addAsset.bind(null, employeeId)} className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
-            <input name="asset_type" placeholder="Asset (e.g. Laptop)" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="asset_tag" placeholder="Asset tag" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="serial_no" placeholder="Serial number" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="issued_on" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+            <input name="asset_type" placeholder="Asset (e.g. Laptop)" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="asset_tag" placeholder="Asset tag" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="serial_no" placeholder="Serial number" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="issued_on" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
             <button type="submit" className="sm:col-span-4 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
               Assign asset
             </button>

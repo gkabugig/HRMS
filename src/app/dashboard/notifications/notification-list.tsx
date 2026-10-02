@@ -10,7 +10,7 @@ const PRIORITY_STYLE: Record<NotificationRow["priority"], string> = {
   critical: "bg-red-50 text-red-700 border-red-100",
   action_required: "bg-amber-50 text-amber-700 border-amber-100",
   reminder: "bg-blue-50 text-blue-700 border-blue-100",
-  information: "bg-neutral-50 text-neutral-500 border-neutral-100",
+  information: "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 border-neutral-100 dark:border-neutral-800",
 };
 
 const PRIORITY_LABEL: Record<NotificationRow["priority"], string> = {
@@ -87,7 +87,7 @@ export default function NotificationList({ initial }: { initial: NotificationRow
             aria-selected={tab === t.key}
             onClick={() => setTab(t.key)}
             className={`shrink-0 text-xs font-medium px-3 py-2 rounded-t-lg transition-colors ${
-              tab === t.key ? "bg-brand-50 text-brand-700" : "text-neutral-500 hover:text-neutral-700"
+              tab === t.key ? "bg-brand-50 text-brand-700" : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 hover:dark:text-neutral-200"
             }`}
           >
             {t.label}
@@ -104,17 +104,17 @@ export default function NotificationList({ initial }: { initial: NotificationRow
       )}
 
       {visible.length === 0 ? (
-        <div className="p-8 text-center text-sm text-neutral-400">
+        <div className="p-8 text-center text-sm text-neutral-400 dark:text-neutral-500">
           {items.length === 0 ? "You're all caught up — no notifications yet." : "Nothing in this view."}
         </div>
       ) : (
         <ul role="list" aria-label="Notifications">
           {visible.map((n) => (
-            <li key={n.id} className="border-b border-neutral-50 last:border-0">
+            <li key={n.id} className="border-b border-neutral-50 dark:border-neutral-900 last:border-0">
               <button
                 onClick={() => onClick(n)}
                 aria-label={`${n.is_read ? "Read" : "Unread"} notification: ${n.title}. ${PRIORITY_LABEL[n.priority]}.${n.action_url ? " Activates the related page." : ""}`}
-                className={`w-full text-left px-4 py-3 hover:bg-neutral-50 focus-visible:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 transition-colors flex flex-col sm:flex-row sm:items-center gap-2 ${
+                className={`w-full text-left px-4 py-3 hover:bg-neutral-50 hover:dark:bg-neutral-900 focus-visible:bg-neutral-50 focus-visible:dark:bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 transition-colors flex flex-col sm:flex-row sm:items-center gap-2 ${
                   n.is_read ? "opacity-70" : ""
                 }`}
               >
@@ -123,19 +123,19 @@ export default function NotificationList({ initial }: { initial: NotificationRow
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-neutral-900">{n.title}</span>
+                    <span className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{n.title}</span>
                     {!n.is_read && <span className="h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0" aria-hidden="true" />}
                     {n.is_mandatory && (
-                      <span className="text-[10px] text-neutral-400 border border-neutral-200 rounded px-1" title="This is a mandatory notification and cannot be opted out of.">
+                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500 border border-neutral-200 dark:border-neutral-700 rounded px-1" title="This is a mandatory notification and cannot be opted out of.">
                         Mandatory
                       </span>
                     )}
                   </span>
                   {/* Safe preview only (spec §20/§2) — never the raw internal `message`,
                       which may carry detail not meant for a casual glance at the list. */}
-                  <span className="block text-xs text-neutral-500 mt-0.5">{n.safe_preview ?? n.message}</span>
+                  <span className="block text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{n.safe_preview ?? n.message}</span>
                 </span>
-                <span className="text-[11px] text-neutral-400 shrink-0">{new Date(n.created_at).toLocaleString("en-KE")}</span>
+                <span className="text-[11px] text-neutral-400 dark:text-neutral-500 shrink-0">{new Date(n.created_at).toLocaleString("en-KE")}</span>
               </button>
             </li>
           ))}

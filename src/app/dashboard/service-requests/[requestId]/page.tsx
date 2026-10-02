@@ -35,7 +35,7 @@ export default async function ServiceRequestDetailPage({
   ]);
 
   if (!request) {
-    return <p className="text-sm text-neutral-400">Request not found, or you don&apos;t have permission to view it.</p>;
+    return <p className="text-sm text-neutral-400 dark:text-neutral-500">Request not found, or you don&apos;t have permission to view it.</p>;
   }
 
   const emp = request.employees as unknown as { name: string; staff_no: string } | null;
@@ -43,24 +43,24 @@ export default async function ServiceRequestDetailPage({
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">{request.subject}</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{request.subject}</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {emp ? `${emp.name} (${emp.staff_no})` : ""} · Raised {new Date(request.created_at).toLocaleString("en-KE")}
         </p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <p className="text-sm text-neutral-800 whitespace-pre-wrap">{request.description}</p>
+        <p className="text-sm text-neutral-800 dark:text-neutral-100 whitespace-pre-wrap">{request.description}</p>
       </div>
 
       {isHrLike && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Status</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Status</h2>
           <form action={async (formData: FormData) => {
             "use server";
             await updateServiceRequestStatus(requestId, String(formData.get("status")));
           }} className="flex gap-2 items-center">
-            <select name="status" defaultValue={request.status} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white text-sm">
+            <select name="status" defaultValue={request.status} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 text-sm">
               {STATUSES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
@@ -73,24 +73,24 @@ export default async function ServiceRequestDetailPage({
       )}
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Conversation</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Conversation</h2>
         <ul className="space-y-3 mb-4">
           {(messages ?? []).map((m) => (
-            <li key={m.id} className={`text-sm p-2.5 rounded-lg ${m.internal_only ? "bg-amber-50 border border-amber-200" : "bg-neutral-50"}`}>
+            <li key={m.id} className={`text-sm p-2.5 rounded-lg ${m.internal_only ? "bg-amber-50 border border-amber-200" : "bg-neutral-50 dark:bg-neutral-900"}`}>
               <p className="whitespace-pre-wrap">{m.message}</p>
-              <p className="text-[10px] text-neutral-400 mt-1">
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-1">
                 {new Date(m.created_at).toLocaleString("en-KE")}
                 {m.internal_only && " · internal note"}
               </p>
             </li>
           ))}
-          {(!messages || messages.length === 0) && <p className="text-sm text-neutral-400">No messages yet.</p>}
+          {(!messages || messages.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">No messages yet.</p>}
         </ul>
         <form action={addServiceMessage.bind(null, requestId)} className="space-y-2">
           <textarea name="message" required rows={3} placeholder="Write a reply…" className="w-full border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 text-sm" />
           <div className="flex items-center justify-between">
             {isHrLike && (
-              <label className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <label className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
                 <input type="checkbox" name="internal_only" /> Internal note (not visible to employee)
               </label>
             )}
@@ -103,8 +103,8 @@ export default async function ServiceRequestDetailPage({
 
       {isHrLike && history && history.length > 0 && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Status history</h2>
-          <ul className="text-xs text-neutral-500 space-y-1">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Status history</h2>
+          <ul className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1">
             {history.map((h, i) => (
               <li key={i}>
                 {new Date(h.created_at).toLocaleString("en-KE")} — {h.from_status ?? "—"} → {h.to_status}

@@ -18,20 +18,20 @@ export default async function DocumentTypeDetailPage({ params }: { params: Promi
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-neutral-900">{type.name}</h1>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{type.name}</h1>
         <Link href="/dashboard/documents/types" className="text-xs font-medium text-brand-600 hover:underline">← All types</Link>
       </div>
-      <p className="text-xs text-neutral-500">{documentCount ?? 0} document(s) use this type.</p>
+      <p className="text-xs text-neutral-500 dark:text-neutral-400">{documentCount ?? 0} document(s) use this type.</p>
 
       <form action={updateDocumentType.bind(null, typeId)} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-        <input name="name" defaultValue={type.name} required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-        <select name="default_sensitivity" defaultValue={type.default_sensitivity} className="border border-neutral-300 rounded-lg px-2 py-1.5 bg-white">
+        <input name="name" defaultValue={type.name} required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+        <select name="default_sensitivity" defaultValue={type.default_sensitivity} className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
           {DOCUMENT_SENSITIVITIES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         <label className="flex items-center gap-1"><input type="checkbox" name="is_active" defaultChecked={type.is_active} /> Active</label>
-        <input name="description" defaultValue={type.description ?? ""} placeholder="Description" className="border border-neutral-300 rounded-lg px-2 py-1.5 sm:col-span-3" />
-        <input name="expiry_warning_days_schedule" defaultValue={(type.expiry_warning_days_schedule ?? []).join(",")} placeholder="Expiry warnings, days" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-        <input name="retention_period_months" type="number" min="0" defaultValue={type.retention_period_months ?? ""} placeholder="Retention (months)" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+        <input name="description" defaultValue={type.description ?? ""} placeholder="Description" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5 sm:col-span-3" />
+        <input name="expiry_warning_days_schedule" defaultValue={(type.expiry_warning_days_schedule ?? []).join(",")} placeholder="Expiry warnings, days" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+        <input name="retention_period_months" type="number" min="0" defaultValue={type.retention_period_months ?? ""} placeholder="Retention (months)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" name="approval_required" defaultChecked={type.approval_required} /> Approval required</label>
         </div>

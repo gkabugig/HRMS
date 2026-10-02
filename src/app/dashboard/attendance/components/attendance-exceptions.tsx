@@ -28,26 +28,26 @@ export function AttendanceExceptions({ exceptions, canCorrect }: { exceptions: A
   if (exceptions.length === 0) {
     return (
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-2">Exceptions</h2>
-        <p className="text-sm text-neutral-400">No open exceptions.</p>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Exceptions</h2>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500">No open exceptions.</p>
       </div>
     );
   }
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-      <h2 className="text-sm font-semibold text-neutral-900 mb-3">Exceptions ({exceptions.length})</h2>
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Exceptions ({exceptions.length})</h2>
       <ul className="space-y-2">
         {exceptions.map((e) => (
-          <li key={e.id} className="border-b border-neutral-50 last:border-0 pb-2">
+          <li key={e.id} className="border-b border-neutral-50 dark:border-neutral-900 last:border-0 pb-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-start gap-2 min-w-0">
                 <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${TYPE_DOT[e.type]}`} aria-hidden />
                 <div className="min-w-0">
-                  <p className="text-sm text-neutral-900">
+                  <p className="text-sm text-neutral-900 dark:text-neutral-50">
                     <span className="font-medium">{e.employeeName}</span> — {TYPE_LABEL[e.type]}
                   </p>
-                  <p className="text-xs text-neutral-500">{e.detail}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">{e.detail}</p>
                 </div>
               </div>
               {canCorrect && (e.type === "missing_clock_out" || e.type === "late_arrival") && (
@@ -91,18 +91,18 @@ function CorrectionForm({
         await submitAttendanceCorrection(formData);
         onDone();
       }}
-      className="mt-2 flex flex-wrap items-end gap-2 text-xs bg-neutral-50 rounded-lg p-2.5"
+      className="mt-2 flex flex-wrap items-end gap-2 text-xs bg-neutral-50 dark:bg-neutral-900 rounded-lg p-2.5"
     >
       <input type="hidden" name="employee_id" value={employeeId} />
       <input type="hidden" name="work_date" value={workDate} />
       <input type="hidden" name="field" value={field} />
       <label className="flex flex-col gap-0.5">
-        <span className="text-neutral-500">Corrected {field === "clock_out" ? "clock-out" : "clock-in"}</span>
-        <input name="corrected_value" type="time" required className="border border-neutral-300 rounded px-2 py-1" />
+        <span className="text-neutral-500 dark:text-neutral-400">Corrected {field === "clock_out" ? "clock-out" : "clock-in"}</span>
+        <input name="corrected_value" type="time" required className="border border-neutral-300 dark:border-neutral-600 rounded px-2 py-1" />
       </label>
       <label className="flex-1 min-w-[160px] flex flex-col gap-0.5">
-        <span className="text-neutral-500">Reason (required)</span>
-        <input name="reason" required className="border border-neutral-300 rounded px-2 py-1 w-full" />
+        <span className="text-neutral-500 dark:text-neutral-400">Reason (required)</span>
+        <input name="reason" required className="border border-neutral-300 dark:border-neutral-600 rounded px-2 py-1 w-full" />
       </label>
       <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded px-2.5 py-1 font-medium">
         Save

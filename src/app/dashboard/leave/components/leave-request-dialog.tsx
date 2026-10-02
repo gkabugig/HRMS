@@ -61,11 +61,11 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-              <h2 className="text-sm font-semibold text-neutral-900">Request leave</h2>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Request leave</h2>
             </div>
             <form action={onSubmit} className="px-5 py-4 space-y-3 text-sm">
               <label className="block">
-                <span className="text-neutral-600 text-xs">Leave type</span>
+                <span className="text-neutral-600 dark:text-neutral-300 text-xs">Leave type</span>
                 <select
                   name="leave_type"
                   value={leaveType}
@@ -73,7 +73,7 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
                     setLeaveType(e.target.value);
                     runCheck(e.target.value, start, end);
                   }}
-                  className="mt-1 w-full border border-neutral-300 rounded-lg px-3 py-2"
+                  className="mt-1 w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2"
                 >
                   {LEAVE_TYPES.map((t) => (
                     <option key={t} value={t}>
@@ -84,7 +84,7 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-neutral-600 text-xs">Start date</span>
+                  <span className="text-neutral-600 dark:text-neutral-300 text-xs">Start date</span>
                   <input
                     name="start_date"
                     type="date"
@@ -94,11 +94,11 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
                       setStart(e.target.value);
                       runCheck(leaveType, e.target.value, end);
                     }}
-                    className="mt-1 w-full border border-neutral-300 rounded-lg px-3 py-2"
+                    className="mt-1 w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-neutral-600 text-xs">End date</span>
+                  <span className="text-neutral-600 dark:text-neutral-300 text-xs">End date</span>
                   <input
                     name="end_date"
                     type="date"
@@ -108,21 +108,21 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
                       setEnd(e.target.value);
                       runCheck(leaveType, start, e.target.value);
                     }}
-                    className="mt-1 w-full border border-neutral-300 rounded-lg px-3 py-2"
+                    className="mt-1 w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2"
                   />
                 </label>
               </div>
-              {workingDays !== null && <p className="text-xs text-neutral-500">Working days: {workingDays}</p>}
+              {workingDays !== null && <p className="text-xs text-neutral-500 dark:text-neutral-400">Working days: {workingDays}</p>}
               <label className="block">
-                <span className="text-neutral-600 text-xs">Reason (optional)</span>
-                <input name="reason" className="mt-1 w-full border border-neutral-300 rounded-lg px-3 py-2" />
+                <span className="text-neutral-600 dark:text-neutral-300 text-xs">Reason (optional)</span>
+                <input name="reason" className="mt-1 w-full border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2" />
               </label>
 
-              {checking && <p className="text-xs text-neutral-400">Checking availability…</p>}
+              {checking && <p className="text-xs text-neutral-400 dark:text-neutral-500">Checking availability…</p>}
               {!checking && (start || end) && <LeaveConflictPanel conflicts={conflicts} />}
 
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setOpen(false)} className="text-sm text-neutral-500 px-3 py-2">
+                <button type="button" onClick={() => setOpen(false)} className="text-sm text-neutral-500 dark:text-neutral-400 px-3 py-2">
                   Cancel
                 </button>
                 <button

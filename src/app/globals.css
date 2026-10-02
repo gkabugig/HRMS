@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Dark mode is toggled by adding/removing a `dark` class on <html> (see
+   src/components/theme/theme-script.tsx and theme-toggle.tsx), not just by
+   OS preference, so people can switch it explicitly. The initial class is
+   still seeded from `prefers-color-scheme` when no choice has been saved. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f4f6fb;
   --foreground: #101422;
@@ -44,7 +50,9 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  /* Fallback for the instant before the blocking theme script runs (or if
+     JS is disabled): matches whichever the .dark rule below sets. */
+  :root:not(.light) {
     --background: #0b0e19;
     --foreground: #e8eaf2;
     --surface: #131829;
@@ -53,10 +61,38 @@
   }
 }
 
+:root.dark {
+  --background: #0b0e19;
+  --foreground: #e8eaf2;
+  --surface: #131829;
+  --surface-muted: #0f1424;
+  --border-subtle: #232b45;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/* Most form controls in this app rely on the browser's default white
+   background rather than an explicit bg-* class, which reads fine in light
+   mode but turns into a glaring white box in dark mode. Give them the
+   themed surface colors by default; any component with its own explicit
+   bg-*/text-* classes simply overrides this. */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+.dark select option {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280;
 }
 
 /* Subtle scrollbar for the sidebar and scrollable panes */

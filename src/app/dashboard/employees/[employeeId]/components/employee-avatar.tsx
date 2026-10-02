@@ -8,7 +8,7 @@ function initials(name: string): string {
 export function EmployeeAvatar({
   name,
   photoUrl,
-  size = 72,
+  size = 112,
 }: {
   name: string;
   photoUrl?: string | null;
@@ -22,7 +22,7 @@ export function EmployeeAvatar({
         alt={name}
         width={size}
         height={size}
-        className="rounded-2xl object-cover shrink-0 bg-neutral-100"
+        className="rounded-2xl object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800"
         style={{ width: size, height: size }}
       />
     );

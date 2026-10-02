@@ -43,12 +43,12 @@ export default function DashboardHeader({
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight capitalize">
+          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50 tracking-tight capitalize">
             {greeting()}, {context.displayName}
           </h1>
-          <p className="text-sm text-neutral-500 mt-1">Here&apos;s what needs your attention today.</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Here&apos;s what needs your attention today.</p>
         </div>
-        <span className="text-sm text-neutral-400">{dateLabel}</span>
+        <span className="text-sm text-neutral-400 dark:text-neutral-500">{dateLabel}</span>
       </div>
     </div>
   );

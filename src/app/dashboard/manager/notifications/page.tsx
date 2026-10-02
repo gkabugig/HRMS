@@ -13,7 +13,7 @@ const PRIORITY_STYLE: Record<string, string> = {
   critical: "bg-red-50 text-red-700 border-red-100",
   action_required: "bg-amber-50 text-amber-700 border-amber-100",
   reminder: "bg-blue-50 text-blue-700 border-blue-100",
-  information: "bg-neutral-50 text-neutral-500 border-neutral-100",
+  information: "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 border-neutral-100 dark:border-neutral-800",
 };
 
 export default async function ManagerNotificationsPage() {
@@ -26,8 +26,8 @@ export default async function ManagerNotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Team Notifications</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Team Notifications</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           Approvals and cases assigned to you, plus open items across your direct reports.
         </p>
       </div>
@@ -47,8 +47,8 @@ export default async function ManagerNotificationsPage() {
                   Stage {n.escalation_stage}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-neutral-900">{n.title}</p>
-                  <p className="text-xs text-neutral-500">{n.safe_preview ?? n.message}</p>
+                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{n.title}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">{n.safe_preview ?? n.message}</p>
                 </div>
                 {n.action_url && (
                   <a href={n.action_url} className="text-xs text-brand-600 hover:underline shrink-0">
@@ -64,7 +64,7 @@ export default async function ManagerNotificationsPage() {
       <Section title="Overdue team actions" empty="No overdue workflow tasks for your team.">
         {workspace.overdueTeamTasks.length > 0 && (
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Task</th>
                 <th className="px-4 py-2 font-medium">Type</th>
@@ -73,9 +73,9 @@ export default async function ManagerNotificationsPage() {
             </thead>
             <tbody>
               {workspace.overdueTeamTasks.map((t) => (
-                <tr key={t.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-900">{t.task}</td>
-                  <td className="px-4 py-2 text-neutral-500 text-xs">{t.entityType.replace(/_/g, " ")}</td>
+                <tr key={t.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="px-4 py-2 text-neutral-900 dark:text-neutral-50">{t.task}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{t.entityType.replace(/_/g, " ")}</td>
                   <td className="px-4 py-2 text-amber-700 text-xs">{t.dueAt ? new Date(t.dueAt).toLocaleDateString("en-KE") : "—"}</td>
                 </tr>
               ))}
@@ -87,7 +87,7 @@ export default async function ManagerNotificationsPage() {
       <Section title="Open HR cases in your team" empty="No open cases from your direct reports.">
         {workspace.teamCasesNeedingInput.length > 0 && (
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Employee</th>
                 <th className="px-4 py-2 font-medium">Subject</th>
@@ -98,12 +98,12 @@ export default async function ManagerNotificationsPage() {
             </thead>
             <tbody>
               {workspace.teamCasesNeedingInput.map((c) => (
-                <tr key={c.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-900">{c.employeeName}</td>
-                  <td className="px-4 py-2 text-neutral-700">{c.subject}</td>
-                  <td className="px-4 py-2 text-neutral-700">{c.priority}</td>
-                  <td className="px-4 py-2 text-neutral-700">{c.status}</td>
-                  <td className="px-4 py-2 text-neutral-500 text-xs">{c.slaDueAt ? new Date(c.slaDueAt).toLocaleDateString("en-KE") : "—"}</td>
+                <tr key={c.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="px-4 py-2 text-neutral-900 dark:text-neutral-50">{c.employeeName}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{c.subject}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{c.priority}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{c.status}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{c.slaDueAt ? new Date(c.slaDueAt).toLocaleDateString("en-KE") : "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -111,7 +111,7 @@ export default async function ManagerNotificationsPage() {
         )}
       </Section>
 
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-neutral-400 dark:text-neutral-500">
         Document acknowledgements outstanding in your team aren&apos;t shown here: current policy only grants document
         acknowledgement visibility to the employee themselves and to HR/admin, not to line managers.
       </p>
@@ -123,7 +123,7 @@ function Section({ title, empty, children }: { title: string; empty: string; chi
   const hasContent = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
   return (
     <section>
-      <h2 className="text-sm font-semibold text-neutral-900 mb-2">{title}</h2>
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">{title}</h2>
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         {hasContent ? children : <div className="p-4"><EmptyState message={empty} /></div>}
       </div>

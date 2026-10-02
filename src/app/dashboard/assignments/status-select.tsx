@@ -9,7 +9,7 @@ export function StatusSelect({ assignmentId, status }: { assignmentId: string; s
     <select
       defaultValue={status}
       onChange={(e) => updateAssignmentStatus(assignmentId, e.target.value)}
-      className="text-xs border border-neutral-300 rounded px-2 py-1"
+      className="text-xs border border-neutral-300 dark:border-neutral-600 rounded px-2 py-1"
     >
       {STATUSES.map((s) => (
         <option key={s} value={s}>

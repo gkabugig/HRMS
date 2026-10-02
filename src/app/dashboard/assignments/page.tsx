@@ -3,7 +3,7 @@ import { createAssignment, deleteAssignment } from "./actions";
 import { StatusSelect } from "./status-select";
 
 const STATUS_STYLES: Record<string, string> = {
-  Open: "bg-neutral-100 text-neutral-600",
+  Open: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
   "In Progress": "bg-amber-100 text-amber-700",
   Completed: "bg-emerald-100 text-emerald-700",
 };
@@ -35,15 +35,15 @@ export default async function AssignmentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
           {isHrLike ? "Assignments" : appUser?.role === "manager" ? "Team Assignments" : "My Assignments"}
         </h1>
-        <p className="text-sm text-neutral-500">Tasks and assets assigned to employees — status is updated by whoever it&apos;s assigned to.</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Tasks and assets assigned to employees — status is updated by whoever it&apos;s assigned to.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               {canAssign && <th className="px-4 py-2 font-medium">Employee</th>}
               <th className="px-4 py-2 font-medium">Type</th>
@@ -55,7 +55,7 @@ export default async function AssignmentsPage() {
           </thead>
           <tbody>
             {(assignments ?? []).map((a) => (
-              <tr key={a.id} className="border-t border-neutral-100">
+              <tr key={a.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 {canAssign && (
                   <td className="px-4 py-2">
                     {(a.employees as unknown as { name: string } | null)?.name ?? "—"}
@@ -63,8 +63,8 @@ export default async function AssignmentsPage() {
                 )}
                 <td className="px-4 py-2">{a.type}</td>
                 <td className="px-4 py-2">
-                  <div className="font-medium text-neutral-900">{a.title}</div>
-                  {a.description && <div className="text-xs text-neutral-500">{a.description}</div>}
+                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{a.title}</div>
+                  {a.description && <div className="text-xs text-neutral-500 dark:text-neutral-400">{a.description}</div>}
                 </td>
                 <td className="px-4 py-2">{a.due_date ?? "—"}</td>
                 <td className="px-4 py-2">
@@ -86,7 +86,7 @@ export default async function AssignmentsPage() {
             ))}
             {(!assignments || assignments.length === 0) && (
               <tr>
-                <td colSpan={canAssign ? 6 : 4} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={canAssign ? 6 : 4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No assignments yet.
                 </td>
               </tr>
@@ -97,9 +97,9 @@ export default async function AssignmentsPage() {
 
       {canAssign && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">New assignment</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">New assignment</h2>
           <form action={createAssignment} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -107,22 +107,22 @@ export default async function AssignmentsPage() {
                 </option>
               ))}
             </select>
-            <select name="type" defaultValue="Task" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <select name="type" defaultValue="Task" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="Task">Task</option>
               <option value="Asset">Asset</option>
             </select>
-            <input name="due_date" type="date" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="due_date" type="date" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input
               name="title"
               placeholder="Title (e.g. Laptop, Onboarding checklist)"
               required
-              className="sm:col-span-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="sm:col-span-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <textarea
               name="description"
               placeholder="Notes (optional)"
               rows={2}
-              className="sm:col-span-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="sm:col-span-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Create assignment

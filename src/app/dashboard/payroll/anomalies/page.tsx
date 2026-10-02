@@ -5,7 +5,7 @@ import { decideAnomaly } from "./actions";
 const SEVERITY_STYLE: Record<string, string> = {
   high: "bg-red-50 text-red-700 border-red-200",
   review: "bg-amber-50 text-amber-700 border-amber-200",
-  informational: "bg-neutral-50 text-neutral-600 border-neutral-200",
+  informational: "bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
 };
 
 export default async function PayrollAnomaliesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
@@ -20,7 +20,7 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
 
   if (appUser?.role !== "admin" && appUser?.role !== "hr") {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">
         Payroll Intelligence is visible to HR and admin roles.
       </div>
     );
@@ -75,8 +75,8 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Payroll Intelligence — AI Anomalies</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Payroll Intelligence — AI Anomalies</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           A statistical scan that complements the deterministic payroll checks. Nothing here changes a payslip automatically — every
           row needs a human decision.
         </p>
@@ -88,7 +88,7 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
             key={s}
             href={`/dashboard/payroll/anomalies?status=${s}`}
             className={`px-3 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
-              activeStatus === s ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800"
+              activeStatus === s ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 hover:dark:text-neutral-100"
             }`}
           >
             {s.replace("_", " ")}
@@ -97,7 +97,7 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
       </div>
 
       {sorted.length === 0 ? (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-8 text-sm text-neutral-500 text-center">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-8 text-sm text-neutral-500 dark:text-neutral-400 text-center">
           No anomalies in this view.
         </div>
       ) : (
@@ -108,7 +108,7 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${SEVERITY_STYLE[a.severity]}`}>{a.severity}</span>
-                    <span className="text-sm font-medium text-neutral-900">{a.anomaly_type.replace(/_/g, " ")}</span>
+                    <span className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{a.anomaly_type.replace(/_/g, " ")}</span>
                     {a.payroll_runs && (
                       <Link href={`/dashboard/payroll/${a.payroll_runs.id}`} className="text-xs text-brand-600 hover:underline">
                         Run: {a.payroll_runs.period}
@@ -120,19 +120,19 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
                       </Link>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-700 mt-2">{a.explanation}</p>
+                  <p className="text-sm text-neutral-700 dark:text-neutral-200 mt-2">{a.explanation}</p>
                   {a.drivers_json?.length > 0 && (
                     <ul className="mt-2 flex flex-wrap gap-2">
                       {a.drivers_json.map((d, i) => (
-                        <li key={i} className="text-xs bg-neutral-50 border border-neutral-200 rounded-full px-2 py-0.5 text-neutral-600">
+                        <li key={i} className="text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-full px-2 py-0.5 text-neutral-600 dark:text-neutral-300">
                           {d.factor}: {String(d.value)}
                         </li>
                       ))}
                     </ul>
                   )}
-                  {a.reviewer_note && <p className="mt-2 text-xs text-neutral-500">Reviewer note: {a.reviewer_note}</p>}
+                  {a.reviewer_note && <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">Reviewer note: {a.reviewer_note}</p>}
                 </div>
-                <span className="text-xs text-neutral-400 whitespace-nowrap">{new Date(a.created_at).toLocaleDateString()}</span>
+                <span className="text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap">{new Date(a.created_at).toLocaleDateString()}</span>
               </div>
 
               {a.status === "open" && (
@@ -141,15 +141,15 @@ export default async function PayrollAnomaliesPage({ searchParams }: { searchPar
                   <input
                     name="note"
                     placeholder="Note (optional)"
-                    className="flex-1 min-w-[180px] border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
+                    className="flex-1 min-w-[180px] border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
                   />
-                  <button name="decision" value="reviewed" className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 hover:bg-neutral-50 transition-colors">
+                  <button name="decision" value="reviewed" className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors">
                     Mark expected
                   </button>
                   <button name="decision" value="resolved" className="text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg px-3 py-1.5 transition-colors">
                     Resolve
                   </button>
-                  <button name="decision" value="false_positive" className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 hover:bg-neutral-50 transition-colors">
+                  <button name="decision" value="false_positive" className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors">
                     False positive
                   </button>
                 </form>

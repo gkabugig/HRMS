@@ -19,8 +19,8 @@ export default async function ManagerAttendancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Team Attendance</h1>
-        <p className="text-sm text-neutral-500 mt-1">Today&apos;s status and the last 7 days for your team.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Team Attendance</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Today&apos;s status and the last 7 days for your team.</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
@@ -32,21 +32,21 @@ export default async function ManagerAttendancePage() {
           ["Missing clock-out", data.today.missingClockOut],
         ] as const).map(([label, value]) => (
           <div key={label} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-            <p className="text-xs text-neutral-500">{label}</p>
-            <p className="text-2xl font-semibold text-neutral-900">{value}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
+            <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{value}</p>
           </div>
         ))}
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">7-day trend</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">7-day trend</h2>
         <table className="w-full text-sm">
-          <thead className="text-neutral-500 text-left">
+          <thead className="text-neutral-500 dark:text-neutral-400 text-left">
             <tr><th className="py-1 font-medium">Date</th><th className="py-1 font-medium">Present</th><th className="py-1 font-medium">Late</th><th className="py-1 font-medium">Absent</th></tr>
           </thead>
           <tbody>
             {data.trend.map((t) => (
-              <tr key={t.date} className="border-t border-neutral-100">
+              <tr key={t.date} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="py-1">{t.date}</td>
                 <td className="py-1">{t.present}</td>
                 <td className="py-1">{t.late}</td>
@@ -59,15 +59,15 @@ export default async function ManagerAttendancePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Today&apos;s exceptions</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Today&apos;s exceptions</h2>
           {data.exceptions.length === 0 ? (
             <EmptyState message="No exceptions today." />
           ) : (
             <ul className="space-y-2 text-sm">
               {data.exceptions.map((e, i) => (
-                <li key={i} className="border-b border-neutral-100 pb-2 last:border-0">
-                  <p className="text-neutral-900">{e.employeeName}</p>
-                  <p className="text-xs text-neutral-500">{e.detail}</p>
+                <li key={i} className="border-b border-neutral-100 dark:border-neutral-800 pb-2 last:border-0">
+                  <p className="text-neutral-900 dark:text-neutral-50">{e.employeeName}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">{e.detail}</p>
                 </li>
               ))}
             </ul>
@@ -75,14 +75,14 @@ export default async function ManagerAttendancePage() {
         </div>
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Pending correction requests</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Pending correction requests</h2>
           {data.pendingCorrections.length === 0 ? (
             <EmptyState message="Nothing awaiting your decision." />
           ) : (
             <ul className="space-y-2 text-sm">
               {data.pendingCorrections.map((c) => (
-                <li key={c.stepId} className="flex items-center justify-between border-b border-neutral-100 pb-2 last:border-0">
-                  <span className="text-neutral-700">{c.summary}</span>
+                <li key={c.stepId} className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2 last:border-0">
+                  <span className="text-neutral-700 dark:text-neutral-200">{c.summary}</span>
                   <Link href={`/dashboard/approvals/${c.requestId}`} className="text-xs font-medium text-brand-600 hover:underline">Review →</Link>
                 </li>
               ))}

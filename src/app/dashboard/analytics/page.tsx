@@ -32,7 +32,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
 
   if (appUser?.role !== "admin" && appUser?.role !== "hr") {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">
         Workforce Analytics is visible to HR and admin roles.
       </div>
     );
@@ -46,33 +46,33 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Workforce Analytics</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Workforce Analytics</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             Trusted metrics with drill-down. Every figure links back to its definition, formula and population.
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/dashboard/analytics/kpi-explorer"
-            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+            className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors"
           >
             KPI Explorer
           </Link>
           <Link
             href="/dashboard/analytics/forecasts"
-            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+            className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors"
           >
             Forecasts
           </Link>
           <Link
             href="/dashboard/analytics/data-quality"
-            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+            className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors"
           >
             Data Quality
           </Link>
           <a
             href={`/dashboard/analytics/export?view=${activeView}`}
-            className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors"
+            className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors"
           >
             Export CSV
           </a>
@@ -85,7 +85,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             key={d.key}
             href={`/dashboard/analytics?view=${d.key}`}
             className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
-              activeView === d.key ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800"
+              activeView === d.key ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 hover:dark:text-neutral-100"
             }`}
           >
             {d.label}
@@ -104,7 +104,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <MetricCard metric={metrics.performanceAppraisalCompletion} computedAt={metrics.computedAt} />
           </div>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-5">
-            <h2 className="text-sm font-semibold text-neutral-900 mb-1">Headcount trend</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Headcount trend</h2>
             <Sparkline points={headcountTrend} />
           </div>
         </>
@@ -119,7 +119,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <MetricCard metric={metrics.turnoverRate} computedAt={metrics.computedAt} />
           </div>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-5">
-            <h2 className="text-sm font-semibold text-neutral-900 mb-1">Headcount trend</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Headcount trend</h2>
             <Sparkline points={headcountTrend} />
           </div>
           <SegmentTable title="Headcount by department" rows={metrics.headcountByDepartment} unit="count" />
@@ -133,7 +133,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <MetricCard metric={metrics.payrollCostPerEmployee} computedAt={metrics.computedAt} />
           </div>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-5">
-            <h2 className="text-sm font-semibold text-neutral-900 mb-1">Payroll cost trend</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Payroll cost trend</h2>
             <Sparkline points={costTrend} />
           </div>
           <SegmentTable title="Cost by department (latest run)" rows={metrics.costByDepartment} unit="currency" />

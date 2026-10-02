@@ -7,7 +7,7 @@ export function PayrollTab({ data }: { data: Employee360 }) {
   if (!p.visible) {
     return (
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-6 text-center">
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Salary and payroll details are restricted for your role. Aggregated team cost information may be
           available from Reports.
         </p>
@@ -31,10 +31,10 @@ export function PayrollTab({ data }: { data: Employee360 }) {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-          <h2 className="text-sm font-semibold text-neutral-900">Compensation History</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Compensation History</h2>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">From</th>
               <th className="px-4 py-2 font-medium">To</th>
@@ -47,19 +47,19 @@ export function PayrollTab({ data }: { data: Employee360 }) {
           </thead>
           <tbody>
             {p.compensationHistory.map((h) => (
-              <tr key={h.id} className="border-t border-neutral-100">
+              <tr key={h.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{h.effective_from}</td>
                 <td className="px-4 py-2">{h.effective_to ?? "Present"}</td>
                 <td className="px-4 py-2 text-right font-mono">{Math.round(h.basic).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right font-mono">{Math.round(h.house_allowance).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right font-mono">{Math.round(h.transport_allowance).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right font-mono">{Math.round(h.other_allowance).toLocaleString()}</td>
-                <td className="px-4 py-2 text-neutral-500">{h.reason ?? "—"}</td>
+                <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{h.reason ?? "—"}</td>
               </tr>
             ))}
             {p.compensationHistory.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No compensation history recorded yet — it starts building the next time pay changes.
                 </td>
               </tr>
@@ -74,8 +74,8 @@ export function PayrollTab({ data }: { data: Employee360 }) {
 function Kpi({ value, label }: { value: string; label: string }) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-      <p className="text-xl font-semibold text-neutral-900">{value}</p>
-      <p className="text-xs text-neutral-500 mt-1">{label}</p>
+      <p className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{value}</p>
+      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{label}</p>
     </div>
   );
 }

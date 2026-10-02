@@ -16,7 +16,7 @@ export default async function KpiExplorerPage() {
 
   if (appUser?.role !== "admin" && appUser?.role !== "hr") {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">
         The KPI Explorer is visible to HR and admin roles.
       </div>
     );
@@ -44,24 +44,24 @@ export default async function KpiExplorerPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">KPI Explorer</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">KPI Explorer</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           The full governed KPI registry — name, formula, population, exclusions and grain, each with its current value (§5.4).
         </p>
       </div>
 
       {Array.from(byCategory.entries()).map(([category, defs]) => (
         <div key={category}>
-          <h2 className="text-sm font-semibold text-neutral-700 uppercase tracking-wide mb-2">{category}</h2>
+          <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wide mb-2">{category}</h2>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] divide-y divide-neutral-50">
             {(defs ?? []).map((d) => {
               const current = metricsByKey[d.key];
               return (
                 <div key={d.key} className="p-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
                   <div>
-                    <p className="text-sm font-medium text-neutral-900">{d.name}</p>
-                    <p className="text-xs text-neutral-500 mt-0.5">{d.description}</p>
-                    <dl className="text-[11px] text-neutral-400 mt-1 space-y-0.5">
+                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{d.name}</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{d.description}</p>
+                    <dl className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 space-y-0.5">
                       <div>
                         <dt className="inline font-medium">Formula: </dt>
                         <dd className="inline">{d.formula}</dd>
@@ -83,10 +83,10 @@ export default async function KpiExplorerPage() {
                     </dl>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-semibold text-neutral-900">
+                    <p className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">
                       {current ? formatMetricValue(current.value, d.unit as MetricUnit) : "—"}
                     </p>
-                    <p className="text-[11px] text-neutral-400">v{d.version} · refreshed {d.refresh_frequency}</p>
+                    <p className="text-[11px] text-neutral-400 dark:text-neutral-500">v{d.version} · refreshed {d.refresh_frequency}</p>
                   </div>
                 </div>
               );

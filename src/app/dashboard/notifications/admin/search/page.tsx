@@ -58,7 +58,7 @@ export default async function NotificationSearchPage({ searchParams }: { searchP
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-neutral-900">Notification Search</h1>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Notification Search</h1>
         <Link href="/dashboard/notifications/admin" className="text-xs font-medium text-brand-600 hover:underline">← Admin Centre</Link>
       </div>
 
@@ -67,7 +67,7 @@ export default async function NotificationSearchPage({ searchParams }: { searchP
           name="q"
           defaultValue={q ?? ""}
           placeholder="Notification ID, correlation ID, event ID, or recipient email"
-          className="flex-1 border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+          className="flex-1 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-sm"
         />
         <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Search</button>
       </form>
@@ -76,8 +76,8 @@ export default async function NotificationSearchPage({ searchParams }: { searchP
         <>
           {event && (
             <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 text-sm">
-              <p className="font-semibold text-neutral-900 mb-1">Source event</p>
-              <p className="text-xs text-neutral-500">
+              <p className="font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Source event</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {String(event.event_type)} · status {String(event.processing_status)} · attempts {String(event.attempt_count)}
                 {event.processing_error ? ` · error: ${String(event.processing_error)}` : ""}
               </p>
@@ -86,7 +86,7 @@ export default async function NotificationSearchPage({ searchParams }: { searchP
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
             {notifications.length > 0 ? (
               <table className="w-full text-sm">
-                <thead className="bg-neutral-50 text-neutral-600 text-left">
+                <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
                   <tr>
                     <th className="px-4 py-2 font-medium">Title</th>
                     <th className="px-4 py-2 font-medium">Type</th>
@@ -97,12 +97,12 @@ export default async function NotificationSearchPage({ searchParams }: { searchP
                 </thead>
                 <tbody>
                   {notifications.map((n) => (
-                    <tr key={String(n.id)} className="border-t border-neutral-100">
-                      <td className="px-4 py-2 text-neutral-900">{String(n.title)}</td>
-                      <td className="px-4 py-2 text-neutral-700 text-xs font-mono">{String(n.type)}</td>
-                      <td className="px-4 py-2 text-neutral-400 text-[11px] font-mono">{String(n.correlation_id ?? "—").slice(0, 8)}</td>
-                      <td className="px-4 py-2 text-neutral-400 text-[11px] font-mono">{String(n.recipient_user_id).slice(0, 8)}</td>
-                      <td className="px-4 py-2 text-neutral-500 text-xs">{new Date(String(n.created_at)).toLocaleString("en-KE")}</td>
+                    <tr key={String(n.id)} className="border-t border-neutral-100 dark:border-neutral-800">
+                      <td className="px-4 py-2 text-neutral-900 dark:text-neutral-50">{String(n.title)}</td>
+                      <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200 text-xs font-mono">{String(n.type)}</td>
+                      <td className="px-4 py-2 text-neutral-400 dark:text-neutral-500 text-[11px] font-mono">{String(n.correlation_id ?? "—").slice(0, 8)}</td>
+                      <td className="px-4 py-2 text-neutral-400 dark:text-neutral-500 text-[11px] font-mono">{String(n.recipient_user_id).slice(0, 8)}</td>
+                      <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{new Date(String(n.created_at)).toLocaleString("en-KE")}</td>
                     </tr>
                   ))}
                 </tbody>

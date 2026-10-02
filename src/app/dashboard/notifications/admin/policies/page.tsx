@@ -20,8 +20,8 @@ export default async function NotificationPoliciesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Event → Policy Mapping</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Event → Policy Mapping</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             Mandatory events bypass the recipient&apos;s own opt-out. Changing this is a compliance decision — every save is audited.
           </p>
         </div>
@@ -30,7 +30,7 @@ export default async function NotificationPoliciesPage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-x-auto">
         <table className="w-full text-sm min-w-[720px]">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Event</th>
               <th className="px-4 py-2 font-medium">Category</th>
@@ -46,19 +46,19 @@ export default async function NotificationPoliciesPage() {
             {(rules ?? []).map((r) => {
               const formId = `policy-${r.id}`;
               return (
-                <tr key={r.id} className="border-t border-neutral-100 align-top">
+                <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800 align-top">
                   {/* A <form> can't be a direct child of <tr> per HTML table content
                       rules — the form element lives outside the row, and every
                       field associates with it via the `form` attribute instead. */}
-                  <td className="px-4 py-2 text-neutral-900 text-xs font-mono">
+                  <td className="px-4 py-2 text-neutral-900 dark:text-neutral-50 text-xs font-mono">
                     <form id={formId} action={updatePolicyRule}>
                       <input type="hidden" name="id" value={r.id} />
                     </form>
                     {r.event_type}
                   </td>
-                  <td className="px-4 py-2 text-neutral-500 text-xs">{r.category}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{r.category}</td>
                   <td className="px-4 py-2">
-                    <select form={formId} name="priority" defaultValue={r.priority} className="border border-neutral-200 rounded px-1.5 py-1 text-xs">
+                    <select form={formId} name="priority" defaultValue={r.priority} className="border border-neutral-200 dark:border-neutral-700 rounded px-1.5 py-1 text-xs">
                       {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
                     </select>
                   </td>
@@ -79,7 +79,7 @@ export default async function NotificationPoliciesPage() {
                     <input form={formId} type="checkbox" name="quiet_hours_allowed" defaultChecked={r.quiet_hours_allowed} />
                   </td>
                   <td className="px-4 py-2">
-                    <input form={formId} type="number" name="max_per_hour" defaultValue={r.max_per_hour ?? ""} className="border border-neutral-200 rounded px-1.5 py-1 w-16 text-xs" />
+                    <input form={formId} type="number" name="max_per_hour" defaultValue={r.max_per_hour ?? ""} className="border border-neutral-200 dark:border-neutral-700 rounded px-1.5 py-1 w-16 text-xs" />
                   </td>
                   <td className="px-4 py-2">
                     <button form={formId} type="submit" className="text-xs text-brand-600 hover:underline">Save</button>

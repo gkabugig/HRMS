@@ -33,7 +33,7 @@ export function LeaveCalendar({
   }
 
   if (employees.length === 0) {
-    return <p className="text-sm text-neutral-400 py-8 text-center">No employees in scope for this view.</p>;
+    return <p className="text-sm text-neutral-400 dark:text-neutral-500 py-8 text-center">No employees in scope for this view.</p>;
   }
 
   return (
@@ -41,7 +41,7 @@ export function LeaveCalendar({
       <table className="text-xs border-separate border-spacing-0">
         <thead>
           <tr>
-            <th className="sticky left-0 bg-[var(--surface)] text-left px-2 py-1.5 text-neutral-500 font-medium min-w-[140px]">
+            <th className="sticky left-0 bg-[var(--surface)] text-left px-2 py-1.5 text-neutral-500 dark:text-neutral-400 font-medium min-w-[140px]">
               Employee
             </th>
             {days.map((d) => {
@@ -52,7 +52,7 @@ export function LeaveCalendar({
               return (
                 <th
                   key={d}
-                  className={`px-1 py-1.5 font-medium text-center w-7 ${weekend || holiday ? "text-neutral-300" : "text-neutral-500"}`}
+                  className={`px-1 py-1.5 font-medium text-center w-7 ${weekend || holiday ? "text-neutral-300 dark:text-neutral-600" : "text-neutral-500 dark:text-neutral-400"}`}
                   title={holiday ? "Public holiday" : weekend ? "Weekend" : undefined}
                 >
                   {d}
@@ -63,8 +63,8 @@ export function LeaveCalendar({
         </thead>
         <tbody>
           {employees.map((e) => (
-            <tr key={e.id} className="border-t border-neutral-50">
-              <td className="sticky left-0 bg-[var(--surface)] px-2 py-1.5 text-neutral-800 font-medium whitespace-nowrap">
+            <tr key={e.id} className="border-t border-neutral-50 dark:border-neutral-900">
+              <td className="sticky left-0 bg-[var(--surface)] px-2 py-1.5 text-neutral-800 dark:text-neutral-100 font-medium whitespace-nowrap">
                 {e.name}
               </td>
               {days.map((d) => {
@@ -103,7 +103,7 @@ export function LeaveLegend() {
     Compassionate: "Compassionate",
   });
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-neutral-500">
+    <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-neutral-500 dark:text-neutral-400">
       {entries.map(([type, label]) => {
         const style = leaveStyle(type);
         return (

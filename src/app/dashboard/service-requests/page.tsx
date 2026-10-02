@@ -3,13 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { submitServiceRequest } from "@/lib/service-requests/actions";
 
 const STATUS_STYLE: Record<string, string> = {
-  Submitted: "bg-neutral-100 text-neutral-600",
+  Submitted: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
   Triaged: "bg-blue-100 text-blue-700",
   Assigned: "bg-blue-100 text-blue-700",
   "In Progress": "bg-amber-100 text-amber-700",
   "Waiting for Employee": "bg-amber-100 text-amber-700",
   Resolved: "bg-green-100 text-green-700",
-  Closed: "bg-neutral-100 text-neutral-400",
+  Closed: "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500",
 };
 
 export default async function ServiceRequestsPage() {
@@ -31,8 +31,8 @@ export default async function ServiceRequestsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">{isHrLike ? "HR Service Centre" : "My HR Requests"}</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{isHrLike ? "HR Service Centre" : "My HR Requests"}</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {isHrLike
             ? "Every request raised by an employee, most recent first."
             : "Raise a request with HR and track its status here."}
@@ -40,9 +40,9 @@ export default async function ServiceRequestsPage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Raise a request</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Raise a request</h2>
         <form action={submitServiceRequest} className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-          <select name="catalogue_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white sm:col-span-2">
+          <select name="catalogue_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 sm:col-span-2">
             <option value="">General enquiry</option>
             {(catalogue ?? []).map((c) => (
               <option key={c.id} value={c.id}>{c.category} — {c.label}</option>
@@ -50,7 +50,7 @@ export default async function ServiceRequestsPage() {
           </select>
           <input name="subject" placeholder="Subject" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 sm:col-span-2" />
           <textarea name="description" placeholder="Details" required rows={3} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 sm:col-span-2" />
-          <select name="priority" defaultValue="normal" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="priority" defaultValue="normal" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="low">Low</option>
             <option value="normal">Normal</option>
             <option value="high">High</option>
@@ -64,7 +64,7 @@ export default async function ServiceRequestsPage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               {isHrLike && <th className="px-4 py-2 font-medium">Employee</th>}
               <th className="px-4 py-2 font-medium">Subject</th>
@@ -77,24 +77,24 @@ export default async function ServiceRequestsPage() {
             {(requests ?? []).map((r) => {
               const emp = r.employees as unknown as { name: string; staff_no: string } | null;
               return (
-                <tr key={r.id} className="border-t border-neutral-100 hover:bg-neutral-50">
+                <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 hover:dark:bg-neutral-900">
                   {isHrLike && <td className="px-4 py-2">{emp ? `${emp.name} (${emp.staff_no})` : "—"}</td>}
                   <td className="px-4 py-2">
                     <Link href={`/dashboard/service-requests/${r.id}`} className="text-brand-600 hover:underline font-medium">
                       {r.subject}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-neutral-500 capitalize">{r.priority}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 capitalize">{r.priority}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100"}`}>{r.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100 dark:bg-neutral-800"}`}>{r.status}</span>
                   </td>
-                  <td className="px-4 py-2 text-neutral-500 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("en-KE")}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("en-KE")}</td>
                 </tr>
               );
             })}
             {(!requests || requests.length === 0) && (
               <tr>
-                <td colSpan={isHrLike ? 5 : 4} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={isHrLike ? 5 : 4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No requests yet.
                 </td>
               </tr>

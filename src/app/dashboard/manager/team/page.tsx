@@ -12,7 +12,7 @@ const ATTENDANCE_STYLE: Record<string, string> = {
   late: "bg-amber-100 text-amber-700",
   on_leave: "bg-blue-100 text-blue-700",
   absent: "bg-red-100 text-red-700",
-  unknown: "bg-neutral-100 text-neutral-500",
+  unknown: "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400",
 };
 
 export default async function ManagerTeamPage() {
@@ -24,8 +24,8 @@ export default async function ManagerTeamPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">My Team</h1>
-        <p className="text-sm text-neutral-500 mt-1">{team.length} employee{team.length === 1 ? "" : "s"} in your scope.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Team</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{team.length} employee{team.length === 1 ? "" : "s"} in your scope.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
@@ -33,7 +33,7 @@ export default async function ManagerTeamPage() {
           <div className="p-4"><EmptyState message="No direct reports found." /></div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Name</th>
                 <th className="px-4 py-2 font-medium">Job title</th>
@@ -45,22 +45,22 @@ export default async function ManagerTeamPage() {
             </thead>
             <tbody>
               {team.map((t) => (
-                <tr key={t.id} className="border-t border-neutral-100">
+                <tr key={t.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">
-                    <Link href={`/dashboard/manager/team/${t.id}`} className="text-neutral-900 hover:text-brand-600 font-medium">
+                    <Link href={`/dashboard/manager/team/${t.id}`} className="text-neutral-900 dark:text-neutral-50 hover:text-brand-600 font-medium">
                       {t.name}
                     </Link>
-                    <p className="text-xs text-neutral-400">{t.staffNo}</p>
+                    <p className="text-xs text-neutral-400 dark:text-neutral-500">{t.staffNo}</p>
                   </td>
-                  <td className="px-4 py-2 text-neutral-700">{t.jobTitle}</td>
-                  <td className="px-4 py-2 text-neutral-700">{t.department}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{t.jobTitle}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{t.department}</td>
                   <td className="px-4 py-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${ATTENDANCE_STYLE[t.attendanceToday]}`}>
                       {t.attendanceToday.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-neutral-700">{t.pendingLeaveCount > 0 ? t.pendingLeaveCount : "—"}</td>
-                  <td className="px-4 py-2 text-neutral-700">{t.learningOverdueCount > 0 ? t.learningOverdueCount : "—"}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{t.pendingLeaveCount > 0 ? t.pendingLeaveCount : "—"}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{t.learningOverdueCount > 0 ? t.learningOverdueCount : "—"}</td>
                 </tr>
               ))}
             </tbody>

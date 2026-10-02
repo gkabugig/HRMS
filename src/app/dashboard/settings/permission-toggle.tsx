@@ -25,7 +25,7 @@ export function PermissionToggle({
         type="checkbox"
         defaultChecked={checked}
         disabled={disabled}
-        className="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-500/30 disabled:opacity-40"
+        className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-brand-600 focus:ring-brand-500/30 disabled:opacity-40"
         title={disabled ? "Always visible" : undefined}
       />
     </form>

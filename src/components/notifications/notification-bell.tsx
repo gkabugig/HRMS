@@ -14,7 +14,7 @@ const PRIORITY_DOT: Record<NotificationRow["priority"], string> = {
   critical: "bg-red-500",
   action_required: "bg-amber-500",
   reminder: "bg-blue-400",
-  information: "bg-neutral-300",
+  information: "bg-neutral-300 dark:bg-neutral-600",
 };
 
 const PRIORITY_LABEL: Record<NotificationRow["priority"], string> = {
@@ -107,7 +107,7 @@ export default function NotificationBell() {
         aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
         aria-haspopup="true"
         aria-expanded={open}
-        className="relative flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border-subtle)] text-neutral-500 hover:border-neutral-300 transition-colors"
+        className="relative flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border-subtle)] text-neutral-500 dark:text-neutral-400 hover:border-neutral-300 hover:dark:border-neutral-600 transition-colors"
       >
         <Bell size={16} />
         {unreadCount > 0 && (
@@ -120,7 +120,7 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[90vw] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-2xl overflow-hidden z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
-            <h2 className="text-sm font-semibold text-neutral-900">Notifications</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Notifications</h2>
             {unreadCount > 0 && (
               <button onClick={onMarkAll} className="text-xs text-brand-600 hover:underline flex items-center gap-1">
                 <Check size={12} /> Mark all read
@@ -128,27 +128,27 @@ export default function NotificationBell() {
             )}
           </div>
           <div className="max-h-96 overflow-y-auto">
-            {loading && <p className="px-4 py-6 text-sm text-neutral-400 text-center">Loading…</p>}
+            {loading && <p className="px-4 py-6 text-sm text-neutral-400 dark:text-neutral-500 text-center">Loading…</p>}
             {!loading && items.length === 0 && (
-              <p className="px-4 py-6 text-sm text-neutral-400 text-center">You&apos;re all caught up.</p>
+              <p className="px-4 py-6 text-sm text-neutral-400 dark:text-neutral-500 text-center">You&apos;re all caught up.</p>
             )}
             {!loading &&
               items.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => onItemClick(n)}
-                  className={`w-full text-left px-4 py-3 border-b border-neutral-50 last:border-0 hover:bg-neutral-50 transition-colors flex gap-2.5 ${
+                  className={`w-full text-left px-4 py-3 border-b border-neutral-50 dark:border-neutral-900 last:border-0 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors flex gap-2.5 ${
                     n.is_read ? "opacity-70" : ""
                   }`}
                 >
                   <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${PRIORITY_DOT[n.priority]}`} aria-hidden />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-neutral-900 truncate">{n.title}</span>
+                      <span className="text-sm font-medium text-neutral-900 dark:text-neutral-50 truncate">{n.title}</span>
                       {!n.is_read && <span className="h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0" />}
                     </span>
-                    <span className="block text-xs text-neutral-500 mt-0.5 line-clamp-2">{n.safe_preview ?? n.message}</span>
-                    <span className="block text-[10px] text-neutral-400 mt-1 uppercase tracking-wide">
+                    <span className="block text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2">{n.safe_preview ?? n.message}</span>
+                    <span className="block text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 uppercase tracking-wide">
                       {PRIORITY_LABEL[n.priority]} · {timeAgo(n.created_at)}
                     </span>
                   </span>

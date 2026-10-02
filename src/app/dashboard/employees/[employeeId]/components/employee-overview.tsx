@@ -5,8 +5,8 @@ import { AttentionCard } from "./attention-card";
 function Kpi({ value, label }: { value: string; label: string }) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-      <p className="text-2xl font-semibold text-neutral-900">{value}</p>
-      <p className="text-xs text-neutral-500 mt-1">{label}</p>
+      <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{value}</p>
+      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{label}</p>
     </div>
   );
 }
@@ -35,7 +35,7 @@ export function EmployeeOverview({ data, employeeId }: { data: Employee360; empl
         <AttentionCard alerts={data.alerts} />
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Employment Summary</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Employment Summary</h2>
           <dl className="text-sm space-y-2">
             <Row label="Employment type" value={data.employee.employment_type as string} />
             <Row label="Department" value={data.employee.department as string} />
@@ -52,15 +52,15 @@ export function EmployeeOverview({ data, employeeId }: { data: Employee360; empl
         </div>
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Recent Activity</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Recent Activity</h2>
           {data.activity.length === 0 ? (
-            <p className="text-sm text-neutral-400">No recorded activity yet.</p>
+            <p className="text-sm text-neutral-400 dark:text-neutral-500">No recorded activity yet.</p>
           ) : (
             <ul className="space-y-2 text-sm">
               {data.activity.slice(0, 8).map((a) => (
                 <li key={a.id} className="flex items-start justify-between gap-2">
-                  <span className="text-neutral-700 capitalize">{a.title}</span>
-                  <span className="text-xs text-neutral-400 shrink-0">
+                  <span className="text-neutral-700 dark:text-neutral-200 capitalize">{a.title}</span>
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500 shrink-0">
                     {new Date(a.at).toLocaleDateString("en-KE")}
                   </span>
                 </li>
@@ -76,7 +76,7 @@ export function EmployeeOverview({ data, employeeId }: { data: Employee360; empl
         </div>
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Leave &amp; Attendance</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Leave &amp; Attendance</h2>
           <dl className="text-sm space-y-2">
             <Row
               label="Attendance"
@@ -94,8 +94,8 @@ export function EmployeeOverview({ data, employeeId }: { data: Employee360; empl
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="text-neutral-900 font-medium text-right">{value}</dd>
+      <dt className="text-neutral-500 dark:text-neutral-400">{label}</dt>
+      <dd className="text-neutral-900 dark:text-neutral-50 font-medium text-right">{value}</dd>
     </div>
   );
 }

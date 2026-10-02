@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const STATUS_STYLES: Record<string, string> = {
   Active: "bg-emerald-100 text-emerald-700",
-  Terminated: "bg-neutral-200 text-neutral-600",
+  Terminated: "bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300",
 };
 
 export async function EmployeeHeader({
@@ -44,23 +44,23 @@ export async function EmployeeHeader({
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold text-neutral-900 truncate">{e.name as string}</h1>
+            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50 truncate">{e.name as string}</h1>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                onProbation ? "bg-amber-100 text-amber-700" : STATUS_STYLES[e.status as string] ?? "bg-neutral-100 text-neutral-600"
+                onProbation ? "bg-amber-100 text-amber-700" : STATUS_STYLES[e.status as string] ?? "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
               }`}
             >
               {onProbation ? "Probation" : (e.status as string)}
             </span>
           </div>
-          <p className="text-sm text-neutral-500 mt-1">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             {e.staff_no as string}
             {" • "}
             {e.job_title as string}
             {" • "}
             {e.department as string}
           </p>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Joined {new Date(e.date_of_hire as string).toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" })}
             {data.manager && (
               <>

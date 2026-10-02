@@ -68,8 +68,8 @@ export default async function SettingsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Settings</h1>
-        <p className="text-sm text-neutral-500">Statutory rates and role-based module visibility.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Settings</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Statutory rates and role-based module visibility.</p>
       </div>
 
       {isAdmin && (
@@ -82,8 +82,8 @@ export default async function SettingsPage({
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-neutral-900">Roles &amp; Permissions</h2>
-          <p className="text-xs text-neutral-500 mt-1">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Roles &amp; Permissions</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
             Controls which modules show up in each role&apos;s sidebar. This is a visibility layer
             only — it doesn&apos;t change what data a role can actually read or edit, which is still
             enforced by the underlying security rules regardless of what&apos;s toggled here.
@@ -91,7 +91,7 @@ export default async function SettingsPage({
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-neutral-600 text-left">
+            <thead className="text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-3 py-2 font-medium">Module</th>
                 {ROLES.map((role) => (
@@ -103,7 +103,7 @@ export default async function SettingsPage({
             </thead>
             <tbody>
               {ALL_MODULES.map((m) => (
-                <tr key={m.key} className="border-t border-neutral-100">
+                <tr key={m.key} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-3 py-2">{m.label}</td>
                   {ROLES.map((role) => (
                     <td key={role} className="px-3 py-2 text-center">
@@ -137,14 +137,14 @@ export default async function SettingsPage({
       )}
 
       <form action={updateRates} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-4 text-sm">
-        <h2 className="text-sm font-semibold text-neutral-900">Statutory Rates</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Statutory Rates</h2>
         <div>
-          <label className="block text-neutral-700 mb-1">PAYE bands (JSON)</label>
+          <label className="block text-neutral-700 dark:text-neutral-200 mb-1">PAYE bands (JSON)</label>
           <textarea
             name="paye_bands"
             rows={4}
             defaultValue={JSON.stringify(rates?.paye_bands ?? [], null, 2)}
-            className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 font-mono text-xs"
+            className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 font-mono text-xs"
           />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -163,8 +163,8 @@ export default async function SettingsPage({
 
       <form action={updatePayrollControls} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3 text-sm">
         <div>
-          <h2 className="text-sm font-semibold text-neutral-900">Payroll Controls</h2>
-          <p className="text-xs text-neutral-500 mt-1">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Payroll Controls</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
             The Payroll Command Centre flags an employee&apos;s gross pay when it moves more than this much
             from the previous run.
           </p>
@@ -196,13 +196,13 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-neutral-700 mb-1">{label}</label>
+      <label className="block text-neutral-700 dark:text-neutral-200 mb-1">{label}</label>
       <input
         name={name}
         type="number"
         step={step}
         defaultValue={defaultValue ?? undefined}
-        className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+        className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
       />
     </div>
   );

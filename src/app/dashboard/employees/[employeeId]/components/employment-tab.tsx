@@ -19,7 +19,7 @@ export function EmploymentTab({
   return (
     <div className="space-y-6">
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Current Record</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Current Record</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
           <Row label="Employment type" value={e.employment_type as string} />
           <Row label="Department" value={e.department as string} />
@@ -42,10 +42,10 @@ export function EmploymentTab({
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-          <h2 className="text-sm font-semibold text-neutral-900">Job History</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Job History</h2>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">From</th>
               <th className="px-4 py-2 font-medium">To</th>
@@ -57,18 +57,18 @@ export function EmploymentTab({
           </thead>
           <tbody>
             {data.jobHistory.map((h) => (
-              <tr key={h.id} className="border-t border-neutral-100">
+              <tr key={h.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{h.effective_from}</td>
                 <td className="px-4 py-2">{h.effective_to ?? "Present"}</td>
                 <td className="px-4 py-2">{h.department}</td>
                 <td className="px-4 py-2">{h.job_title}</td>
                 <td className="px-4 py-2">{h.employment_type}</td>
-                <td className="px-4 py-2 text-neutral-500">{h.reason ?? "—"}</td>
+                <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{h.reason ?? "—"}</td>
               </tr>
             ))}
             {data.jobHistory.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={6} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No job history recorded yet — it starts building the next time this record changes.
                 </td>
               </tr>
@@ -79,17 +79,17 @@ export function EmploymentTab({
 
       {canSeeNotes && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">HR Notes</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">HR Notes</h2>
           <ul className="space-y-2 text-sm">
             {data.notes.map((n) => (
-              <li key={n.id} className="border-b border-neutral-50 pb-2">
-                <p className="text-neutral-800">{n.note}</p>
-                <p className="text-xs text-neutral-400 mt-0.5">
+              <li key={n.id} className="border-b border-neutral-50 dark:border-neutral-900 pb-2">
+                <p className="text-neutral-800 dark:text-neutral-100">{n.note}</p>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
                   {n.note_type} · {n.visibility} · {new Date(n.created_at).toLocaleDateString("en-KE")}
                 </p>
               </li>
             ))}
-            {data.notes.length === 0 && <p className="text-sm text-neutral-400">No notes yet.</p>}
+            {data.notes.length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500">No notes yet.</p>}
           </ul>
 
           {canAddNote && (
@@ -99,9 +99,9 @@ export function EmploymentTab({
                 placeholder="Add a note…"
                 required
                 rows={2}
-                className="flex-1 border border-neutral-300 rounded-lg px-2 py-1.5"
+                className="flex-1 border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5"
               />
-              <select name="visibility" className="border border-neutral-300 rounded-lg px-2 py-1.5">
+              <select name="visibility" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5">
                 <option value="HR">HR only</option>
                 <option value="Manager">Manager visible</option>
               </select>
@@ -118,9 +118,9 @@ export function EmploymentTab({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-neutral-50 py-1.5">
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="text-neutral-900 font-medium text-right">{value}</dd>
+    <div className="flex items-center justify-between border-b border-neutral-50 dark:border-neutral-900 py-1.5">
+      <dt className="text-neutral-500 dark:text-neutral-400">{label}</dt>
+      <dd className="text-neutral-900 dark:text-neutral-50 font-medium text-right">{value}</dd>
     </div>
   );
 }

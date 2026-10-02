@@ -23,7 +23,7 @@ export function BioTab({
   return (
     <div className="space-y-6">
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Personal Details</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Personal Details</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
           <Row
             label="Date of birth"
@@ -42,7 +42,7 @@ export function BioTab({
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Contact Details</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Contact Details</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
           <Row label="Phone number" value={(e.phone_number as string) || "Not on file"} />
           <Row label="Personal email" value={(e.personal_email as string) || "Not on file"} />
@@ -52,14 +52,14 @@ export function BioTab({
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Emergency Contacts</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Emergency Contacts</h2>
         <ul className="space-y-2 text-sm">
           {data.contacts.map((c) => (
-            <li key={c.id} className="flex items-center justify-between gap-3 border-b border-neutral-50 pb-2">
+            <li key={c.id} className="flex items-center justify-between gap-3 border-b border-neutral-50 dark:border-neutral-900 pb-2">
               <div>
-                <span className="font-medium text-neutral-900">{c.name}</span>
+                <span className="font-medium text-neutral-900 dark:text-neutral-50">{c.name}</span>
                 {c.is_primary && <span className="text-xs text-brand-600 ml-2">Primary</span>}
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {[c.relationship, c.phone, c.email].filter(Boolean).join(" · ") || "—"}
                 </p>
               </div>
@@ -72,16 +72,16 @@ export function BioTab({
               )}
             </li>
           ))}
-          {data.contacts.length === 0 && <p className="text-sm text-neutral-400">No emergency contacts on file.</p>}
+          {data.contacts.length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500">No emergency contacts on file.</p>}
         </ul>
 
         {canManageContacts && (
           <form action={addContact.bind(null, employeeId)} className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <input name="name" placeholder="Name" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="relationship" placeholder="Relationship" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="phone" placeholder="Phone" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="email" placeholder="Email" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <label className="flex items-center gap-1.5 text-neutral-600">
+            <input name="name" placeholder="Name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="relationship" placeholder="Relationship" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="phone" placeholder="Phone" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="email" placeholder="Email" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <label className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
               <input type="checkbox" name="is_primary" /> Primary contact
             </label>
             <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
@@ -92,7 +92,7 @@ export function BioTab({
       </div>
 
       {canManageContacts && !isOwnProfile && (
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs text-neutral-400 dark:text-neutral-500">
           Personal details and contact info are edited from the Employees list — use &ldquo;Edit&rdquo; on{" "}
           {e.name as string}&apos;s row.
         </p>
@@ -100,8 +100,8 @@ export function BioTab({
 
       {isOwnProfile && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-1">Request a change</h2>
-          <p className="text-xs text-neutral-500 mb-3">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Request a change</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
             Contact and personal details go to HR for approval rather than changing immediately — you&apos;ll be
             notified once it&apos;s decided.
           </p>
@@ -109,7 +109,7 @@ export function BioTab({
           {pendingChanges.length > 0 && (
             <ul className="space-y-1.5 mb-4 text-sm">
               {pendingChanges.map((c) => (
-                <li key={c.id} className="flex items-center justify-between border-b border-neutral-50 pb-1.5">
+                <li key={c.id} className="flex items-center justify-between border-b border-neutral-50 dark:border-neutral-900 pb-1.5">
                   <span>
                     {c.field.replace(/_/g, " ")} → <span className="font-medium">{c.new_value}</span>
                   </span>
@@ -120,13 +120,13 @@ export function BioTab({
           )}
 
           <form action={submitProfileChangeRequest} className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <select name="field" required className="border border-neutral-300 rounded-lg px-2 py-1.5 bg-white">
+            <select name="field" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
               {ALLOWED_FIELDS.map((f) => (
                 <option key={f} value={f}>{f.replace(/_/g, " ")}</option>
               ))}
             </select>
-            <input name="new_value" placeholder="New value" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <input name="reason" placeholder="Reason (optional)" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+            <input name="new_value" placeholder="New value" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <input name="reason" placeholder="Reason (optional)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
             <button type="submit" className="sm:col-span-3 justify-self-start bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
               Submit request
             </button>
@@ -139,9 +139,9 @@ export function BioTab({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-neutral-50 py-1.5">
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="text-neutral-900 font-medium text-right">{value}</dd>
+    <div className="flex items-center justify-between border-b border-neutral-50 dark:border-neutral-900 py-1.5">
+      <dt className="text-neutral-500 dark:text-neutral-400">{label}</dt>
+      <dd className="text-neutral-900 dark:text-neutral-50 font-medium text-right">{value}</dd>
     </div>
   );
 }

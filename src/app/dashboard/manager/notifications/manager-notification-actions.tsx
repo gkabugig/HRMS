@@ -14,7 +14,7 @@ const PRIORITY_STYLE: Record<NotificationRow["priority"], string> = {
   critical: "bg-red-50 text-red-700 border-red-100",
   action_required: "bg-amber-50 text-amber-700 border-amber-100",
   reminder: "bg-blue-50 text-blue-700 border-blue-100",
-  information: "bg-neutral-50 text-neutral-500 border-neutral-100",
+  information: "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 border-neutral-100 dark:border-neutral-800",
 };
 
 export default function ManagerNotificationActions({ items: initial }: { items: NotificationRow[] }) {
@@ -47,11 +47,11 @@ export default function ManagerNotificationActions({ items: initial }: { items: 
               {n.priority.replace("_", " ")}
             </span>
             <div className="min-w-0 flex-1">
-              <p className={`text-sm font-medium text-neutral-900 ${n.is_read ? "opacity-70" : ""}`}>{n.title}</p>
-              <p className="text-xs text-neutral-500">{n.safe_preview ?? n.message}</p>
+              <p className={`text-sm font-medium text-neutral-900 dark:text-neutral-50 ${n.is_read ? "opacity-70" : ""}`}>{n.title}</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{n.safe_preview ?? n.message}</p>
             </div>
             {!n.is_read && (
-              <button onClick={() => markOne(n.id)} className="text-xs text-neutral-400 hover:text-brand-600 shrink-0">
+              <button onClick={() => markOne(n.id)} className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-brand-600 shrink-0">
                 Mark read
               </button>
             )}

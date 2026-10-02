@@ -52,10 +52,10 @@ export default async function DisciplinaryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
           {isHrLike ? "Disciplinary Records" : appUser?.role === "manager" ? "Team Disciplinary Records" : "My Disciplinary Records"}
         </h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Employment Act s.41: before dismissing for misconduct, poor performance, or incapacity, the
           employee must be told the reason and heard, with a representative present if they choose.
           This is that record.
@@ -70,23 +70,23 @@ export default async function DisciplinaryPage() {
                 <span className="font-medium">
                   {(r.employees as unknown as { name: string } | null)?.name ?? "—"}
                 </span>
-                <span className="text-xs text-neutral-500 ml-2">{r.hearing_date}</span>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-2">{r.hearing_date}</span>
               </div>
-              <span className="text-xs uppercase tracking-wide bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded">
+              <span className="text-xs uppercase tracking-wide bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 px-2 py-0.5 rounded">
                 {r.action_type}
               </span>
             </div>
-            <p className="text-sm text-neutral-700 mt-2">{r.reason}</p>
-            <p className="text-xs text-neutral-500 mt-1">
+            <p className="text-sm text-neutral-700 dark:text-neutral-200 mt-2">{r.reason}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
               Representative present: {r.representative_present ? r.representative_name || "Yes" : "No"}
             </p>
             {r.employee_response && (
-              <p className="text-xs text-neutral-600 mt-1">Employee response: {r.employee_response}</p>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-1">Employee response: {r.employee_response}</p>
             )}
-            {r.outcome && <p className="text-xs text-neutral-600 mt-1">Outcome: {r.outcome}</p>}
+            {r.outcome && <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-1">Outcome: {r.outcome}</p>}
 
-            <div className="mt-3 border-t border-neutral-100 pt-3">
-              <p className="text-xs font-medium text-neutral-600 mb-2">Attached documents</p>
+            <div className="mt-3 border-t border-neutral-100 dark:border-neutral-800 pt-3">
+              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">Attached documents</p>
               <ul className="space-y-1">
                 {(attachmentsByRecord.get(r.id) ?? []).map((a) => (
                   <li key={a.id} className="flex items-center gap-2 text-sm">
@@ -95,7 +95,7 @@ export default async function DisciplinaryPage() {
                         {a.file_name}
                       </a>
                     ) : (
-                      <span className="text-neutral-400">{a.file_name} (link unavailable)</span>
+                      <span className="text-neutral-400 dark:text-neutral-500">{a.file_name} (link unavailable)</span>
                     )}
                     {isHrLike && (
                       <form action={deleteAttachment.bind(null, a.id, a.file_path)}>
@@ -107,7 +107,7 @@ export default async function DisciplinaryPage() {
                   </li>
                 ))}
                 {(attachmentsByRecord.get(r.id) ?? []).length === 0 && (
-                  <li className="text-xs text-neutral-400">No documents attached.</li>
+                  <li className="text-xs text-neutral-400 dark:text-neutral-500">No documents attached.</li>
                 )}
               </ul>
               {canRecord && (
@@ -119,9 +119,9 @@ export default async function DisciplinaryPage() {
                     name="file"
                     type="file"
                     required
-                    className="flex-1 text-xs border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1"
+                    className="flex-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1"
                   />
-                  <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
+                  <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
                     Attach
                   </button>
                 </form>
@@ -130,15 +130,15 @@ export default async function DisciplinaryPage() {
           </div>
         ))}
         {(!records || records.length === 0) && (
-          <p className="text-sm text-neutral-400">No disciplinary records yet.</p>
+          <p className="text-sm text-neutral-400 dark:text-neutral-500">No disciplinary records yet.</p>
         )}
       </div>
 
       {canRecord && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Record a hearing</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Record a hearing</h2>
           <form action={recordHearing} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <select name="employee_id" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <select name="employee_id" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -151,14 +151,14 @@ export default async function DisciplinaryPage() {
               type="date"
               required
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <textarea
               name="reason"
               placeholder="Reason explained to the employee"
               required
               rows={2}
-              className="sm:col-span-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="sm:col-span-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <label className="flex items-center gap-2">
               <input type="checkbox" name="representative_present" /> Representative present
@@ -166,22 +166,22 @@ export default async function DisciplinaryPage() {
             <input
               name="representative_name"
               placeholder="Representative name (if any)"
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <textarea
               name="employee_response"
               placeholder="Employee's response / representations"
               rows={2}
-              className="sm:col-span-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="sm:col-span-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
-            <select name="action_type" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <select name="action_type" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               {ACTION_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </select>
-            <input name="outcome" placeholder="Outcome / decision" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="outcome" placeholder="Outcome / decision" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <button type="submit" className="sm:col-span-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Save record
             </button>

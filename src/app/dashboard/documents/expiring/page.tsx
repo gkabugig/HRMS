@@ -12,15 +12,15 @@ export default async function ExpiringDocumentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Expiry Watch</h1>
-          <p className="text-sm text-neutral-500">Documents expiring within 90 days, or already expired.</p>
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Expiry Watch</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Documents expiring within 90 days, or already expired.</p>
         </div>
         <Link href="/dashboard/documents" className="text-xs font-medium text-brand-600 hover:underline">← Document Centre</Link>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Employee</th>
               <th className="px-4 py-2 font-medium">Document</th>
@@ -34,14 +34,14 @@ export default async function ExpiringDocumentsPage() {
               const expiry = d.expiry_date ? new Date(d.expiry_date) : null;
               const daysLeft = expiry ? Math.round((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
               return (
-                <tr key={d.id} className="border-t border-neutral-100">
+                <tr key={d.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{emp ? `${emp.name} (${emp.staff_no})` : "—"}</td>
                   <td className="px-4 py-2">
                     <Link href={`/dashboard/documents/${d.id}`} className="text-brand-600 hover:text-brand-700 hover:underline">
                       {d.title || d.doc_type}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-neutral-500">{d.expiry_date ? new Date(d.expiry_date).toLocaleDateString("en-KE") : "—"}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{d.expiry_date ? new Date(d.expiry_date).toLocaleDateString("en-KE") : "—"}</td>
                   <td className="px-4 py-2">
                     {daysLeft !== null && daysLeft < 0 ? (
                       <span className="text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded-full">Overdue {Math.abs(daysLeft)}d</span>

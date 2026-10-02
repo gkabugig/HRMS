@@ -10,7 +10,7 @@ export function PhotoUploadControl({
   name,
   photoUrl,
   photoPath,
-  size = 72,
+  size = 112,
 }: {
   employeeId: string;
   name: string;
@@ -57,7 +57,7 @@ export function PhotoUploadControl({
 
       {isPending && (
         <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center">
-          <Loader2 size={20} className="text-white animate-spin" />
+          <Loader2 size={24} className="text-white animate-spin" />
         </div>
       )}
 
@@ -66,9 +66,9 @@ export function PhotoUploadControl({
         onClick={() => inputRef.current?.click()}
         disabled={isPending}
         aria-label="Change photo"
-        className="absolute -bottom-1.5 -right-1.5 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-full p-1.5 shadow-sm hover:bg-neutral-50 transition-colors disabled:opacity-50"
+        className="absolute -bottom-2 -right-2 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-full p-2 shadow-sm hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors disabled:opacity-50"
       >
-        <Camera size={14} className="text-neutral-600" />
+        <Camera size={16} className="text-neutral-600 dark:text-neutral-300" />
       </button>
 
       {photoUrl && (
@@ -77,9 +77,9 @@ export function PhotoUploadControl({
           onClick={handleRemove}
           disabled={isPending}
           aria-label="Remove photo"
-          className="absolute -top-1.5 -right-1.5 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-full p-1 shadow-sm hover:bg-neutral-50 transition-colors disabled:opacity-50"
+          className="absolute -top-2 -right-2 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-full p-1.5 shadow-sm hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors disabled:opacity-50"
         >
-          <X size={12} className="text-neutral-500" />
+          <X size={14} className="text-neutral-500 dark:text-neutral-400" />
         </button>
       )}
 

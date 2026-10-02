@@ -45,15 +45,15 @@ export default function PayrollWorkflow({
             <div className="flex flex-col items-center gap-1.5 px-1">
               <div
                 className={`h-2.5 w-2.5 rounded-full ${
-                  i < currentIndex ? "bg-brand-400" : i === currentIndex ? "bg-brand-600 ring-4 ring-brand-100" : "bg-neutral-200"
+                  i < currentIndex ? "bg-brand-400" : i === currentIndex ? "bg-brand-600 ring-4 ring-brand-100" : "bg-neutral-200 dark:bg-neutral-700"
                 }`}
               />
-              <span className={`text-[10px] whitespace-nowrap ${i === currentIndex ? "text-neutral-900 font-semibold" : "text-neutral-400"}`}>
+              <span className={`text-[10px] whitespace-nowrap ${i === currentIndex ? "text-neutral-900 dark:text-neutral-50 font-semibold" : "text-neutral-400 dark:text-neutral-500"}`}>
                 {STATUS_LABELS[s]}
               </span>
             </div>
             {i < PAYROLL_STATUSES.length - 1 && (
-              <div className={`h-px w-6 sm:w-10 ${i < currentIndex ? "bg-brand-300" : "bg-neutral-200"}`} />
+              <div className={`h-px w-6 sm:w-10 ${i < currentIndex ? "bg-brand-300" : "bg-neutral-200 dark:bg-neutral-700"}`} />
             )}
           </div>
         ))}
@@ -81,7 +81,7 @@ export default function PayrollWorkflow({
                   <input
                     name="comment"
                     placeholder="Comment (optional)"
-                    className="text-sm border border-neutral-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                    className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                   />
                   <button
                     type="submit"
@@ -95,7 +95,7 @@ export default function PayrollWorkflow({
                 <button
                   key={n}
                   onClick={() => setPendingComment(n)}
-                  className="border border-[var(--border-subtle)] hover:border-brand-300 text-neutral-700 rounded-lg transition-colors py-2 px-4 text-sm font-medium"
+                  className="border border-[var(--border-subtle)] hover:border-brand-300 text-neutral-700 dark:text-neutral-200 rounded-lg transition-colors py-2 px-4 text-sm font-medium"
                 >
                   {STAGE_ACTION_LABEL[n] ?? `Move to ${STATUS_LABELS[n]}`}
                 </button>
@@ -106,7 +106,7 @@ export default function PayrollWorkflow({
           {transitionState.error && <p className="text-xs text-red-600 mt-2">{transitionState.error}</p>}
         </div>
       )}
-      {locked && <p className="text-xs text-neutral-400 mt-4 pt-4 border-t border-[var(--border-subtle)]">This payroll period is locked and immutable.</p>}
+      {locked && <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-4 pt-4 border-t border-[var(--border-subtle)]">This payroll period is locked and immutable.</p>}
     </div>
   );
 }

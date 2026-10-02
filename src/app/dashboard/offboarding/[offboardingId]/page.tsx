@@ -31,7 +31,7 @@ export default async function OffboardingDetailPage({
   ]);
 
   if (!record) {
-    return <p className="text-sm text-neutral-500">Offboarding record not found.</p>;
+    return <p className="text-sm text-neutral-500 dark:text-neutral-400">Offboarding record not found.</p>;
   }
 
   const employeeName = (record.employees as unknown as { name: string; staff_no: string } | null)?.name ?? "—";
@@ -44,8 +44,8 @@ export default async function OffboardingDetailPage({
         <Link href="/dashboard/offboarding" className="text-sm text-brand-600 hover:text-brand-700 hover:underline">
           ← All offboarding
         </Link>
-        <h1 className="text-lg font-semibold text-neutral-900 mt-1">{employeeName}</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mt-1">{employeeName}</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {record.exit_type} · Notice {record.notice_date} · Last working day {record.last_working_day} · Status{" "}
           {record.status}
           {record.paid_in_lieu_of_notice && " · Paid in lieu of notice"}
@@ -61,24 +61,24 @@ export default async function OffboardingDetailPage({
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Asset return checklist</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Asset return checklist</h2>
         <ul className="space-y-1 mb-3">
           {(assets ?? []).map((a) => (
             <li key={a.id} className="flex items-center gap-2 text-sm">
               <form action={toggleAssetReturned.bind(null, a.id, offboardingId, !a.returned)}>
-                <button type="submit" className={a.returned ? "text-green-600" : "text-neutral-400"}>
+                <button type="submit" className={a.returned ? "text-green-600" : "text-neutral-400 dark:text-neutral-500"}>
                   {a.returned ? "☑" : "☐"}
                 </button>
               </form>
-              <span className={a.returned ? "line-through text-neutral-400" : ""}>{a.item}</span>
+              <span className={a.returned ? "line-through text-neutral-400 dark:text-neutral-500" : ""}>{a.item}</span>
             </li>
           ))}
-          {(!assets || assets.length === 0) && <p className="text-sm text-neutral-400">No assets tracked.</p>}
+          {(!assets || assets.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">No assets tracked.</p>}
         </ul>
         {!isCompleted && (
           <form action={addAsset.bind(null, offboardingId)} className="flex gap-2 text-sm">
-            <input name="item" placeholder="Add an item…" required className="flex-1 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-            <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
+            <input name="item" placeholder="Add an item…" required className="flex-1 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
+            <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
               Add
             </button>
           </form>
@@ -86,9 +86,9 @@ export default async function OffboardingDetailPage({
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Exit interview</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Exit interview</h2>
         {isCompleted ? (
-          <div className="text-sm text-neutral-600 space-y-1">
+          <div className="text-sm text-neutral-600 dark:text-neutral-300 space-y-1">
             <p>Completed: {record.exit_interview_completed ? "Yes" : "No"}</p>
             <p className="whitespace-pre-wrap">{record.exit_interview_notes || "No notes."}</p>
           </div>
@@ -107,9 +107,9 @@ export default async function OffboardingDetailPage({
               defaultValue={record.exit_interview_notes ?? ""}
               rows={3}
               placeholder="Notes from the exit interview…"
-              className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
-            <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
+            <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
               Save
             </button>
           </form>
@@ -117,9 +117,9 @@ export default async function OffboardingDetailPage({
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Final dues &amp; statutory deregistration</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Final dues &amp; statutory deregistration</h2>
         {isCompleted ? (
-          <div className="text-sm text-neutral-600 space-y-1">
+          <div className="text-sm text-neutral-600 dark:text-neutral-300 space-y-1">
             <p>Pro-rated days: {record.pro_rated_days}</p>
             <p>Other deductions: KES {Number(record.other_deductions).toLocaleString()}</p>
             <p>Statutory deregistered: {record.statutory_deregistered ? "Yes" : "No"}</p>
@@ -134,7 +134,7 @@ export default async function OffboardingDetailPage({
               type="number"
               defaultValue={record.pro_rated_days}
               placeholder="Pro-rated days"
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <input
               name="other_deductions"
@@ -142,7 +142,7 @@ export default async function OffboardingDetailPage({
               step="0.01"
               defaultValue={record.other_deductions}
               placeholder="Other deductions (KES)"
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <label className="flex items-center gap-2">
               <input
@@ -153,18 +153,18 @@ export default async function OffboardingDetailPage({
               NSSF/SHIF deregistered
             </label>
             {record.exit_type === "Redundancy" && (
-              <label className="text-xs text-neutral-500 flex flex-col gap-1 sm:col-span-3">
+              <label className="text-xs text-neutral-500 dark:text-neutral-400 flex flex-col gap-1 sm:col-span-3">
                 Severance pay (KES) — auto-calculated at 15 days/completed year, adjust if needed
                 <input
                   name="severance_pay"
                   type="number"
                   step="0.01"
                   defaultValue={record.severance_pay}
-                  className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+                  className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
                 />
               </label>
             )}
-            <button type="submit" className="sm:col-span-3 text-xs bg-neutral-200 rounded px-3 py-1.5 w-fit">
+            <button type="submit" className="sm:col-span-3 text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1.5 w-fit">
               Save
             </button>
           </form>
@@ -173,9 +173,9 @@ export default async function OffboardingDetailPage({
 
       {record.exit_type === "Redundancy" && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Redundancy notices (s.40)</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Redundancy notices (s.40)</h2>
           {isCompleted ? (
-            <div className="text-sm text-neutral-600 space-y-1">
+            <div className="text-sm text-neutral-600 dark:text-neutral-300 space-y-1">
               <p>Labour office notified: {record.labour_office_notified_on || "Not recorded"}</p>
               <p>Union notified: {record.union_notified_on || "Not recorded"}</p>
               <p>Selection criteria: {record.selection_criteria || "Not recorded"}</p>
@@ -189,21 +189,21 @@ export default async function OffboardingDetailPage({
                 name="labour_office_notified_on"
                 type="date"
                 defaultValue={record.labour_office_notified_on ?? ""}
-                className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+                className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
               />
               <input
                 name="union_notified_on"
                 type="date"
                 defaultValue={record.union_notified_on ?? ""}
-                className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+                className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
               />
               <input
                 name="selection_criteria"
                 placeholder="Selection criteria used"
                 defaultValue={record.selection_criteria ?? ""}
-                className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+                className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
               />
-              <button type="submit" className="sm:col-span-3 text-xs bg-neutral-200 rounded px-3 py-1.5 w-fit">
+              <button type="submit" className="sm:col-span-3 text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1.5 w-fit">
                 Save
               </button>
             </form>
@@ -221,7 +221,7 @@ export default async function OffboardingDetailPage({
             Complete offboarding &amp; mark employee terminated
           </button>
           {!allAssetsReturned && (
-            <p className="text-xs text-neutral-500 mt-2">All assets must be marked returned first.</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">All assets must be marked returned first.</p>
           )}
         </form>
       )}

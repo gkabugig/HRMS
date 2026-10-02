@@ -2,8 +2,8 @@ export default function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
       <div>
-        <div className="h-9 w-64 bg-neutral-100 rounded mb-2" />
-        <div className="h-4 w-48 bg-neutral-100 rounded" />
+        <div className="h-9 w-64 bg-neutral-100 dark:bg-neutral-800 rounded mb-2" />
+        <div className="h-4 w-48 bg-neutral-100 dark:bg-neutral-800 rounded" />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (

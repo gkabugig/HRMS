@@ -195,8 +195,8 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Approvals Centre</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Approvals Centre</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Requests across every module that uses the shared approval engine — pending decisions, delegations, and history.
         </p>
       </div>
@@ -206,7 +206,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] divide-y divide-neutral-100">
         {(effectiveTab === "pending" || effectiveTab === "delegated" || effectiveTab === "overdue") && (
           <>
-            {actionableSteps.length === 0 && <p className="px-5 py-6 text-sm text-neutral-400 text-center">{emptyCopy[effectiveTab]}</p>}
+            {actionableSteps.length === 0 && <p className="px-5 py-6 text-sm text-neutral-400 dark:text-neutral-500 text-center">{emptyCopy[effectiveTab]}</p>}
             {actionableSteps.map((s) => {
               const req = unwrapRequest(s.approval_requests);
               if (!req) return null;
@@ -229,7 +229,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
 
         {(effectiveTab === "submitted" || effectiveTab === "completed" || effectiveTab === "all") && (
           <>
-            {historyRequests.length === 0 && <p className="px-5 py-6 text-sm text-neutral-400 text-center">{emptyCopy[effectiveTab]}</p>}
+            {historyRequests.length === 0 && <p className="px-5 py-6 text-sm text-neutral-400 dark:text-neutral-500 text-center">{emptyCopy[effectiveTab]}</p>}
             {historyRequests.map((req) => (
               <ApprovalRequestRow
                 key={req.id}

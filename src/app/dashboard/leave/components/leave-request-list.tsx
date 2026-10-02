@@ -14,7 +14,7 @@ export function LeaveRequestList({
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 text-neutral-600 text-left">
+        <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
           <tr>
             <th className="px-4 py-2 font-medium">Employee</th>
             <th className="px-4 py-2 font-medium">Type</th>
@@ -26,7 +26,7 @@ export function LeaveRequestList({
         </thead>
         <tbody>
           {requests.map((r) => (
-            <tr key={r.id} className="border-t border-neutral-100">
+            <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
               <td className="px-4 py-2">{r.employees?.name ?? "—"}</td>
               <td className="px-4 py-2">{r.leave_type}</td>
               <td className="px-4 py-2">
@@ -42,7 +42,7 @@ export function LeaveRequestList({
           ))}
           {requests.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-4 py-6 text-center text-neutral-400">
+              <td colSpan={6} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                 No leave requests.
               </td>
             </tr>

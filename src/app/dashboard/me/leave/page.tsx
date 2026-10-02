@@ -35,16 +35,16 @@ export default async function MyLeavePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">My Leave</h1>
-        <p className="text-sm text-neutral-500 mt-1">Balances, requests and approval status.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Leave</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Balances, requests and approval status.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {balances.map((b) => (
           <div key={b.leaveType} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-            <p className="text-xs text-neutral-500">{b.leaveType}</p>
-            <p className="text-2xl font-semibold text-neutral-900">{b.remaining}</p>
-            <p className="text-xs text-neutral-500">of {b.entitlement} days remaining</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{b.leaveType}</p>
+            <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{b.remaining}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">of {b.entitlement} days remaining</p>
             {b.pending > 0 && <p className="text-xs text-amber-600 mt-1">{b.pending} pending</p>}
           </div>
         ))}
@@ -54,9 +54,9 @@ export default async function MyLeavePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Apply for leave</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Apply for leave</h2>
         <form action={applyForLeave} className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-          <select name="leave_type" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="leave_type" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="">Select leave type…</option>
             {(leaveTypes ?? []).map((t) => (
               <option key={t.leave_type} value={t.leave_type}>{t.leave_type}</option>
@@ -73,12 +73,12 @@ export default async function MyLeavePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">Your requests</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">Your requests</h2>
         {!requests || requests.length === 0 ? (
           <div className="p-4"><EmptyState message="No leave requests yet." /></div>
         ) : (
           <table className="w-full text-sm mt-3">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Type</th>
                 <th className="px-4 py-2 font-medium">Dates</th>
@@ -89,12 +89,12 @@ export default async function MyLeavePage() {
             </thead>
             <tbody>
               {requests.map((r) => (
-                <tr key={r.id} className="border-t border-neutral-100">
+                <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{r.leave_type}</td>
-                  <td className="px-4 py-2 text-neutral-500 whitespace-nowrap">{r.start_date} → {r.end_date}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{r.start_date} → {r.end_date}</td>
                   <td className="px-4 py-2">{r.days}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100"}`}>{r.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100 dark:bg-neutral-800"}`}>{r.status}</span>
                   </td>
                   <td className="px-4 py-2">
                     {r.status === "Pending" && (

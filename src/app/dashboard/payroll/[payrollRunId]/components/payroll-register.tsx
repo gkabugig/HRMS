@@ -37,17 +37,17 @@ export default function PayrollRegister({
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
       <div className="px-4 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-neutral-900">Employee Payroll Register</h2>
-        <span className="text-xs text-neutral-400">{total} employees</span>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Employee Payroll Register</h2>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">{total} employees</span>
       </div>
       <form method="get" className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[var(--border-subtle)] text-xs">
         <input
           name="search"
           defaultValue={filters.search}
           placeholder="Search name or staff no…"
-          className="border border-neutral-300 rounded-lg px-2.5 py-1.5 flex-1 min-w-[160px]"
+          className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2.5 py-1.5 flex-1 min-w-[160px]"
         />
-        <select name="department" defaultValue={filters.department ?? ""} className="border border-neutral-300 rounded-lg px-2 py-1.5">
+        <select name="department" defaultValue={filters.department ?? ""} className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5">
           <option value="">All departments</option>
           {departments.map((d) => (
             <option key={d} value={d}>
@@ -55,7 +55,7 @@ export default function PayrollRegister({
             </option>
           ))}
         </select>
-        <select name="status" defaultValue={filters.status ?? ""} className="border border-neutral-300 rounded-lg px-2 py-1.5">
+        <select name="status" defaultValue={filters.status ?? ""} className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5">
           <option value="">All statuses</option>
           <option value="Ready">Ready</option>
           <option value="Exception">Exception</option>
@@ -66,7 +66,7 @@ export default function PayrollRegister({
       </form>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Employee</th>
               <th className="px-4 py-2 font-medium">Department</th>
@@ -83,14 +83,14 @@ export default function PayrollRegister({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t border-neutral-100 hover:bg-neutral-50">
+              <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 hover:dark:bg-neutral-900">
                 <td className="px-4 py-2">
-                  <Link href={`/dashboard/payroll/${runId}/employee/${r.id}`} className="text-neutral-900 hover:text-brand-700 font-medium">
+                  <Link href={`/dashboard/payroll/${runId}/employee/${r.id}`} className="text-neutral-900 dark:text-neutral-50 hover:text-brand-700 font-medium">
                     {r.name}
                   </Link>
-                  <div className="text-xs text-neutral-400">{r.staffNo}</div>
+                  <div className="text-xs text-neutral-400 dark:text-neutral-500">{r.staffNo}</div>
                 </td>
-                <td className="px-4 py-2 text-neutral-600">{r.department}</td>
+                <td className="px-4 py-2 text-neutral-600 dark:text-neutral-300">{r.department}</td>
                 <td className="px-4 py-2 text-right font-mono">{money(r.basic)}</td>
                 <td className="px-4 py-2 text-right font-mono">{money(r.allowances)}</td>
                 <td className="px-4 py-2 text-right font-mono">{money(r.gross)}</td>
@@ -108,7 +108,7 @@ export default function PayrollRegister({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={canSeeSalary ? 10 : 6} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={canSeeSalary ? 10 : 6} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No employees match these filters.
                 </td>
               </tr>
@@ -117,7 +117,7 @@ export default function PayrollRegister({
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)] text-xs text-neutral-500">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)] text-xs text-neutral-500 dark:text-neutral-400">
           <span>
             Page {page} of {totalPages}
           </span>

@@ -103,8 +103,8 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Reports</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Reports</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           A snapshot of workforce, payroll, leave, attendance, and compliance — each section
           exports to CSV for further analysis or board packs.
         </p>
@@ -129,7 +129,7 @@ export default async function ReportsPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-neutral-500 border-b border-[var(--border-subtle)]">
+              <tr className="text-left text-neutral-500 dark:text-neutral-400 border-b border-[var(--border-subtle)]">
                 <th className="py-1.5 font-medium">Period</th>
                 <th className="py-1.5 font-medium text-right">Gross</th>
                 <th className="py-1.5 font-medium text-right">Statutory</th>
@@ -235,8 +235,8 @@ function ReportSection({
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
-          <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{title}</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{subtitle}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <a
@@ -264,15 +264,15 @@ function BreakdownGrid({ title, counts }: { title: string; counts: Record<string
   const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   return (
     <div>
-      <p className="text-xs font-medium text-neutral-600 mb-2">{title}</p>
+      <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">{title}</p>
       {entries.length === 0 ? (
         <EmptyNote text="No data yet." />
       ) : (
         <ul className="space-y-1">
           {entries.map(([label, value]) => (
             <li key={label} className="flex items-center justify-between text-sm">
-              <span className="text-neutral-700">{label}</span>
-              <span className="font-medium text-neutral-900">{value}</span>
+              <span className="text-neutral-700 dark:text-neutral-200">{label}</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-50">{value}</span>
             </li>
           ))}
         </ul>
@@ -292,12 +292,12 @@ function StatRow({
         <div key={s.label}>
           <div
             className={`text-2xl font-semibold ${
-              s.tone === "red" ? "text-red-600" : s.tone === "amber" ? "text-amber-600" : "text-neutral-900"
+              s.tone === "red" ? "text-red-600" : s.tone === "amber" ? "text-amber-600" : "text-neutral-900 dark:text-neutral-50"
             }`}
           >
             {s.value}
           </div>
-          <div className="text-xs text-neutral-500">{s.label}</div>
+          <div className="text-xs text-neutral-500 dark:text-neutral-400">{s.label}</div>
         </div>
       ))}
     </div>
@@ -305,5 +305,5 @@ function StatRow({
 }
 
 function EmptyNote({ text }: { text: string }) {
-  return <p className="text-xs text-neutral-400">{text}</p>;
+  return <p className="text-xs text-neutral-400 dark:text-neutral-500">{text}</p>;
 }

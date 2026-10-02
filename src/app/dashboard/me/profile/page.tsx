@@ -49,12 +49,12 @@ export default async function MyProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">My Profile</h1>
-        <p className="text-sm text-neutral-500 mt-1">View your details and request changes — sensitive master data is HR-controlled.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Profile</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">View your details and request changes — sensitive master data is HR-controlled.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Employment (HR-managed, read-only)</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Employment (HR-managed, read-only)</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <Field label="Name" value={e?.name as string} />
           <Field label="Staff No." value={e?.staff_no as string} />
@@ -69,7 +69,7 @@ export default async function MyProfilePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Contact & personal details</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Contact & personal details</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
           {NORMAL_FIELDS.map((f) => (
             <Field key={f} label={FIELD_LABELS[f]} value={(e?.[f] as string) || "—"} />
@@ -79,8 +79,8 @@ export default async function MyProfilePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-1">Bank & statutory IDs</h2>
-        <p className="text-xs text-neutral-500 mb-3">Masked by default. Changes require supporting evidence and HR approval.</p>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Bank & statutory IDs</h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">Masked by default. Changes require supporting evidence and HR approval.</p>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
           {HIGH_SENSITIVITY_FIELDS.map((f) => (
             <Field key={f} label={FIELD_LABELS[f]} value={maskValue(e?.[f] as string)} />
@@ -90,14 +90,14 @@ export default async function MyProfilePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">Your change requests</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">Your change requests</h2>
         {!changeRequests || changeRequests.length === 0 ? (
           <div className="p-4">
             <EmptyState message="No profile change requests yet." />
           </div>
         ) : (
           <table className="w-full text-sm mt-3">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Field</th>
                 <th className="px-4 py-2 font-medium">From</th>
@@ -108,14 +108,14 @@ export default async function MyProfilePage() {
             </thead>
             <tbody>
               {changeRequests.map((r) => (
-                <tr key={r.id} className="border-t border-neutral-100">
+                <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{FIELD_LABELS[r.field as AllowedField] ?? r.field}</td>
-                  <td className="px-4 py-2 text-neutral-500">{r.old_value || "—"}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{r.old_value || "—"}</td>
                   <td className="px-4 py-2 font-medium">{r.new_value}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100"}`}>{r.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100 dark:bg-neutral-800"}`}>{r.status}</span>
                   </td>
-                  <td className="px-4 py-2 text-neutral-500 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("en-KE")}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("en-KE")}</td>
                 </tr>
               ))}
             </tbody>
@@ -129,8 +129,8 @@ export default async function MyProfilePage() {
 function Field({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
-      <dt className="text-xs text-neutral-500">{label}</dt>
-      <dd className="text-neutral-900">{value || "—"}</dd>
+      <dt className="text-xs text-neutral-500 dark:text-neutral-400">{label}</dt>
+      <dd className="text-neutral-900 dark:text-neutral-50">{value || "—"}</dd>
     </div>
   );
 }
@@ -145,8 +145,8 @@ function RequestChangeForm({
   requireEvidence?: boolean;
 }) {
   return (
-    <form action={submitProfileChangeRequest} className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm border-t border-neutral-100 pt-4">
-      <select name="field" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+    <form action={submitProfileChangeRequest} className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm border-t border-neutral-100 dark:border-neutral-800 pt-4">
+      <select name="field" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
         <option value="">Select field to change…</option>
         {fields.map((f) => (
           <option key={f} value={f}>{FIELD_LABELS[f]}</option>
@@ -156,13 +156,13 @@ function RequestChangeForm({
       <textarea name="reason" placeholder="Reason (optional)" rows={2} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 sm:col-span-2" />
       {requireEvidence && (
         <div className="sm:col-span-2">
-          <select name="evidence_document_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white w-full">
+          <select name="evidence_document_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 w-full">
             <option value="">Select evidence document…</option>
             {(documents ?? []).map((d) => (
               <option key={d.id} value={d.id}>{d.file_name}</option>
             ))}
           </select>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
             No document to pick? Upload one from <a href="/dashboard/me/documents" className="text-brand-600 hover:underline">My Documents</a> first.
           </p>
         </div>

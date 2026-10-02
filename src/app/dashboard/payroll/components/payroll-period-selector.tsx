@@ -19,7 +19,7 @@ export default function PayrollPeriodSelector({
     <select
       value={current}
       onChange={(e) => router.push(`/dashboard/payroll/${e.target.value}`)}
-      className="text-sm font-medium bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-200"
+      className="text-sm font-medium bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-200"
       aria-label="Payroll period"
     >
       {runs.map((r) => (

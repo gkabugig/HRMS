@@ -46,8 +46,8 @@ export default function ApprovalInboxRow({
             </span>
           )}
         </div>
-        <p className="text-sm text-neutral-900">{summary}</p>
-        <p className="text-xs text-neutral-400">
+        <p className="text-sm text-neutral-900 dark:text-neutral-50">{summary}</p>
+        <p className="text-xs text-neutral-400 dark:text-neutral-500">
           {employeeName ? `${employeeName} · ` : ""}
           {new Date(createdAt).toLocaleString("en-KE")}
           {dueAt ? ` · due ${new Date(dueAt).toLocaleString("en-KE")}` : ""}

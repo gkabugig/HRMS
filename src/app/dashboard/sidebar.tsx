@@ -41,6 +41,7 @@ import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
 import SignOutButton from "./sign-out-button";
 import CommandSearch from "@/components/search/command-search";
 import NotificationBell from "@/components/notifications/notification-bell";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const ICONS: Record<NavIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -234,7 +235,8 @@ function SidebarFooter({ role, displayName }: { role: UserRole; displayName: str
           <p className="text-[10px] uppercase tracking-wide text-accent-400">{ROLE_LABEL[role]}</p>
         </div>
       </div>
-      <div className="mt-2 px-1">
+      <div className="mt-2 px-1 space-y-0.5">
+        <ThemeToggle />
         <SignOutButton />
       </div>
     </div>

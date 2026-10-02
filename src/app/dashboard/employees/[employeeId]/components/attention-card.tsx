@@ -10,9 +10,9 @@ const SEVERITY_STYLES: Record<EmployeeAlert["severity"], string> = {
 export function AttentionCard({ alerts }: { alerts: EmployeeAlert[] }) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-      <h2 className="text-sm font-semibold text-neutral-900 mb-3">Needs Attention</h2>
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Needs Attention</h2>
       {alerts.length === 0 ? (
-        <p className="text-sm text-neutral-400">Nothing outstanding.</p>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500">Nothing outstanding.</p>
       ) : (
         <ul className="space-y-2">
           {alerts.map((a) => (

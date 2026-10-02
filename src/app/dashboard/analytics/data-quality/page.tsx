@@ -7,7 +7,7 @@ import { resolveDataQualityEvent, triggerDataQualityScan } from "@/lib/intellige
 import EmptyState from "@/components/employee-portal/empty-state";
 
 const SEVERITY_STYLE: Record<string, string> = {
-  low: "bg-neutral-100 text-neutral-600",
+  low: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
   medium: "bg-amber-100 text-amber-700",
   high: "bg-red-100 text-red-700",
 };
@@ -26,7 +26,7 @@ export default async function DataQualityPage() {
 
   if (appUser?.role !== "admin" && appUser?.role !== "hr") {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">
         Data Quality is visible to HR and admin roles.
       </div>
     );
@@ -49,8 +49,8 @@ export default async function DataQualityPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Data Quality</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Data Quality</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             Findings that affect confidence in analytics, forecasts and planning (§5.9). Forecasts are blocked or flagged when open
             findings are severe enough.
           </p>
@@ -62,7 +62,7 @@ export default async function DataQualityPage() {
         </form>
       </div>
 
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-neutral-400 dark:text-neutral-500">
         {events?.length ?? 0} open finding{(events?.length ?? 0) === 1 ? "" : "s"} · {resolvedCount ?? 0} resolved to date. Some §5.9
         check types (compensation-outside-band, generalised orphaned-reference scanning, missing-required-document) are not yet wired —
         the first two depend on Area 17 / a mandatory-document configuration that doesn&apos;t exist yet.
@@ -71,7 +71,7 @@ export default async function DataQualityPage() {
       {events && events.length > 0 ? (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Severity</th>
                 <th className="px-4 py-2 font-medium">Issue</th>
@@ -82,15 +82,15 @@ export default async function DataQualityPage() {
             </thead>
             <tbody>
               {events.map((e) => (
-                <tr key={e.id} className="border-t border-neutral-100 align-top">
+                <tr key={e.id} className="border-t border-neutral-100 dark:border-neutral-800 align-top">
                   <td className="px-4 py-2">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${SEVERITY_STYLE[e.severity] ?? ""}`}>
                       {e.severity}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-neutral-700 whitespace-nowrap">{e.issue_code.replace(/_/g, " ")}</td>
-                  <td className="px-4 py-2 text-neutral-700">{e.description}</td>
-                  <td className="px-4 py-2 text-neutral-400 text-xs whitespace-nowrap">{new Date(e.detected_at).toLocaleDateString("en-KE")}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200 whitespace-nowrap">{e.issue_code.replace(/_/g, " ")}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{e.description}</td>
+                  <td className="px-4 py-2 text-neutral-400 dark:text-neutral-500 text-xs whitespace-nowrap">{new Date(e.detected_at).toLocaleDateString("en-KE")}</td>
                   <td className="px-4 py-2">
                     <form id={`resolve-${e.id}`} action={resolveDataQualityEvent}>
                       <input type="hidden" name="id" value={e.id} />
@@ -99,7 +99,7 @@ export default async function DataQualityPage() {
                       form={`resolve-${e.id}`}
                       name="resolution_note"
                       placeholder="Resolution note"
-                      className="border border-neutral-200 rounded px-2 py-1 text-xs mr-2 w-32"
+                      className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1 text-xs mr-2 w-32"
                     />
                     <button form={`resolve-${e.id}`} type="submit" className="text-xs text-brand-600 hover:underline">
                       Mark resolved

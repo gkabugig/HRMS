@@ -86,7 +86,7 @@ export default function MobileBottomNav({ role }: { role: UserRole }) {
               <button
                 key={item.key}
                 onClick={() => window.dispatchEvent(new CustomEvent(OPEN_SEARCH_EVENT))}
-                className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-neutral-400 transition-colors"
+                className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-neutral-400 dark:text-neutral-500 transition-colors"
               >
                 <Icon size={18} strokeWidth={2} />
                 {item.label}
@@ -98,7 +98,7 @@ export default function MobileBottomNav({ role }: { role: UserRole }) {
               key={item.key}
               href={item.href}
               className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
-                active ? "text-brand-600" : "text-neutral-400"
+                active ? "text-brand-600" : "text-neutral-400 dark:text-neutral-500"
               }`}
               aria-current={active ? "page" : undefined}
             >

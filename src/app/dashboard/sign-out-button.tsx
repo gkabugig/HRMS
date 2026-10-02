@@ -11,7 +11,7 @@ export default function SignOutButton({ variant = "sidebar" }: { variant?: "side
   const className =
     variant === "sidebar"
       ? "w-full flex items-center gap-2 text-xs font-medium text-[var(--sidebar-text)] hover:text-white px-1.5 py-1.5 rounded-md hover:bg-white/5 transition-colors"
-      : "inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors";
+      : "inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-neutral-400 hover:text-slate-900 hover:dark:text-neutral-50 transition-colors";
 
   return (
     <button

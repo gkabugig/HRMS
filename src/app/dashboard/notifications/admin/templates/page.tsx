@@ -21,9 +21,9 @@ export default async function NotificationTemplatesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Notification Templates</h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            Plain <code className="bg-neutral-100 px-1 rounded">{"{{variable}}"}</code> substitution only, HTML-escaped by default — no
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Notification Templates</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            Plain <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded">{"{{variable}}"}</code> substitution only, HTML-escaped by default — no
             code execution. An event without a template falls back to its built-in default copy.
           </p>
         </div>
@@ -31,25 +31,25 @@ export default async function NotificationTemplatesPage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">New template version</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">New template version</h2>
         <form action={createTemplateVersion} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <label className="flex flex-col gap-1">
             Template key
-            <input name="template_key" required placeholder="e.g. approval-requested" className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="template_key" required placeholder="e.g. approval-requested" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1">
             Name
-            <input name="name" required className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="name" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1">
             Event type
-            <select name="event_type" required className="border border-neutral-200 rounded px-2 py-1.5">
+            <select name="event_type" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5">
               {Object.keys(EVENT_CATALOGUE).map((k) => <option key={k} value={k}>{k}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1">
             Channel
-            <select name="channel" required className="border border-neutral-200 rounded px-2 py-1.5">
+            <select name="channel" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5">
               <option value="in_app">in_app</option>
               <option value="email">email</option>
               <option value="sms">sms</option>
@@ -59,27 +59,27 @@ export default async function NotificationTemplatesPage() {
           </label>
           <label className="flex flex-col gap-1">
             Locale
-            <input name="locale" defaultValue="en-KE" className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="locale" defaultValue="en-KE" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1">
             Subject (email only)
-            <input name="subject_template" className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="subject_template" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1 sm:col-span-2">
             Body template
-            <textarea name="body_template" required rows={3} className="border border-neutral-200 rounded px-2 py-1.5" />
+            <textarea name="body_template" required rows={3} className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1 sm:col-span-2">
             Safe preview template (external-channel-safe summary)
-            <input name="safe_preview_template" className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="safe_preview_template" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1">
             Action label
-            <input name="action_label_template" className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="action_label_template" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex flex-col gap-1">
             Action URL
-            <input name="action_url_template" className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="action_url_template" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" name="is_mandatory" /> Mandatory copy (compliance-reviewed)
@@ -93,7 +93,7 @@ export default async function NotificationTemplatesPage() {
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         {templates && templates.length > 0 ? (
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Key</th>
                 <th className="px-4 py-2 font-medium">v</th>
@@ -105,17 +105,17 @@ export default async function NotificationTemplatesPage() {
             </thead>
             <tbody>
               {templates.map((t) => (
-                <tr key={t.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-900">{t.name} <span className="text-neutral-400 text-xs">({t.template_key})</span></td>
-                  <td className="px-4 py-2 text-neutral-500">{t.version}</td>
-                  <td className="px-4 py-2 text-neutral-700 text-xs font-mono">{t.event_type}</td>
-                  <td className="px-4 py-2 text-neutral-700">{t.channel}</td>
-                  <td className="px-4 py-2 text-neutral-500 text-xs">{t.locale}</td>
+                <tr key={t.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="px-4 py-2 text-neutral-900 dark:text-neutral-50">{t.name} <span className="text-neutral-400 dark:text-neutral-500 text-xs">({t.template_key})</span></td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{t.version}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200 text-xs font-mono">{t.event_type}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{t.channel}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{t.locale}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${t.is_active ? "bg-green-100 text-green-700" : "bg-neutral-100 text-neutral-400"}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${t.is_active ? "bg-green-100 text-green-700" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500"}`}>
                       {t.is_active ? "Active" : "Superseded"}
                     </span>
-                    {t.first_used_at && <span className="ml-1 text-[10px] text-neutral-400">locked</span>}
+                    {t.first_used_at && <span className="ml-1 text-[10px] text-neutral-400 dark:text-neutral-500">locked</span>}
                   </td>
                 </tr>
               ))}

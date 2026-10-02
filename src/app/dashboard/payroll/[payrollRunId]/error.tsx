@@ -3,8 +3,8 @@
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="max-w-lg mx-auto text-center py-16">
-      <h1 className="text-lg font-semibold text-neutral-900 mb-2">Something went wrong with this payroll run</h1>
-      <p className="text-sm text-neutral-500 mb-5">{error.message || "Try again, or go back to Payroll."}</p>
+      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Something went wrong with this payroll run</h1>
+      <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-5">{error.message || "Try again, or go back to Payroll."}</p>
       <button
         onClick={() => reset()}
         className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-4 py-2 text-sm font-medium"

@@ -15,8 +15,8 @@ const LIFECYCLE_STYLE: Record<string, string> = {
   active: "bg-green-100 text-green-700",
   expiring: "bg-amber-100 text-amber-700",
   expired: "bg-red-100 text-red-700",
-  archived: "bg-neutral-100 text-neutral-400",
-  superseded: "bg-neutral-100 text-neutral-400",
+  archived: "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500",
+  superseded: "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500",
 };
 
 export default async function MyDocumentsPage() {
@@ -27,12 +27,12 @@ export default async function MyDocumentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">My Documents</h1>
-        <p className="text-sm text-neutral-500 mt-1">Your HR documents, with expiry alerts and required acknowledgements.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Documents</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Your HR documents, with expiry alerts and required acknowledgements.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Upload a document</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Upload a document</h2>
         <form
           action={async (formData: FormData) => {
             "use server";
@@ -40,14 +40,14 @@ export default async function MyDocumentsPage() {
           }}
           className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm"
         >
-          <select name="doc_type" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="doc_type" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="ID Copy">ID Copy</option>
             <option value="Bank Letter">Bank Letter</option>
             <option value="Certificate">Certificate</option>
             <option value="Evidence">Evidence (for a change request)</option>
             <option value="Other">Other</option>
           </select>
-          <input type="file" name="file" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white" />
+          <input type="file" name="file" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900" />
           <button className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium justify-self-start sm:col-span-2">
             Upload
           </button>
@@ -55,12 +55,12 @@ export default async function MyDocumentsPage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">Your documents</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">Your documents</h2>
         {documents.length === 0 ? (
           <div className="p-4"><EmptyState message="No documents on file yet." /></div>
         ) : (
           <table className="w-full text-sm mt-3">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Document</th>
                 <th className="px-4 py-2 font-medium">Type</th>
@@ -71,12 +71,12 @@ export default async function MyDocumentsPage() {
             </thead>
             <tbody>
               {documents.map((d) => (
-                <tr key={d.id} className="border-t border-neutral-100">
+                <tr key={d.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{d.title || d.fileName}</td>
-                  <td className="px-4 py-2 text-neutral-500">{d.docType}</td>
-                  <td className="px-4 py-2 text-neutral-500">{d.expiryDate ?? "—"}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{d.docType}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{d.expiryDate ?? "—"}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${LIFECYCLE_STYLE[d.lifecycle] ?? "bg-neutral-100"}`}>{d.lifecycle}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${LIFECYCLE_STYLE[d.lifecycle] ?? "bg-neutral-100 dark:bg-neutral-800"}`}>{d.lifecycle}</span>
                   </td>
                   <td className="px-4 py-2 text-right space-x-2 whitespace-nowrap">
                     <ViewDocumentButton documentId={d.id} versionId={d.currentVersionId} />
@@ -98,7 +98,7 @@ export default async function MyDocumentsPage() {
                           }}
                           className="inline-flex items-center gap-1"
                         >
-                          <input name="reason" placeholder="Reason" className="border border-neutral-300 rounded px-1.5 py-0.5 text-xs w-24" />
+                          <input name="reason" placeholder="Reason" className="border border-neutral-300 dark:border-neutral-600 rounded px-1.5 py-0.5 text-xs w-24" />
                           <button className="text-xs font-medium text-red-600 hover:underline">Decline</button>
                         </form>
                       </>

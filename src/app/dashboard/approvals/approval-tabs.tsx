@@ -24,7 +24,7 @@ export default function ApprovalTabsNav({ active, isAdminOrHr }: { active: Appro
           className={`px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px ${
             active === t.key
               ? "border-brand-600 text-brand-700 font-medium"
-              : "border-transparent text-neutral-500 hover:text-neutral-800"
+              : "border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 hover:dark:text-neutral-100"
           }`}
         >
           {t.label}

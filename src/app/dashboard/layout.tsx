@@ -26,8 +26,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--surface-muted)] px-4">
         <div className="max-w-sm text-center bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm p-8">
-          <h1 className="text-lg font-semibold text-slate-900 mb-2">Account not yet set up</h1>
-          <p className="text-sm text-slate-500 mb-5">
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-neutral-50 mb-2">Account not yet set up</h1>
+          <p className="text-sm text-slate-500 dark:text-neutral-400 mb-5">
             You&apos;re signed in, but no HR role has been assigned to this account yet.
             Ask an admin to invite you from the Employees screen.
           </p>

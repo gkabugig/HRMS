@@ -47,8 +47,8 @@ export default async function AuditLogPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Audit Centre</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Audit Centre</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Every recorded action across the system, most recent first. Admin/HR only, and read-only —
           nothing here can be edited or deleted.
         </p>
@@ -70,15 +70,15 @@ export default async function AuditLogPage({
       />
 
       <div>
-        <h2 className="text-sm font-semibold text-neutral-900 mb-1">Employee field changes</h2>
-        <p className="text-xs text-neutral-500 mb-3">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Employee field changes</h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
           Legacy log of individual field edits made from the Employees screen. Superseded going forward by the
           trail above (Employees edits are also recorded there as <code className="font-mono">data</code> events) —
           kept here for the existing history.
         </p>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">When</th>
                 <th className="px-4 py-2 font-medium">Employee</th>
@@ -91,20 +91,20 @@ export default async function AuditLogPage({
               {(legacyRows ?? []).map((r, i) => {
                 const emp = r.employees as unknown as { name: string; staff_no: string } | null;
                 return (
-                  <tr key={i} className="border-t border-neutral-100">
-                    <td className="px-4 py-2 text-neutral-500 whitespace-nowrap">
+                  <tr key={i} className="border-t border-neutral-100 dark:border-neutral-800">
+                    <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
                       {new Date(r.changed_at).toLocaleString("en-KE")}
                     </td>
                     <td className="px-4 py-2">{emp ? `${emp.name} (${emp.staff_no})` : "—"}</td>
                     <td className="px-4 py-2 font-mono text-xs">{r.field}</td>
-                    <td className="px-4 py-2 text-neutral-500">{r.old_value ?? "—"}</td>
+                    <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{r.old_value ?? "—"}</td>
                     <td className="px-4 py-2 font-medium">{r.new_value ?? "—"}</td>
                   </tr>
                 );
               })}
               {(!legacyRows || legacyRows.length === 0) && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-neutral-400">
+                  <td colSpan={5} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                     No changes recorded yet.
                   </td>
                 </tr>
@@ -115,14 +115,14 @@ export default async function AuditLogPage({
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold text-neutral-900 mb-1">Priority workflow runs</h2>
-        <p className="text-xs text-neutral-500 mb-3">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Priority workflow runs</h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
           Every run of the five hard-wired priority workflows (Onboarding, Leave Approval, Contract Renewal,
           Employee Data Change, Offboarding), most recent first.
         </p>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Workflow</th>
                 <th className="px-4 py-2 font-medium">Entity</th>
@@ -137,9 +137,9 @@ export default async function AuditLogPage({
                 const tasks = (r.workflow_tasks as unknown as { task: string; status: string }[]) ?? [];
                 const done = tasks.filter((t) => t.status === "done").length;
                 return (
-                  <tr key={r.id} className="border-t border-neutral-100">
+                  <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
                     <td className="px-4 py-2 font-medium">{def?.name ?? "—"}</td>
-                    <td className="px-4 py-2 text-neutral-500 font-mono text-xs">{r.entity_type}</td>
+                    <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 font-mono text-xs">{r.entity_type}</td>
                     <td className="px-4 py-2">
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full ${
@@ -153,14 +153,14 @@ export default async function AuditLogPage({
                         {r.status}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-neutral-500">{tasks.length > 0 ? `${done}/${tasks.length} done` : "—"}</td>
-                    <td className="px-4 py-2 text-neutral-500 whitespace-nowrap">{new Date(r.started_at).toLocaleString("en-KE")}</td>
+                    <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{tasks.length > 0 ? `${done}/${tasks.length} done` : "—"}</td>
+                    <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{new Date(r.started_at).toLocaleString("en-KE")}</td>
                   </tr>
                 );
               })}
               {(!workflowRuns || workflowRuns.length === 0) && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-neutral-400">
+                  <td colSpan={5} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                     No workflow runs yet.
                   </td>
                 </tr>

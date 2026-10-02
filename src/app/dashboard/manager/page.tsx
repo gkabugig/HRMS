@@ -27,8 +27,8 @@ export default async function ManagerHomePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Manager Workspace</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Manager Workspace</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           {home.team.length} direct report{home.team.length === 1 ? "" : "s"}
           {home.scopeTier !== "direct_reports" && home.scopeTier !== "none" ? ` · scope: ${home.scopeTier.replace("_", " ")}` : ""}
         </p>
@@ -36,37 +36,37 @@ export default async function ManagerHomePage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Present today</p>
-          <p className="text-2xl font-semibold text-neutral-900">{presentToday}/{home.team.length}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Present today</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{presentToday}/{home.team.length}</p>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">On leave today</p>
-          <p className="text-2xl font-semibold text-neutral-900">{onLeaveToday}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">On leave today</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{onLeaveToday}</p>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Tasks assigned to you</p>
-          <p className="text-2xl font-semibold text-neutral-900">{home.tasks.length}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Tasks assigned to you</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{home.tasks.length}</p>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Open team requests</p>
-          <p className="text-2xl font-semibold text-neutral-900">{home.requests.filter((r) => !["Resolved", "Closed"].includes(r.status)).length}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Open team requests</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{home.requests.filter((r) => !["Resolved", "Closed"].includes(r.status)).length}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Needs your attention</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Needs your attention</h2>
           {home.alerts.length === 0 ? (
             <EmptyState message="Nothing needs your attention right now." />
           ) : (
             <ul className="space-y-2">
               {home.alerts.slice(0, 12).map((a) => (
-                <li key={a.id} className="flex items-start justify-between gap-3 text-sm py-1.5 border-b border-neutral-100 last:border-0">
+                <li key={a.id} className="flex items-start justify-between gap-3 text-sm py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
                   <div>
                     <p className="text-[11px] uppercase tracking-wide text-brand-600 font-medium">{ALERT_LABEL[a.category] ?? a.category}</p>
-                    <p className="text-neutral-700">{a.message}{a.employeeName ? ` — ${a.employeeName}` : ""}</p>
+                    <p className="text-neutral-700 dark:text-neutral-200">{a.message}{a.employeeName ? ` — ${a.employeeName}` : ""}</p>
                   </div>
-                  {a.dueAt && <span className="text-xs text-neutral-400 whitespace-nowrap">{a.dueAt}</span>}
+                  {a.dueAt && <span className="text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap">{a.dueAt}</span>}
                 </li>
               ))}
             </ul>
@@ -75,7 +75,7 @@ export default async function ManagerHomePage() {
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-neutral-900">Your team</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Your team</h2>
             <Link href="/dashboard/manager/team" className="text-xs font-medium text-brand-600 hover:underline">View all →</Link>
           </div>
           {home.team.length === 0 ? (
@@ -83,9 +83,9 @@ export default async function ManagerHomePage() {
           ) : (
             <ul className="space-y-2">
               {home.team.slice(0, 8).map((t) => (
-                <li key={t.id} className="flex items-center justify-between text-sm py-1.5 border-b border-neutral-100 last:border-0">
-                  <Link href={`/dashboard/manager/team/${t.id}`} className="text-neutral-700 hover:text-brand-600">
-                    {t.name} <span className="text-xs text-neutral-400">· {t.jobTitle}</span>
+                <li key={t.id} className="flex items-center justify-between text-sm py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                  <Link href={`/dashboard/manager/team/${t.id}`} className="text-neutral-700 dark:text-neutral-200 hover:text-brand-600">
+                    {t.name} <span className="text-xs text-neutral-400 dark:text-neutral-500">· {t.jobTitle}</span>
                   </Link>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${
@@ -97,7 +97,7 @@ export default async function ManagerHomePage() {
                             ? "bg-blue-100 text-blue-700"
                             : t.attendanceToday === "absent"
                               ? "bg-red-100 text-red-700"
-                              : "bg-neutral-100 text-neutral-500"
+                              : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
                     }`}
                   >
                     {t.attendanceToday.replace("_", " ")}

@@ -19,7 +19,7 @@ export function LeaveToolbar({ views, active, month }: { views: LeaveView[]; act
             key={v}
             href={`/dashboard/leave?view=${v}${monthParam}`}
             className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              v === active ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800"
+              v === active ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 hover:dark:text-neutral-100"
             }`}
           >
             {VIEW_LABELS[v]}
@@ -40,11 +40,11 @@ export function MonthNav({ view, month }: { view: LeaveView; month: string }) {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <Link href={`/dashboard/leave?view=${view}&month=${prevStr}`} className="px-2 py-1 rounded border border-[var(--border-subtle)] text-neutral-500 hover:border-neutral-300">
+      <Link href={`/dashboard/leave?view=${view}&month=${prevStr}`} className="px-2 py-1 rounded border border-[var(--border-subtle)] text-neutral-500 dark:text-neutral-400 hover:border-neutral-300 hover:dark:border-neutral-600">
         ‹
       </Link>
-      <span className="font-medium text-neutral-800 min-w-[9rem] text-center">{label}</span>
-      <Link href={`/dashboard/leave?view=${view}&month=${nextStr}`} className="px-2 py-1 rounded border border-[var(--border-subtle)] text-neutral-500 hover:border-neutral-300">
+      <span className="font-medium text-neutral-800 dark:text-neutral-100 min-w-[9rem] text-center">{label}</span>
+      <Link href={`/dashboard/leave?view=${view}&month=${nextStr}`} className="px-2 py-1 rounded border border-[var(--border-subtle)] text-neutral-500 dark:text-neutral-400 hover:border-neutral-300 hover:dark:border-neutral-600">
         ›
       </Link>
     </div>

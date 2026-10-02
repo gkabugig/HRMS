@@ -72,18 +72,18 @@ export default async function OrganogramPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Organogram</h1>
-          <p className="text-sm text-neutral-500">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Organogram</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Authoritative organisation hierarchy, positions, locations, cost centres and reporting lines — Employee Data
             Change, approvals and RBAC department scope all now read from this model.
           </p>
         </div>
-        <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 text-sm">
+        <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 text-sm">
           {TABS.map((t) => (
             <Link
               key={t.key}
               href={`/dashboard/organogram?view=${t.key}`}
-              className={`px-3 py-1.5 rounded-md ${view === t.key ? "bg-white shadow-sm font-medium text-neutral-900" : "text-neutral-500"}`}
+              className={`px-3 py-1.5 rounded-md ${view === t.key ? "bg-white dark:bg-neutral-900 shadow-sm font-medium text-neutral-900 dark:text-neutral-50" : "text-neutral-500 dark:text-neutral-400"}`}
             >
               {t.label}
             </Link>
@@ -98,12 +98,12 @@ export default async function OrganogramPage({
       {view === "tree" && (
         <>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-6 overflow-x-auto">
-            <p className="text-xs text-neutral-400 mb-4">
+            <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-4">
               Built from each employee&apos;s current authoritative line manager (reporting_relationships) — kept in sync
               with the legacy reporting-manager field whenever an assignment changes on the Structure tab.
             </p>
             {forest.length === 0 ? (
-              <p className="text-sm text-neutral-400">No active employees yet.</p>
+              <p className="text-sm text-neutral-400 dark:text-neutral-500">No active employees yet.</p>
             ) : (
               <ul className="org-tree">
                 {forest.map((node) => (
@@ -155,13 +155,13 @@ async function DataQualityPanel({ supabase, orgId }: { supabase: SupabaseServerC
     critical: "bg-red-100 text-red-700",
     high: "bg-orange-100 text-orange-700",
     medium: "bg-amber-100 text-amber-700",
-    low: "bg-neutral-100 text-neutral-500",
+    low: "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400",
   };
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 flex items-center justify-between flex-wrap gap-3">
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-sm font-medium text-neutral-700">Organisation data quality:</span>
+        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Organisation data quality:</span>
         {total === 0 ? (
           <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">No open findings</span>
         ) : (
@@ -192,7 +192,7 @@ async function HierarchyView({ supabase, orgId }: { supabase: SupabaseServerClie
   if (tree.length === 0) {
     return (
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-6">
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-neutral-400 dark:text-neutral-500">
           No organisation units yet — add one on the Structure tab, or none were found to backfill.
         </p>
       </div>
@@ -214,14 +214,14 @@ function UnitRow({ node, depth }: { node: OrgTreeNode; depth: number }) {
   return (
     <li>
       <div
-        className={`flex items-center justify-between py-1.5 border-b border-neutral-100 ${!node.isActive ? "opacity-50" : ""}`}
+        className={`flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 ${!node.isActive ? "opacity-50" : ""}`}
         style={{ paddingLeft: depth * 20 }}
       >
         <span className="text-sm">
-          {node.name} <span className="text-xs text-neutral-400 uppercase tracking-wide">{node.unitType}</span>
-          {!node.isActive && <span className="text-xs text-neutral-400"> (retired)</span>}
+          {node.name} <span className="text-xs text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">{node.unitType}</span>
+          {!node.isActive && <span className="text-xs text-neutral-400 dark:text-neutral-500"> (retired)</span>}
         </span>
-        <span className="text-xs text-neutral-500 flex gap-3">
+        <span className="text-xs text-neutral-500 dark:text-neutral-400 flex gap-3">
           <span>{node.positionCount} position{node.positionCount === 1 ? "" : "s"}</span>
           <span>{node.employeeCount} filled</span>
           <span className={node.vacancyCount > 0 ? "text-amber-600 font-medium" : ""}>{node.vacancyCount} vacant</span>
@@ -269,20 +269,20 @@ async function VacanciesView({ supabase }: { supabase: SupabaseServerClient }) {
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-5">
-      <h2 className="text-sm font-semibold text-neutral-900 mb-3">
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">
         Open capacity ({vacant.length} position{vacant.length === 1 ? "" : "s"})
       </h2>
       {vacant.length === 0 ? (
-        <p className="text-sm text-neutral-400">No vacancies — every active position is fully occupied.</p>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500">No vacancies — every active position is fully occupied.</p>
       ) : (
         <ul className="space-y-1.5 text-sm">
           {vacant.map((p) => {
             const unit = p.organisation_units as unknown as { name: string } | null;
             return (
-              <li key={p.id} className="flex items-center justify-between border-b border-neutral-100 pb-1.5">
+              <li key={p.id} className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-1.5">
                 <span>
-                  {p.title} {p.position_code && <span className="text-xs text-neutral-400 font-mono">({p.position_code})</span>}{" "}
-                  <span className="text-xs text-neutral-400">{unit?.name}</span>
+                  {p.title} {p.position_code && <span className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">({p.position_code})</span>}{" "}
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">{unit?.name}</span>
                 </span>
                 <span className="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                   {p.occupied}/{p.approved_headcount} filled · {p.vacancy} open
@@ -316,28 +316,28 @@ async function StructureView({
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <section className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-5">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Departments / business units / teams</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Departments / business units / teams</h2>
         <ul className="space-y-1.5 mb-4 text-sm">
           {(units ?? []).map((u) => (
-            <li key={u.id} className="flex items-center justify-between border-b border-neutral-100 pb-1.5">
+            <li key={u.id} className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-1.5">
               <span className={!u.is_active ? "opacity-50" : ""}>
-                {u.name} <span className="text-xs text-neutral-400">({u.unit_type})</span>
+                {u.name} <span className="text-xs text-neutral-400 dark:text-neutral-500">({u.unit_type})</span>
               </span>
               <form action={deleteOrgUnit.bind(null, u.id)}>
                 <button className="text-xs text-red-500 hover:underline">Remove</button>
               </form>
             </li>
           ))}
-          {(!units || units.length === 0) && <p className="text-sm text-neutral-400">None yet.</p>}
+          {(!units || units.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">None yet.</p>}
         </ul>
         <form action={createOrgUnit} className="flex flex-wrap gap-2 text-sm">
           <input name="name" placeholder="Name" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 flex-1 min-w-[120px]" />
-          <select name="unit_type" defaultValue="department" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="unit_type" defaultValue="department" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="business_unit">Business unit</option>
             <option value="department">Department</option>
             <option value="team">Team</option>
           </select>
-          <select name="parent_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="parent_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="">No parent</option>
             {(units ?? []).map((u) => (
               <option key={u.id} value={u.id}>{u.name}</option>
@@ -348,19 +348,19 @@ async function StructureView({
       </section>
 
       <section className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-5">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Locations</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Locations</h2>
         <ul className="space-y-1.5 mb-4 text-sm">
           {(locations ?? []).map((l) => (
-            <li key={l.id} className="border-b border-neutral-100 pb-1.5">
-              {l.name} {l.is_remote && <span className="text-xs text-neutral-400">(remote)</span>}
+            <li key={l.id} className="border-b border-neutral-100 dark:border-neutral-800 pb-1.5">
+              {l.name} {l.is_remote && <span className="text-xs text-neutral-400 dark:text-neutral-500">(remote)</span>}
             </li>
           ))}
-          {(!locations || locations.length === 0) && <p className="text-sm text-neutral-400">None yet.</p>}
+          {(!locations || locations.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">None yet.</p>}
         </ul>
         <form action={createLocation} className="flex flex-wrap gap-2 text-sm items-center">
           <input name="name" placeholder="Name" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 flex-1 min-w-[120px]" />
           <input name="address" placeholder="Address (optional)" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 flex-1 min-w-[120px]" />
-          <label className="flex items-center gap-1 text-xs text-neutral-500">
+          <label className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
             <input type="checkbox" name="is_remote" /> Remote
           </label>
           <button className="bg-brand-600 text-white rounded-lg px-3 py-1.5 font-medium">Add</button>
@@ -368,14 +368,14 @@ async function StructureView({
       </section>
 
       <section className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-5">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Cost centres</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Cost centres</h2>
         <ul className="space-y-1.5 mb-4 text-sm">
           {(costCentres ?? []).map((c) => (
-            <li key={c.id} className="border-b border-neutral-100 pb-1.5 font-mono text-xs">
+            <li key={c.id} className="border-b border-neutral-100 dark:border-neutral-800 pb-1.5 font-mono text-xs">
               {c.code} — <span className="font-sans">{c.name}</span>
             </li>
           ))}
-          {(!costCentres || costCentres.length === 0) && <p className="text-sm text-neutral-400">None yet.</p>}
+          {(!costCentres || costCentres.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">None yet.</p>}
         </ul>
         <form action={createCostCentre} className="flex flex-wrap gap-2 text-sm">
           <input name="code" placeholder="Code" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 w-24" />
@@ -385,44 +385,44 @@ async function StructureView({
       </section>
 
       <section className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-5">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Positions</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Positions</h2>
         <ul className="space-y-1.5 mb-4 text-sm">
           {(positions ?? []).map((p) => {
             const unit = p.organisation_units as unknown as { name: string } | null;
             const loc = p.locations as unknown as { name: string } | null;
             return (
-              <li key={p.id} className={`border-b border-neutral-100 pb-1.5 flex items-center justify-between ${!p.is_active ? "opacity-50" : ""}`}>
+              <li key={p.id} className={`border-b border-neutral-100 dark:border-neutral-800 pb-1.5 flex items-center justify-between ${!p.is_active ? "opacity-50" : ""}`}>
                 <span>
                   {p.title}{" "}
-                  {p.position_code && <span className="text-xs text-neutral-400 font-mono">{p.position_code}</span>}{" "}
-                  <span className="text-xs text-neutral-400">
+                  {p.position_code && <span className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">{p.position_code}</span>}{" "}
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
                     {[unit?.name, loc?.name].filter(Boolean).join(" · ")} · headcount {p.approved_headcount}
                   </span>
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "occupied" ? "bg-green-100 text-green-700" : "bg-neutral-100 text-neutral-500"}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "occupied" ? "bg-green-100 text-green-700" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"}`}>
                     {p.status}
                   </span>
                   <form action={setPositionActive.bind(null, p.id, !p.is_active)}>
-                    <button className="text-xs text-neutral-500 hover:underline">{p.is_active ? "Retire" : "Reactivate"}</button>
+                    <button className="text-xs text-neutral-500 dark:text-neutral-400 hover:underline">{p.is_active ? "Retire" : "Reactivate"}</button>
                   </form>
                 </span>
               </li>
             );
           })}
-          {(!positions || positions.length === 0) && <p className="text-sm text-neutral-400">None yet.</p>}
+          {(!positions || positions.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">None yet.</p>}
         </ul>
         <form action={createPosition} className="flex flex-wrap gap-2 text-sm mb-4">
           <input name="title" placeholder="Title" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 flex-1 min-w-[120px]" />
           <input name="position_code" placeholder="Code (optional)" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 w-32" />
           <input name="approved_headcount" type="number" min={1} defaultValue={1} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 w-20" />
-          <select name="organisation_unit_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="organisation_unit_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="">No department</option>
             {(units ?? []).map((u) => (
               <option key={u.id} value={u.id}>{u.name}</option>
             ))}
           </select>
-          <select name="location_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="location_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="">No location</option>
             {(locations ?? []).map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
@@ -431,25 +431,25 @@ async function StructureView({
           <button className="bg-brand-600 text-white rounded-lg px-3 py-1.5 font-medium">Add</button>
         </form>
 
-        <h3 className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-2">Change assignment</h3>
-        <p className="text-xs text-neutral-400 mb-2">
+        <h3 className="text-xs font-semibold text-neutral-600 dark:text-neutral-300 uppercase tracking-wide mb-2">Change assignment</h3>
+        <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-2">
           Assigns (or transfers) an employee to a position and, optionally, sets their line manager — effective-dated,
           transactional, and kept in sync with the employee&apos;s legacy department/manager fields.
         </p>
         <form action={assignEmployeePosition} className="flex flex-wrap gap-2 text-sm">
-          <select name="employee_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white flex-1 min-w-[140px]">
+          <select name="employee_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 flex-1 min-w-[140px]">
             <option value="">Employee…</option>
             {employees.map((e) => (
               <option key={e.id} value={e.id}>{e.name}</option>
             ))}
           </select>
-          <select name="position_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white flex-1 min-w-[140px]">
+          <select name="position_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 flex-1 min-w-[140px]">
             <option value="">Position…</option>
             {(positions ?? []).map((p) => (
               <option key={p.id} value={p.id}>{p.title}{p.position_code ? ` (${p.position_code})` : ""}</option>
             ))}
           </select>
-          <select name="manager_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white flex-1 min-w-[140px]">
+          <select name="manager_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 flex-1 min-w-[140px]">
             <option value="">Keep current manager</option>
             {employees.map((e) => (
               <option key={e.id} value={e.id}>{e.name}</option>
@@ -468,8 +468,8 @@ function TreeNode({ node }: { node: EmployeeNode }) {
   return (
     <li>
       <div className="inline-block bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg shadow-sm shadow-slate-900/[0.03] px-4 py-2 text-left min-w-[160px]">
-        <p className="text-sm font-medium text-neutral-900 whitespace-nowrap">{node.name}</p>
-        <p className="text-xs text-neutral-500 whitespace-nowrap">{node.job_title}</p>
+        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50 whitespace-nowrap">{node.name}</p>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{node.job_title}</p>
         <p className="text-[10px] uppercase tracking-wide text-brand-600 mt-0.5">{node.department}</p>
       </div>
       {node.children.length > 0 && (

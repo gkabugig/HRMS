@@ -17,33 +17,33 @@ export default async function ManagerLearningPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Team Learning</h1>
-        <p className="text-sm text-neutral-500 mt-1">Mandatory course completion across your team.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Team Learning</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Mandatory course completion across your team.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Mandatory completion</p>
-          <p className="text-2xl font-semibold text-neutral-900">{pct !== null ? `${pct}%` : "—"}</p>
-          <p className="text-xs text-neutral-500">{data.mandatoryCompletion.completed}/{data.mandatoryCompletion.total}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Mandatory completion</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{pct !== null ? `${pct}%` : "—"}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{data.mandatoryCompletion.completed}/{data.mandatoryCompletion.total}</p>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Overdue items</p>
-          <p className="text-2xl font-semibold text-neutral-900">{data.overdueByEmployee.length}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Overdue items</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{data.overdueByEmployee.length}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Overdue mandatory training</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Overdue mandatory training</h2>
           {data.overdueByEmployee.length === 0 ? (
             <EmptyState message="No overdue mandatory training." />
           ) : (
             <ul className="space-y-2 text-sm">
               {data.overdueByEmployee.map((o, i) => (
-                <li key={i} className="flex items-center justify-between border-b border-neutral-100 pb-2 last:border-0">
-                  <Link href={`/dashboard/manager/team/${o.employeeId}`} className="text-neutral-900 hover:text-brand-600">{o.employeeName}</Link>
-                  <span className="text-xs text-neutral-500">{o.courseName}</span>
+                <li key={i} className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2 last:border-0">
+                  <Link href={`/dashboard/manager/team/${o.employeeId}`} className="text-neutral-900 dark:text-neutral-50 hover:text-brand-600">{o.employeeName}</Link>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">{o.courseName}</span>
                 </li>
               ))}
             </ul>
@@ -51,15 +51,15 @@ export default async function ManagerLearningPage() {
         </div>
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Recent completions</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Recent completions</h2>
           {data.recentCompletions.length === 0 ? (
             <EmptyState message="No completions recorded yet." />
           ) : (
             <ul className="space-y-2 text-sm">
               {data.recentCompletions.map((c, i) => (
-                <li key={i} className="flex items-center justify-between border-b border-neutral-100 pb-2 last:border-0">
-                  <span className="text-neutral-900">{c.employeeName}</span>
-                  <span className="text-xs text-neutral-500">{c.courseName} · {c.completedOn}</span>
+                <li key={i} className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2 last:border-0">
+                  <span className="text-neutral-900 dark:text-neutral-50">{c.employeeName}</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">{c.courseName} · {c.completedOn}</span>
                 </li>
               ))}
             </ul>

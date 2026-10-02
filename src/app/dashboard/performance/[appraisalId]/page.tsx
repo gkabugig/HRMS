@@ -40,7 +40,7 @@ export default async function AppraisalDetailPage({
   ]);
 
   if (!appraisal) {
-    return <p className="text-sm text-neutral-500">Appraisal not found.</p>;
+    return <p className="text-sm text-neutral-500 dark:text-neutral-400">Appraisal not found.</p>;
   }
 
   const isHrLike = appUser?.role === "admin" || appUser?.role === "hr";
@@ -55,10 +55,10 @@ export default async function AppraisalDetailPage({
         <Link href="/dashboard/performance" className="text-sm text-brand-600 hover:text-brand-700 hover:underline">
           ← All appraisals
         </Link>
-        <h1 className="text-lg font-semibold text-neutral-900 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mt-1">
           {(appraisal.employees as unknown as { name: string } | null)?.name ?? "—"} — {appraisal.cycle}
         </h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Status {appraisal.status}
           {appraisal.final_score != null && <> · Final score {appraisal.final_score} / 5</>}
         </p>
@@ -66,7 +66,7 @@ export default async function AppraisalDetailPage({
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Goal</th>
               <th className="px-4 py-2 font-medium">Weight</th>
@@ -76,7 +76,7 @@ export default async function AppraisalDetailPage({
           </thead>
           <tbody>
             {(goals ?? []).map((g) => (
-              <tr key={g.id} className="border-t border-neutral-100 align-top">
+              <tr key={g.id} className="border-t border-neutral-100 dark:border-neutral-800 align-top">
                 <td className="px-4 py-2">{g.goal_text}</td>
                 <td className="px-4 py-2">{g.weight}%</td>
                 <td className="px-4 py-2">
@@ -88,7 +88,7 @@ export default async function AppraisalDetailPage({
                       <select
                         name="self_rating"
                         defaultValue={g.self_rating ?? ""}
-                        className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 text-xs"
+                        className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 text-xs"
                       >
                         <option value="">—</option>
                         {[1, 2, 3, 4, 5].map((n) => (
@@ -97,7 +97,7 @@ export default async function AppraisalDetailPage({
                           </option>
                         ))}
                       </select>
-                      <button type="submit" className="text-xs bg-neutral-200 rounded px-2 py-1">
+                      <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-2 py-1">
                         Save
                       </button>
                     </form>
@@ -114,7 +114,7 @@ export default async function AppraisalDetailPage({
                       <select
                         name="manager_rating"
                         defaultValue={g.manager_rating ?? ""}
-                        className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 text-xs"
+                        className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 text-xs"
                       >
                         <option value="">—</option>
                         {[1, 2, 3, 4, 5].map((n) => (
@@ -123,7 +123,7 @@ export default async function AppraisalDetailPage({
                           </option>
                         ))}
                       </select>
-                      <button type="submit" className="text-xs bg-neutral-200 rounded px-2 py-1">
+                      <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-2 py-1">
                         Save
                       </button>
                     </form>
@@ -135,7 +135,7 @@ export default async function AppraisalDetailPage({
             ))}
             {(!goals || goals.length === 0) && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No goals yet.
                 </td>
               </tr>
@@ -146,13 +146,13 @@ export default async function AppraisalDetailPage({
 
       {isManagerLike && !isCompleted && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Add goal</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add goal</h2>
           <form action={addGoal.bind(null, appraisalId)} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <input
               name="goal_text"
               placeholder="Goal description"
               required
-              className="sm:col-span-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="sm:col-span-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <input
               name="weight"
@@ -161,7 +161,7 @@ export default async function AppraisalDetailPage({
               max={100}
               placeholder="Weight %"
               required
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add goal
@@ -172,42 +172,42 @@ export default async function AppraisalDetailPage({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Employee comments</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Employee comments</h2>
           {isOwnAppraisal && !isCompleted ? (
             <form action={updateSelfComments.bind(null, appraisalId)} className="space-y-2">
               <textarea
                 name="self_comments"
                 defaultValue={appraisal.self_comments ?? ""}
                 rows={4}
-                className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
+                className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
               />
-              <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
+              <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
                 Save
               </button>
             </form>
           ) : (
-            <p className="text-sm text-neutral-600 whitespace-pre-wrap">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap">
               {appraisal.self_comments || "—"}
             </p>
           )}
         </div>
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Manager comments</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Manager comments</h2>
           {canManage && !isCompleted ? (
             <form action={updateManagerComments.bind(null, appraisalId)} className="space-y-2">
               <textarea
                 name="manager_comments"
                 defaultValue={appraisal.manager_comments ?? ""}
                 rows={4}
-                className="w-full border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
+                className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
               />
-              <button type="submit" className="text-xs bg-neutral-200 rounded px-3 py-1">
+              <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
                 Save
               </button>
             </form>
           ) : (
-            <p className="text-sm text-neutral-600 whitespace-pre-wrap">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap">
               {appraisal.manager_comments || "—"}
             </p>
           )}

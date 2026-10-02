@@ -30,10 +30,10 @@ export function LearningTab({ data }: { data: Employee360 }) {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-          <h2 className="text-sm font-semibold text-neutral-900">Enrollments</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Enrollments</h2>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Course</th>
               <th className="px-4 py-2 font-medium">Status</th>
@@ -43,7 +43,7 @@ export function LearningTab({ data }: { data: Employee360 }) {
           </thead>
           <tbody>
             {l.enrollments.map((e) => (
-              <tr key={e.id} className="border-t border-neutral-100">
+              <tr key={e.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{e.course_name}</td>
                 <td className="px-4 py-2">
                   <span className={`text-xs px-2 py-0.5 rounded ${STATUS_STYLES[e.status] ?? ""}`}>{e.status}</span>
@@ -54,7 +54,7 @@ export function LearningTab({ data }: { data: Employee360 }) {
             ))}
             {l.enrollments.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No enrollments yet.
                 </td>
               </tr>

@@ -18,7 +18,7 @@ export default async function PerformanceInsightsPage() {
 
   if (!appUser || appUser.role === "employee") {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">
         Performance Insights is visible to managers, HR and admin.
       </div>
     );
@@ -67,14 +67,14 @@ export default async function PerformanceInsightsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Performance Insights</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Performance Insights</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           Evidence-linked coaching signals from documented goals and ratings — never a label on the person, only on the record.
         </p>
       </div>
 
       {open.length === 0 ? (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-8 text-sm text-neutral-500 text-center">
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-8 text-sm text-neutral-500 dark:text-neutral-400 text-center">
           No open insights right now.
         </div>
       ) : (
@@ -90,36 +90,36 @@ export default async function PerformanceInsightsPage() {
                         {i.employees.name}
                       </Link>
                     )}
-                    <span className="text-xs text-neutral-400">{i.employees?.department}</span>
+                    <span className="text-xs text-neutral-400 dark:text-neutral-500">{i.employees?.department}</span>
                   </div>
-                  <p className="text-sm font-medium text-neutral-900 mt-2">{i.title}</p>
-                  <p className="text-sm text-neutral-700 mt-1">{i.body}</p>
+                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50 mt-2">{i.title}</p>
+                  <p className="text-sm text-neutral-700 dark:text-neutral-200 mt-1">{i.body}</p>
                   <p className="text-xs text-brand-700 mt-2">Suggested: {i.suggested_action}</p>
                 </div>
-                <span className="text-xs text-neutral-400 whitespace-nowrap">{new Date(i.created_at).toLocaleDateString()}</span>
+                <span className="text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap">{new Date(i.created_at).toLocaleDateString()}</span>
               </div>
 
               <div className="mt-4 flex items-center gap-2 flex-wrap">
                 {canDecide && (
                   <form action={decideInsight} className="flex gap-2">
                     <input type="hidden" name="insight_id" value={i.id} />
-                    <button name="decision" value="acknowledged" className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 hover:bg-neutral-50 transition-colors">
+                    <button name="decision" value="acknowledged" className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors">
                       Acknowledge
                     </button>
                     <button name="decision" value="resolved" className="text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg px-3 py-1.5 transition-colors">
                       Resolve
                     </button>
-                    <button name="decision" value="dismissed" className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 hover:bg-neutral-50 transition-colors">
+                    <button name="decision" value="dismissed" className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors">
                       Dismiss
                     </button>
                   </form>
                 )}
                 <form action={leaveFeedback} className="flex gap-1">
                   <input type="hidden" name="insight_id" value={i.id} />
-                  <button name="feedback_type" value="useful" className="text-xs text-neutral-400 hover:text-neutral-700" title="Useful">
+                  <button name="feedback_type" value="useful" className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 hover:dark:text-neutral-200" title="Useful">
                     👍
                   </button>
-                  <button name="feedback_type" value="not_useful" className="text-xs text-neutral-400 hover:text-neutral-700" title="Not useful">
+                  <button name="feedback_type" value="not_useful" className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 hover:dark:text-neutral-200" title="Not useful">
                     👎
                   </button>
                 </form>
@@ -131,11 +131,11 @@ export default async function PerformanceInsightsPage() {
 
       {decided.length > 0 && (
         <details className="text-sm">
-          <summary className="cursor-pointer text-neutral-500">Reviewed / resolved ({decided.length})</summary>
+          <summary className="cursor-pointer text-neutral-500 dark:text-neutral-400">Reviewed / resolved ({decided.length})</summary>
           <div className="mt-3 space-y-2">
             {decided.map((i) => (
-              <div key={i.id} className="border border-[var(--border-subtle)] rounded-lg p-3 text-sm text-neutral-500">
-                <span className="font-medium text-neutral-700">{i.employees?.name}</span> — {i.title}{" "}
+              <div key={i.id} className="border border-[var(--border-subtle)] rounded-lg p-3 text-sm text-neutral-500 dark:text-neutral-400">
+                <span className="font-medium text-neutral-700 dark:text-neutral-200">{i.employees?.name}</span> — {i.title}{" "}
                 <span className="text-xs uppercase tracking-wide">({i.status})</span>
               </div>
             ))}

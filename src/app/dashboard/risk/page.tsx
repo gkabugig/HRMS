@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { triggerRiskScan } from "@/lib/intelligence/risk/actions";
 
 const SEVERITY_STYLE: Record<string, string> = {
-  low: "bg-neutral-100 text-neutral-600",
+  low: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
   medium: "bg-amber-100 text-amber-700",
   high: "bg-orange-100 text-orange-700",
   critical: "bg-red-100 text-red-700",
@@ -74,14 +74,14 @@ export default async function RiskCentrePage({ searchParams }: { searchParams: P
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Workforce Risk Centre</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Workforce Risk Centre</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             What requires attention, why, who owns it, what evidence supports it, and has it been resolved (§6.1).
           </p>
         </div>
         {isAdminOrHr && (
           <div className="flex gap-2">
-            <Link href="/dashboard/risk/rules" className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50">
+            <Link href="/dashboard/risk/rules" className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 hover:bg-neutral-50 hover:dark:bg-neutral-900">
               Rules &amp; Suppressions
             </Link>
             <form action={scanAction}>
@@ -98,20 +98,20 @@ export default async function RiskCentrePage({ searchParams }: { searchParams: P
           <Link
             key={s}
             href={`/dashboard/risk?severity=${s}`}
-            className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4 hover:border-neutral-300 transition-colors"
+            className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4 hover:border-neutral-300 hover:dark:border-neutral-600 transition-colors"
           >
-            <p className="text-xs text-neutral-500 capitalize">{s}</p>
-            <p className={`mt-1 text-2xl font-semibold ${SEVERITY_STYLE[s]?.split(" ")[1] ?? "text-neutral-900"}`}>{bySeverity.get(s) ?? 0}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 capitalize">{s}</p>
+            <p className={`mt-1 text-2xl font-semibold ${SEVERITY_STYLE[s]?.split(" ")[1] ?? "text-neutral-900 dark:text-neutral-50"}`}>{bySeverity.get(s) ?? 0}</p>
           </Link>
         ))}
       </div>
 
       {byCategory.size > 0 && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-2">Open risks by category</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Open risks by category</h2>
           <div className="flex flex-wrap gap-2 text-xs">
             {Array.from(byCategory.entries()).map(([cat, count]) => (
-              <Link key={cat} href={`/dashboard/risk?category=${cat}`} className="bg-neutral-100 rounded-full px-3 py-1 hover:bg-neutral-200">
+              <Link key={cat} href={`/dashboard/risk?category=${cat}`} className="bg-neutral-100 dark:bg-neutral-800 rounded-full px-3 py-1 hover:bg-neutral-200 hover:dark:bg-neutral-700">
                 {cat.replace(/_/g, " ")}: {count}
               </Link>
             ))}
@@ -121,13 +121,13 @@ export default async function RiskCentrePage({ searchParams }: { searchParams: P
 
       {remediationQueue.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-neutral-700 uppercase tracking-wide mb-2">Remediation queue ({remediationQueue.length})</h2>
+          <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wide mb-2">Remediation queue ({remediationQueue.length})</h2>
         </div>
       )}
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Severity</th>
               <th className="px-4 py-2 font-medium">Score</th>
@@ -139,24 +139,24 @@ export default async function RiskCentrePage({ searchParams }: { searchParams: P
           </thead>
           <tbody>
             {(risks ?? []).map((r) => (
-              <tr key={r.id} className="border-t border-neutral-100 hover:bg-neutral-50">
+              <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 hover:dark:bg-neutral-900">
                 <td className="px-4 py-2">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${SEVERITY_STYLE[r.severity] ?? ""}`}>{r.severity}</span>
                 </td>
-                <td className="px-4 py-2 text-neutral-500 text-xs">{Number(r.risk_score).toFixed(0)}</td>
+                <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{Number(r.risk_score).toFixed(0)}</td>
                 <td className="px-4 py-2">
                   <Link href={`/dashboard/risk/${r.id}`} className="text-brand-700 hover:underline font-medium">
                     {r.title}
                   </Link>
                 </td>
-                <td className="px-4 py-2 text-neutral-600 text-xs whitespace-nowrap">{r.category.replace(/_/g, " ")}</td>
-                <td className="px-4 py-2 text-neutral-600 text-xs whitespace-nowrap">{STATUS_LABEL[r.status]}</td>
-                <td className="px-4 py-2 text-neutral-400 text-xs whitespace-nowrap">{new Date(r.last_detected_at).toLocaleDateString("en-KE")}</td>
+                <td className="px-4 py-2 text-neutral-600 dark:text-neutral-300 text-xs whitespace-nowrap">{r.category.replace(/_/g, " ")}</td>
+                <td className="px-4 py-2 text-neutral-600 dark:text-neutral-300 text-xs whitespace-nowrap">{STATUS_LABEL[r.status]}</td>
+                <td className="px-4 py-2 text-neutral-400 dark:text-neutral-500 text-xs whitespace-nowrap">{new Date(r.last_detected_at).toLocaleDateString("en-KE")}</td>
               </tr>
             ))}
             {(risks ?? []).length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-neutral-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-neutral-400 dark:text-neutral-500">
                   No open risks match this filter.
                 </td>
               </tr>

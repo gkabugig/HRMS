@@ -13,7 +13,7 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
     <div className="space-y-6">
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Type</th>
               <th className="px-4 py-2 font-medium">File</th>
@@ -26,7 +26,7 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
             {data.documents.map((d) => {
               const days = d.expiry_date ? daysUntil(d.expiry_date) : null;
               return (
-                <tr key={d.id} className="border-t border-neutral-100">
+                <tr key={d.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{d.document_type}</td>
                   <td className="px-4 py-2">
                     {d.url ? (
@@ -34,7 +34,7 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
                         {d.title}
                       </a>
                     ) : (
-                      <span className="text-neutral-400">{d.title} (link unavailable)</span>
+                      <span className="text-neutral-400 dark:text-neutral-500">{d.title} (link unavailable)</span>
                     )}
                   </td>
                   <td className="px-4 py-2">
@@ -45,9 +45,9 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-neutral-500">
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">
                     {d.visibility}
-                    <span className="block text-xs text-neutral-400 capitalize">{d.lifecycle_state}</span>
+                    <span className="block text-xs text-neutral-400 dark:text-neutral-500 capitalize">{d.lifecycle_state}</span>
                   </td>
                   {canUpload && (
                     <td className="px-4 py-2 whitespace-nowrap space-x-2">
@@ -66,7 +66,7 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
             })}
             {data.documents.length === 0 && (
               <tr>
-                <td colSpan={canUpload ? 5 : 4} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={canUpload ? 5 : 4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No documents on file.
                 </td>
               </tr>
@@ -77,28 +77,28 @@ export function DocumentsTab({ data, employeeId, canUpload }: { data: Employee36
 
       {canUpload && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Upload a document</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Upload a document</h2>
           <form action={uploadDocument.bind(null, employeeId)} className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <select name="doc_type" className="border border-neutral-300 rounded-lg px-2 py-1.5">
+            <select name="doc_type" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5">
               {DOC_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </select>
-            <select name="visibility" defaultValue="HR" className="border border-neutral-300 rounded-lg px-2 py-1.5">
+            <select name="visibility" defaultValue="HR" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5">
               <option value="HR">HR only</option>
               <option value="Manager">Manager visible</option>
               <option value="Employee">Employee visible</option>
             </select>
-            <input name="file" type="file" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-            <label className="flex flex-col gap-1 text-neutral-500">
+            <input name="file" type="file" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+            <label className="flex flex-col gap-1 text-neutral-500 dark:text-neutral-400">
               Issue date
-              <input name="issue_date" type="date" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+              <input name="issue_date" type="date" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
             </label>
-            <label className="flex flex-col gap-1 text-neutral-500">
+            <label className="flex flex-col gap-1 text-neutral-500 dark:text-neutral-400">
               Expiry date
-              <input name="expiry_date" type="date" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+              <input name="expiry_date" type="date" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
             </label>
             <button type="submit" className="self-end bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
               Upload

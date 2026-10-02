@@ -60,8 +60,8 @@ export default async function NotificationAdminPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Notification Admin Centre</h1>
-          <p className="text-sm text-neutral-500 mt-1">Delivery health, policy, templates and suppression controls.</p>
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Notification Admin Centre</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Delivery health, policy, templates and suppression controls.</p>
         </div>
         <nav className="flex gap-3 text-xs font-medium text-brand-600">
           <Link href="/dashboard/notifications/admin/policies" className="hover:underline">Event → policy mapping</Link>
@@ -77,7 +77,7 @@ export default async function NotificationAdminPage() {
         <Metric label="Email provider" value={emailConfigured ? "Configured" : "Not configured"} tone={emailConfigured ? "ok" : "warn"} isText />
       </div>
       {!emailConfigured && (
-        <p className="text-xs text-neutral-400 -mt-3">
+        <p className="text-xs text-neutral-400 dark:text-neutral-500 -mt-3">
           RESEND_API_KEY / NOTIFICATIONS_EMAIL_FROM aren&apos;t set — email deliveries report <code>provider_not_configured</code> and
           dead-letter immediately. In-app notifications are unaffected.
         </p>
@@ -86,7 +86,7 @@ export default async function NotificationAdminPage() {
       <Section title="Failed delivery queue">
         {failedDeliveries && failedDeliveries.length > 0 ? (
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Notification</th>
                 <th className="px-4 py-2 font-medium">Channel</th>
@@ -105,12 +105,12 @@ export default async function NotificationAdminPage() {
                 attempt_count: number;
                 notifications: { title: string; correlation_id: string | null } | null;
               }[]).map((d) => (
-                <tr key={d.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-900">{d.notifications?.title ?? "—"}</td>
-                  <td className="px-4 py-2 text-neutral-700">{d.channel}</td>
+                <tr key={d.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="px-4 py-2 text-neutral-900 dark:text-neutral-50">{d.notifications?.title ?? "—"}</td>
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{d.channel}</td>
                   <td className="px-4 py-2 text-red-600 text-xs">{d.error_code ?? d.error_message ?? "—"}</td>
-                  <td className="px-4 py-2 text-neutral-500 text-xs">{d.attempt_count}</td>
-                  <td className="px-4 py-2 text-neutral-400 text-[11px] font-mono">{d.notifications?.correlation_id?.slice(0, 8) ?? "—"}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{d.attempt_count}</td>
+                  <td className="px-4 py-2 text-neutral-400 dark:text-neutral-500 text-[11px] font-mono">{d.notifications?.correlation_id?.slice(0, 8) ?? "—"}</td>
                   <td className="px-4 py-2">
                     <form action={retryFailedDelivery}>
                       <input type="hidden" name="id" value={d.id} />
@@ -129,7 +129,7 @@ export default async function NotificationAdminPage() {
       <Section title="Dead-letter queue">
         {deadLetters && deadLetters.length > 0 ? (
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Channel</th>
                 <th className="px-4 py-2 font-medium">Failure reason</th>
@@ -139,10 +139,10 @@ export default async function NotificationAdminPage() {
             </thead>
             <tbody>
               {deadLetters.map((dl) => (
-                <tr key={dl.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-700">{dl.channel ?? "—"}</td>
+                <tr key={dl.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="px-4 py-2 text-neutral-700 dark:text-neutral-200">{dl.channel ?? "—"}</td>
                   <td className="px-4 py-2 text-red-600 text-xs">{dl.failure_reason}</td>
-                  <td className="px-4 py-2 text-neutral-500 text-xs">{new Date(dl.created_at).toLocaleString("en-KE")}</td>
+                  <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400 text-xs">{new Date(dl.created_at).toLocaleString("en-KE")}</td>
                   <td className="px-4 py-2">
                     <form action={resolveDeadLetter}>
                       <input type="hidden" name="id" value={dl.id} />
@@ -159,13 +159,13 @@ export default async function NotificationAdminPage() {
       </Section>
 
       <Section title="Suppressions">
-        <div className="p-4 border-b border-neutral-100">
+        <div className="p-4 border-b border-neutral-100 dark:border-neutral-800">
           <form action={createSuppression} className="grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs">
-            <input name="user_id" placeholder="User ID (blank = org-wide)" className="border border-neutral-200 rounded px-2 py-1.5" />
-            <input name="category" placeholder="Category (blank = all)" className="border border-neutral-200 rounded px-2 py-1.5" />
-            <input name="channel" placeholder="Channel (blank = all)" className="border border-neutral-200 rounded px-2 py-1.5" />
-            <input name="ends_at" type="datetime-local" className="border border-neutral-200 rounded px-2 py-1.5" />
-            <input name="reason" placeholder="Reason (required, audited)" required className="border border-neutral-200 rounded px-2 py-1.5 sm:col-span-1" />
+            <input name="user_id" placeholder="User ID (blank = org-wide)" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
+            <input name="category" placeholder="Category (blank = all)" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
+            <input name="channel" placeholder="Channel (blank = all)" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
+            <input name="ends_at" type="datetime-local" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
+            <input name="reason" placeholder="Reason (required, audited)" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 sm:col-span-1" />
             <button type="submit" className="sm:col-span-5 bg-brand-600 hover:bg-brand-700 text-white rounded px-3 py-1.5 font-medium w-fit">
               Create suppression
             </button>
@@ -177,11 +177,11 @@ export default async function NotificationAdminPage() {
               const active = !s.ends_at || new Date(s.ends_at) > new Date();
               return (
                 <li key={s.id} className="px-4 py-2 flex items-center justify-between gap-3">
-                  <span className="text-neutral-700">
+                  <span className="text-neutral-700 dark:text-neutral-200">
                     {s.user_id ? `User ${s.user_id.slice(0, 8)}…` : "Org-wide"} · {s.category ?? "all categories"} · {s.channel ?? "all channels"}
-                    <span className="block text-xs text-neutral-400">{s.reason}</span>
+                    <span className="block text-xs text-neutral-400 dark:text-neutral-500">{s.reason}</span>
                   </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${active ? "bg-amber-100 text-amber-700" : "bg-neutral-100 text-neutral-400"}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${active ? "bg-amber-100 text-amber-700" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500"}`}>
                     {active ? "Active" : "Ended"}
                   </span>
                   {active && (
@@ -201,17 +201,17 @@ export default async function NotificationAdminPage() {
 
       <Section title="Test-send">
         <form action={sendTestNotification} className="p-4 space-y-2 text-xs">
-          <p className="text-neutral-400">
+          <p className="text-neutral-400 dark:text-neutral-500">
             Sends a real in-app notification to your own account only — never to another employee — so you can confirm a template/policy
             renders as expected.
           </p>
-          <select name="event_type" className="border border-neutral-200 rounded px-2 py-1.5 w-full sm:w-auto" required>
+          <select name="event_type" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 w-full sm:w-auto" required>
             {Object.keys(EVENT_CATALOGUE).map((k) => (
               <option key={k} value={k}>{k}</option>
             ))}
           </select>
-          <input name="title" placeholder="Title (optional)" className="border border-neutral-200 rounded px-2 py-1.5 w-full" />
-          <textarea name="message" placeholder="Message (optional)" className="border border-neutral-200 rounded px-2 py-1.5 w-full" rows={2} />
+          <input name="title" placeholder="Title (optional)" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 w-full" />
+          <textarea name="message" placeholder="Message (optional)" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 w-full" rows={2} />
           <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded px-3 py-1.5 font-medium">
             Send test to myself
           </button>
@@ -222,10 +222,10 @@ export default async function NotificationAdminPage() {
 }
 
 function Metric({ label, value, tone = "neutral", isText = false }: { label: string; value: number | string; tone?: "ok" | "warn" | "bad" | "neutral"; isText?: boolean }) {
-  const toneClass = { ok: "text-green-700", warn: "text-amber-700", bad: "text-red-700", neutral: "text-neutral-900" }[tone];
+  const toneClass = { ok: "text-green-700", warn: "text-amber-700", bad: "text-red-700", neutral: "text-neutral-900 dark:text-neutral-50" }[tone];
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-      <p className="text-xs text-neutral-500">{label}</p>
+      <p className="text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
       <p className={`mt-1 font-semibold ${isText ? "text-sm" : "text-2xl"} ${toneClass}`}>{value}</p>
     </div>
   );
@@ -234,7 +234,7 @@ function Metric({ label, value, tone = "neutral", isText = false }: { label: str
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-sm font-semibold text-neutral-900 mb-2">{title}</h2>
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">{title}</h2>
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         {children}
       </div>

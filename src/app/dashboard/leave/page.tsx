@@ -92,9 +92,9 @@ export default async function LeavePage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Leave Calendar</h1>
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Leave Calendar</h1>
           {isCalendarView && (
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
               {calendarEmployees.length} employee{calendarEmployees.length === 1 ? "" : "s"} · {awayToday} currently away · {pendingCount} request{pendingCount === 1 ? "" : "s"} pending this month
             </p>
           )}

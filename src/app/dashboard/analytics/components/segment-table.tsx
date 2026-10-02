@@ -11,13 +11,13 @@ export default function SegmentTable({ title, rows, unit }: { title: string; row
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
       <div className="px-5 py-3 border-b border-[var(--border-subtle)]">
-        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{title}</h3>
       </div>
       {sorted.length === 0 ? (
-        <p className="text-sm text-neutral-400 p-5">No data yet.</p>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500 p-5">No data yet.</p>
       ) : (
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-5 py-2 font-medium">Department</th>
               <th className="px-5 py-2 font-medium">Value</th>
@@ -26,14 +26,14 @@ export default function SegmentTable({ title, rows, unit }: { title: string; row
           </thead>
           <tbody>
             {sorted.map((r) => (
-              <tr key={r.segmentValue} className="border-t border-neutral-100">
+              <tr key={r.segmentValue} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-5 py-2">
                   <Link href={`/dashboard/employees?department=${encodeURIComponent(r.segmentValue)}`} className="text-brand-600 hover:underline">
                     {r.segmentLabel}
                   </Link>
                 </td>
-                <td className="px-5 py-2 font-medium text-neutral-900">{formatMetricValue(r.value, unit)}</td>
-                <td className="px-5 py-2 text-neutral-500">{r.populationCount}</td>
+                <td className="px-5 py-2 font-medium text-neutral-900 dark:text-neutral-50">{formatMetricValue(r.value, unit)}</td>
+                <td className="px-5 py-2 text-neutral-500 dark:text-neutral-400">{r.populationCount}</td>
               </tr>
             ))}
           </tbody>

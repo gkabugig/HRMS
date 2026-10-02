@@ -30,7 +30,7 @@ export default function PeriodSelector({ availablePeriods, current }: { availabl
     <select
       value={current}
       onChange={(e) => onChange(e.target.value)}
-      className="text-xs font-medium bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-200"
+      className="text-xs font-medium bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-200"
       aria-label="Payroll period"
     >
       {availablePeriods.map((p) => (

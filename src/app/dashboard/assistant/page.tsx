@@ -48,13 +48,13 @@ export default async function AssistantPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">AI Assistant</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">AI Assistant</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             Answers only from your own permitted data and indexed policy — never invents a record, figure or policy. Any action it proposes needs your confirmation.
           </p>
         </div>
         {["admin", "hr"].includes(appUser.role) && (
-          <Link href="/dashboard/assistant/knowledge" className="text-sm border border-neutral-300 rounded-lg px-3 py-2 hover:bg-neutral-50 transition-colors">
+          <Link href="/dashboard/assistant/knowledge" className="text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg px-3 py-2 hover:bg-neutral-50 hover:dark:bg-neutral-900 transition-colors">
             Manage policy knowledge
           </Link>
         )}

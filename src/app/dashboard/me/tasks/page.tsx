@@ -20,8 +20,8 @@ export default async function MyTasksPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">My Tasks</h1>
-        <p className="text-sm text-neutral-500 mt-1">Approvals and workflow tasks assigned to you.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Tasks</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Approvals and workflow tasks assigned to you.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
@@ -30,13 +30,13 @@ export default async function MyTasksPage() {
         ) : (
           <ul>
             {tasks.map((t) => (
-              <li key={`${t.source}-${t.id}`} className="border-t border-neutral-100 first:border-0 px-4 py-3 flex items-center justify-between">
+              <li key={`${t.source}-${t.id}`} className="border-t border-neutral-100 dark:border-neutral-800 first:border-0 px-4 py-3 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] uppercase tracking-wide text-brand-600 font-medium">
                     {t.source === "approval" ? (t.requestType ?? "Approval").replace(/_/g, " ") : "Workflow task"}
                   </p>
-                  <p className="text-sm text-neutral-900">{t.title}</p>
-                  {t.dueAt && <p className="text-xs text-neutral-500">Due {new Date(t.dueAt).toLocaleDateString("en-KE")}</p>}
+                  <p className="text-sm text-neutral-900 dark:text-neutral-50">{t.title}</p>
+                  {t.dueAt && <p className="text-xs text-neutral-500 dark:text-neutral-400">Due {new Date(t.dueAt).toLocaleDateString("en-KE")}</p>}
                 </div>
                 <Link href={t.actionUrl} className="text-xs font-medium text-brand-600 hover:underline">Open →</Link>
               </li>

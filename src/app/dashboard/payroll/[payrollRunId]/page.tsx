@@ -50,8 +50,8 @@ export default async function PayrollRunPage({
   if (!canManage) {
     return (
       <div className="max-w-md mx-auto text-center py-16">
-        <h1 className="text-lg font-semibold text-neutral-900 mb-2">Payroll Command Centre</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Payroll Command Centre</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           This view is restricted to payroll administrators. Use the Payroll menu for your own payslips.
         </p>
       </div>

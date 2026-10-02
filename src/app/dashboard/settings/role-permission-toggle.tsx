@@ -34,7 +34,7 @@ export function RolePermissionToggle({
       <input
         type="checkbox"
         defaultChecked={checked}
-        className="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-500/30"
+        className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-brand-600 focus:ring-brand-500/30"
         title={`${scope} scope`}
       />
     </form>

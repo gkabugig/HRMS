@@ -11,11 +11,11 @@ import { submitAttendanceCorrectionRequest, cancelAttendanceCorrectionRequest } 
 import EmptyState from "@/components/employee-portal/empty-state";
 
 const STATUS_STYLE: Record<string, string> = {
-  Submitted: "bg-neutral-100 text-neutral-600",
+  Submitted: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
   "Under Review": "bg-amber-100 text-amber-700",
   Approved: "bg-green-100 text-green-700",
   Rejected: "bg-red-100 text-red-700",
-  Cancelled: "bg-neutral-100 text-neutral-400",
+  Cancelled: "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500",
 };
 
 export default async function MyAttendancePage() {
@@ -34,36 +34,36 @@ export default async function MyAttendancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">My Attendance</h1>
-        <p className="text-sm text-neutral-500 mt-1">Today&apos;s status, your history, and correction requests.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Attendance</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Today&apos;s status, your history, and correction requests.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Today</p>
-          <p className="text-sm text-neutral-900 mt-1">In: <span className="font-mono">{today?.clockIn ?? "—"}</span> · Out: <span className="font-mono">{today?.clockOut ?? "—"}</span></p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Today</p>
+          <p className="text-sm text-neutral-900 dark:text-neutral-50 mt-1">In: <span className="font-mono">{today?.clockIn ?? "—"}</span> · Out: <span className="font-mono">{today?.clockOut ?? "—"}</span></p>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">{summary.monthLabel}</p>
-          <p className="text-2xl font-semibold text-neutral-900">{summary.present}</p>
-          <p className="text-xs text-neutral-500">days recorded</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{summary.monthLabel}</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{summary.present}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">days recorded</p>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <p className="text-xs text-neutral-500">Late arrivals this month</p>
-          <p className="text-2xl font-semibold text-neutral-900">{summary.late}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Late arrivals this month</p>
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">{summary.late}</p>
         </div>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Request a correction</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Request a correction</h2>
         <form action={submitAttendanceCorrectionRequest} className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
           <input type="date" name="work_date" required max={new Date().toISOString().slice(0, 10)} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5" />
-          <select name="field" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="field" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="clock_in">Clock in</option>
             <option value="clock_out">Clock out</option>
           </select>
           <input type="time" name="requested_value" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5" />
-          <select name="evidence_document_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white">
+          <select name="evidence_document_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="">No supporting document</option>
             {(documents ?? []).map((d) => (
               <option key={d.id} value={d.id}>{d.file_name}</option>
@@ -77,12 +77,12 @@ export default async function MyAttendancePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">Correction requests</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">Correction requests</h2>
         {corrections.length === 0 ? (
           <div className="p-4"><EmptyState message="No correction requests yet." /></div>
         ) : (
           <table className="w-full text-sm mt-3">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Date</th>
                 <th className="px-4 py-2 font-medium">Field</th>
@@ -93,12 +93,12 @@ export default async function MyAttendancePage() {
             </thead>
             <tbody>
               {corrections.map((c) => (
-                <tr key={c.id} className="border-t border-neutral-100">
+                <tr key={c.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{c.workDate}</td>
                   <td className="px-4 py-2">{c.field === "clock_in" ? "Clock in" : "Clock out"}</td>
                   <td className="px-4 py-2 font-mono">{c.requestedValue}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[c.status] ?? "bg-neutral-100"}`}>{c.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[c.status] ?? "bg-neutral-100 dark:bg-neutral-800"}`}>{c.status}</span>
                   </td>
                   <td className="px-4 py-2">
                     {["Submitted", "Under Review"].includes(c.status) && (
@@ -115,9 +115,9 @@ export default async function MyAttendancePage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">History ({total} record{total === 1 ? "" : "s"})</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">History ({total} record{total === 1 ? "" : "s"})</h2>
         <table className="w-full text-sm mt-3">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Date</th>
               <th className="px-4 py-2 font-medium">Clock in</th>
@@ -126,14 +126,14 @@ export default async function MyAttendancePage() {
           </thead>
           <tbody>
             {history.map((h) => (
-              <tr key={h.id} className="border-t border-neutral-100">
+              <tr key={h.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{h.workDate}</td>
                 <td className="px-4 py-2 font-mono">{h.clockIn ?? "—"}</td>
                 <td className="px-4 py-2 font-mono">{h.clockOut ?? "—"}</td>
               </tr>
             ))}
             {history.length === 0 && (
-              <tr><td colSpan={3} className="px-4 py-6 text-center text-neutral-400">No attendance recorded yet.</td></tr>
+              <tr><td colSpan={3} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No attendance recorded yet.</td></tr>
             )}
           </tbody>
         </table>

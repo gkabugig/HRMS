@@ -12,23 +12,23 @@ export default async function DocumentTypesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">Document Types</h1>
-          <p className="text-sm text-neutral-500">Taxonomy and per-type lifecycle configuration — approval, acknowledgement, expiry warnings, retention.</p>
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Document Types</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Taxonomy and per-type lifecycle configuration — approval, acknowledgement, expiry warnings, retention.</p>
         </div>
         <Link href="/dashboard/documents" className="text-xs font-medium text-brand-600 hover:underline">← Document Centre</Link>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">New document type</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">New document type</h2>
         <form action={createDocumentType} className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-          <input name="code" placeholder="Code (e.g. employment_letter)" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-          <input name="name" placeholder="Display name" required className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-          <select name="default_sensitivity" defaultValue="Confidential" className="border border-neutral-300 rounded-lg px-2 py-1.5 bg-white">
+          <input name="code" placeholder="Code (e.g. employment_letter)" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+          <input name="name" placeholder="Display name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+          <select name="default_sensitivity" defaultValue="Confidential" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             {DOCUMENT_SENSITIVITIES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <input name="description" placeholder="Description (optional)" className="border border-neutral-300 rounded-lg px-2 py-1.5 sm:col-span-3" />
-          <input name="expiry_warning_days_schedule" placeholder="Expiry warnings, days (e.g. 90,60,30,7)" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
-          <input name="retention_period_months" type="number" min="0" placeholder="Retention (months)" className="border border-neutral-300 rounded-lg px-2 py-1.5" />
+          <input name="description" placeholder="Description (optional)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5 sm:col-span-3" />
+          <input name="expiry_warning_days_schedule" placeholder="Expiry warnings, days (e.g. 90,60,30,7)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
+          <input name="retention_period_months" type="number" min="0" placeholder="Retention (months)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg px-2 py-1.5" />
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-1"><input type="checkbox" name="approval_required" /> Approval required</label>
             <label className="flex items-center gap-1"><input type="checkbox" name="requires_acknowledgement" /> Requires ack.</label>
@@ -42,7 +42,7 @@ export default async function DocumentTypesPage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Name</th>
               <th className="px-4 py-2 font-medium">Sensitivity</th>
@@ -54,15 +54,15 @@ export default async function DocumentTypesPage() {
           </thead>
           <tbody>
             {(types ?? []).map((t) => (
-              <tr key={t.id} className="border-t border-neutral-100">
+              <tr key={t.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">
                   <Link href={`/dashboard/documents/types/${t.id}`} className="text-brand-600 hover:text-brand-700 hover:underline">{t.name}</Link>
-                  <p className="text-xs text-neutral-400">{t.code}</p>
+                  <p className="text-xs text-neutral-400 dark:text-neutral-500">{t.code}</p>
                 </td>
                 <td className="px-4 py-2">{t.default_sensitivity}</td>
                 <td className="px-4 py-2">{t.approval_required ? "Required" : "—"}</td>
                 <td className="px-4 py-2">{t.requires_acknowledgement ? "Required" : "—"}</td>
-                <td className="px-4 py-2 text-neutral-500">{(t.expiry_warning_days_schedule ?? []).join(", ") || "—"}</td>
+                <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">{(t.expiry_warning_days_schedule ?? []).join(", ") || "—"}</td>
                 <td className="px-4 py-2">{t.is_active ? "Active" : "Inactive"}</td>
               </tr>
             ))}

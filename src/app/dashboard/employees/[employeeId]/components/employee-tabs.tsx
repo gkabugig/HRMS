@@ -50,7 +50,7 @@ export function EmployeeTabs({ employeeId, active }: { employeeId: string; activ
             className={`px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
               key === active
                 ? "border-brand-600 text-brand-700"
-                : "border-transparent text-neutral-500 hover:text-neutral-800"
+                : "border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 hover:dark:text-neutral-100"
             }`}
           >
             {TAB_LABELS[key]}

@@ -36,6 +36,44 @@ export async function createCourse(formData: FormData) {
   revalidatePath("/dashboard/ld");
 }
 
+export async function updateCourse(courseId: string, formData: FormData) {
+  const supabase = await createClient();
+  const name = String(formData.get("name") || "").trim();
+  if (!name) throw new Error("Course name is required.");
+
+  const { error } = await supabase
+    .from("training_courses")
+    .update({
+      name,
+      provider: String(formData.get("provider") || "") || null,
+      mode: String(formData.get("mode") || "") || null,
+      duration: String(formData.get("duration") || "") || null,
+      cost: Number(formData.get("cost") || 0),
+      mandatory: formData.get("mandatory") === "on",
+      validity_months: formData.get("validity_months")
+        ? Number(formData.get("validity_months"))
+        : null,
+    })
+    .eq("id", courseId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard/ld");
+}
+
+export async function deleteCourse(courseId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("training_courses").delete().eq("id", courseId);
+  if (error) {
+    // Most likely a foreign-key violation from existing enrollments
+    // (training_enrollments.course_id has no ON DELETE CASCADE) - give a
+    // clearer message than the raw Postgres error.
+    if (error.code === "23503") {
+      throw new Error("Can't delete this course - employees are still enrolled in it.");
+    }
+    throw new Error(error.message);
+  }
+  revalidatePath("/dashboard/ld");
+}
+
 export async function enrollSelf(courseId: string) {
   const user = await currentAppUser();
   if (!user?.employee_id) throw new Error("No employee record linked to this account.");

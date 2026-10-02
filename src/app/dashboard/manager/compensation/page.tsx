@@ -36,76 +36,76 @@ export default async function ManagerCompensationPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Team Compensation</h1>
-        <p className="text-sm text-neutral-500 mt-1">Recommend review-cycle increases and propose compensation changes for your direct reports.</p>
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Team Compensation</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Recommend review-cycle increases and propose compensation changes for your direct reports.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">Review recommendations due</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">Review recommendations due</h2>
         <table className="w-full text-sm mt-2">
           <tbody>
             {(pendingItems ?? []).map((item) => {
               const employee = item.employees as unknown as { name: string; basic: number } | null;
               const cycle = item.compensation_review_cycles as unknown as { name: string } | null;
               return (
-                <tr key={item.id} className="border-t border-neutral-100 align-top">
-                  <td className="px-4 py-2 text-neutral-800">{employee?.name}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-500">{cycle?.name}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-600">KES {Number(employee?.basic ?? 0).toLocaleString()}</td>
+                <tr key={item.id} className="border-t border-neutral-100 dark:border-neutral-800 align-top">
+                  <td className="px-4 py-2 text-neutral-800 dark:text-neutral-100">{employee?.name}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-500 dark:text-neutral-400">{cycle?.name}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-600 dark:text-neutral-300">KES {Number(employee?.basic ?? 0).toLocaleString()}</td>
                   <td className="px-4 py-2">
                     {item.status === "pending" ? (
                       <form action={submitManagerRecommendation} className="flex gap-1 items-center text-xs">
                         <input type="hidden" name="item_id" value={item.id} />
-                        <input name="manager_recommendation_pct" type="number" step="0.1" placeholder="% increase" required className="w-20 border border-neutral-200 rounded px-1.5 py-1" />
-                        <input name="manager_comment" placeholder="Comment" className="border border-neutral-200 rounded px-1.5 py-1" />
+                        <input name="manager_recommendation_pct" type="number" step="0.1" placeholder="% increase" required className="w-20 border border-neutral-200 dark:border-neutral-700 rounded px-1.5 py-1" />
+                        <input name="manager_comment" placeholder="Comment" className="border border-neutral-200 dark:border-neutral-700 rounded px-1.5 py-1" />
                         <button type="submit" className="text-brand-700 hover:underline">Submit</button>
                       </form>
                     ) : (
-                      <span className="text-xs text-neutral-500">Recommended {item.manager_recommendation_pct}%</span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">Recommended {item.manager_recommendation_pct}%</span>
                     )}
                   </td>
                 </tr>
               );
             })}
             {(pendingItems ?? []).length === 0 && (
-              <tr><td className="px-4 py-4 text-xs text-neutral-400" colSpan={4}>No review recommendations due.</td></tr>
+              <tr><td className="px-4 py-4 text-xs text-neutral-400 dark:text-neutral-500" colSpan={4}>No review recommendations due.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Propose a compensation change</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Propose a compensation change</h2>
         <form action={submitCompensationChangeRequest} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <select name="employee_id" required className="border border-neutral-200 rounded px-2 py-1.5">
+            <select name="employee_id" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5">
               <option value="">Direct report…</option>
               {(reportEmployees ?? []).map((e) => (<option key={e.id} value={e.id}>{e.name}</option>))}
             </select>
-            <input name="proposed_basic" type="number" step="0.01" placeholder="Proposed basic" className="border border-neutral-200 rounded px-2 py-1.5" />
-            <input name="effective_from" type="date" required className="border border-neutral-200 rounded px-2 py-1.5" />
+            <input name="proposed_basic" type="number" step="0.01" placeholder="Proposed basic" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
+            <input name="effective_from" type="date" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />
           </div>
-          <textarea name="reason" placeholder="Reason (required)" required rows={2} className="border border-neutral-200 rounded px-2 py-1.5 w-full" />
+          <textarea name="reason" placeholder="Reason (required)" required rows={2} className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 w-full" />
           <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded px-3 py-1.5 font-medium">Submit for HR approval</button>
         </form>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
-        <h2 className="text-sm font-semibold text-neutral-900 p-4 pb-0">My submitted requests</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 p-4 pb-0">My submitted requests</h2>
         <table className="w-full text-sm mt-2">
           <tbody>
             {(myRequests ?? []).map((r) => {
               const employee = r.employees as unknown as { name: string } | null;
               return (
-                <tr key={r.id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-800">{employee?.name}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-500">{r.effective_from}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-500">{r.status}</td>
+                <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="px-4 py-2 text-neutral-800 dark:text-neutral-100">{employee?.name}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-500 dark:text-neutral-400">{r.effective_from}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-500 dark:text-neutral-400">{r.status}</td>
                 </tr>
               );
             })}
             {(myRequests ?? []).length === 0 && (
-              <tr><td className="px-4 py-4 text-xs text-neutral-400" colSpan={3}>No requests submitted yet.</td></tr>
+              <tr><td className="px-4 py-4 text-xs text-neutral-400 dark:text-neutral-500" colSpan={3}>No requests submitted yet.</td></tr>
             )}
           </tbody>
         </table>

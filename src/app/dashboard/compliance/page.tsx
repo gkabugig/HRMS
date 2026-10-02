@@ -57,14 +57,14 @@ export default async function CompliancePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold text-neutral-900">Compliance</h1>
+      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Compliance</h1>
 
       {isHrLike && (
         <div>
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Statutory filings</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Statutory filings</h2>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-neutral-50 text-neutral-600 text-left">
+              <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
                 <tr>
                   <th className="px-4 py-2 font-medium">Filing</th>
                   <th className="px-4 py-2 font-medium">Period</th>
@@ -73,7 +73,7 @@ export default async function CompliancePage() {
               </thead>
               <tbody>
                 {(filings ?? []).map((f) => (
-                  <tr key={f.id} className="border-t border-neutral-100">
+                  <tr key={f.id} className="border-t border-neutral-100 dark:border-neutral-800">
                     <td className="px-4 py-2">{f.filing_key}</td>
                     <td className="px-4 py-2">{f.period}</td>
                     <td className="px-4 py-2">{f.filed_on}</td>
@@ -81,7 +81,7 @@ export default async function CompliancePage() {
                 ))}
                 {(!filings || filings.length === 0) && (
                   <tr>
-                    <td colSpan={3} className="px-4 py-6 text-center text-neutral-400">
+                    <td colSpan={3} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                       No filings recorded yet.
                     </td>
                   </tr>
@@ -90,7 +90,7 @@ export default async function CompliancePage() {
             </table>
           </div>
           <form action={recordFiling} className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-            <select name="filing_key" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <select name="filing_key" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Filing type</option>
               {FILING_KEYS.map((k) => (
                 <option key={k} value={k}>
@@ -102,13 +102,13 @@ export default async function CompliancePage() {
               name="period"
               placeholder="Period (e.g. 2026-09)"
               required
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <input
               name="filed_on"
               type="date"
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Mark filed
@@ -119,10 +119,10 @@ export default async function CompliancePage() {
 
       {isHrLike && (
         <div>
-          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Compliance documents</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Compliance documents</h2>
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-neutral-50 text-neutral-600 text-left">
+              <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
                 <tr>
                   <th className="px-4 py-2 font-medium">Document</th>
                   <th className="px-4 py-2 font-medium">Type</th>
@@ -138,7 +138,7 @@ export default async function CompliancePage() {
                   const expired = remaining < 0;
                   const alerting = !expired && remaining <= d.alert_threshold_days;
                   return (
-                    <tr key={d.id} className="border-t border-neutral-100">
+                    <tr key={d.id} className="border-t border-neutral-100 dark:border-neutral-800">
                       <td className="px-4 py-2">{d.label}</td>
                       <td className="px-4 py-2">{d.doc_type}</td>
                       <td className="px-4 py-2">
@@ -170,7 +170,7 @@ export default async function CompliancePage() {
                 })}
                 {(!docs || docs.length === 0) && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-neutral-400">
+                    <td colSpan={6} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                       No compliance documents tracked yet.
                     </td>
                   </tr>
@@ -182,9 +182,9 @@ export default async function CompliancePage() {
             action={addComplianceDocument}
             className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm"
           >
-            <input name="label" placeholder="Document label" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="doc_type" placeholder="Type (License, Permit, Insurance...)" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <select name="employee_id" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
+            <input name="label" placeholder="Document label" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="doc_type" placeholder="Type (License, Permit, Insurance...)" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <select name="employee_id" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Org-wide (no employee)</option>
               {(employees ?? []).map((e) => (
                 <option key={e.id} value={e.id}>
@@ -192,9 +192,9 @@ export default async function CompliancePage() {
                 </option>
               ))}
             </select>
-            <input name="expiry_date" type="date" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="alert_threshold_days" type="number" placeholder="Alert threshold (days)" defaultValue={30} className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="notes" placeholder="Notes" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="expiry_date" type="date" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="alert_threshold_days" type="number" placeholder="Alert threshold (days)" defaultValue={30} className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="notes" placeholder="Notes" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Track document
             </button>
@@ -203,10 +203,10 @@ export default async function CompliancePage() {
       )}
 
       <div>
-        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Policies</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Policies</h2>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Policy</th>
                 <th className="px-4 py-2 font-medium">Version</th>
@@ -216,7 +216,7 @@ export default async function CompliancePage() {
             </thead>
             <tbody>
               {policies.map((p) => (
-                <tr key={p.id} className="border-t border-neutral-100">
+                <tr key={p.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="px-4 py-2">{p.name}</td>
                   <td className="px-4 py-2">{p.version ?? "—"}</td>
                   <td className="px-4 py-2">{p.published_on}</td>
@@ -236,7 +236,7 @@ export default async function CompliancePage() {
               ))}
               {policies.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-neutral-400">
+                  <td colSpan={4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                     No policies published yet.
                   </td>
                 </tr>
@@ -246,13 +246,13 @@ export default async function CompliancePage() {
         </div>
         {isHrLike && (
           <form action={publishPolicy} className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-            <input name="name" placeholder="Policy name" required className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="version" placeholder="Version" className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="name" placeholder="Policy name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
+            <input name="version" placeholder="Version" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input
               name="published_on"
               type="date"
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
             <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Publish policy

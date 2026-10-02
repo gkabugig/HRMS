@@ -32,8 +32,8 @@ export default async function PayrollPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-neutral-900">Payroll</h1>
-            <p className="text-sm text-neutral-500 mt-1">Prepare, calculate, review and approve each payroll period.</p>
+            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Payroll</h1>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Prepare, calculate, review and approve each payroll period.</p>
           </div>
         </div>
 
@@ -42,13 +42,13 @@ export default async function PayrollPage() {
           className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 flex items-end gap-3 text-sm"
         >
           <div>
-            <label className="block text-neutral-700 mb-1">New payroll period</label>
+            <label className="block text-neutral-700 dark:text-neutral-200 mb-1">New payroll period</label>
             <input
               name="period"
               type="month"
               required
               defaultValue={new Date().toISOString().slice(0, 7)}
-              className="border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
+              className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2"
             />
           </div>
           <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 px-4 font-medium">
@@ -58,7 +58,7 @@ export default async function PayrollPage() {
 
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-600 text-left">
+            <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Period</th>
                 <th className="px-4 py-2 font-medium">Status</th>
@@ -74,8 +74,8 @@ export default async function PayrollPage() {
                 const gross = slips.reduce((s, p) => s + Number(p.gross), 0);
                 const net = slips.reduce((s, p) => s + Number(p.net), 0);
                 return (
-                  <tr key={r.id} className="border-t border-neutral-100">
-                    <td className="px-4 py-2 font-medium text-neutral-900">{r.period}</td>
+                  <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                    <td className="px-4 py-2 font-medium text-neutral-900 dark:text-neutral-50">{r.period}</td>
                     <td className="px-4 py-2">
                       <PayrollStatusBadge status={r.status as PayrollStatus} />
                     </td>
@@ -92,7 +92,7 @@ export default async function PayrollPage() {
               })}
               {(!runs || runs.length === 0) && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-neutral-400">
+                  <td colSpan={6} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                     No payroll periods yet — prepare one above.
                   </td>
                 </tr>
@@ -114,11 +114,11 @@ export default async function PayrollPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold text-neutral-900">My Payslips</h1>
+      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">My Payslips</h1>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Period</th>
               <th className="px-4 py-2 font-medium text-right">Gross</th>
@@ -133,7 +133,7 @@ export default async function PayrollPage() {
           </thead>
           <tbody>
             {(payslips ?? []).map((p) => (
-              <tr key={p.id} className="border-t border-neutral-100">
+              <tr key={p.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{(p.payroll_runs as unknown as { period: string } | null)?.period}</td>
                 <td className="px-4 py-2 text-right font-mono">{p.gross.toLocaleString()}</td>
                 <td className="px-4 py-2 text-right font-mono">{p.paye.toLocaleString()}</td>
@@ -156,7 +156,7 @@ export default async function PayrollPage() {
             ))}
             {(!payslips || payslips.length === 0) && (
               <tr>
-                <td colSpan={9} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={9} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No published payslips yet.
                 </td>
               </tr>

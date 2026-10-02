@@ -20,10 +20,10 @@ export function AttendanceTab({ data }: { data: Employee360 }) {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
-          <h2 className="text-sm font-semibold text-neutral-900">Recent Records</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Recent Records</h2>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-600 text-left">
+          <thead className="bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Date</th>
               <th className="px-4 py-2 font-medium">Clock in</th>
@@ -32,7 +32,7 @@ export function AttendanceTab({ data }: { data: Employee360 }) {
           </thead>
           <tbody>
             {a.recent.map((r) => (
-              <tr key={r.id} className="border-t border-neutral-100">
+              <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
                 <td className="px-4 py-2">{r.work_date}</td>
                 <td className="px-4 py-2 font-mono">{r.clock_in ?? "—"}</td>
                 <td className="px-4 py-2 font-mono">{r.clock_out ?? "—"}</td>
@@ -40,7 +40,7 @@ export function AttendanceTab({ data }: { data: Employee360 }) {
             ))}
             {a.recent.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={3} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No attendance records yet.
                 </td>
               </tr>
@@ -55,8 +55,8 @@ export function AttendanceTab({ data }: { data: Employee360 }) {
 function Kpi({ value, label }: { value: string; label: string }) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-      <p className="text-xl font-semibold text-neutral-900">{value}</p>
-      <p className="text-xs text-neutral-500 mt-1">{label}</p>
+      <p className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{value}</p>
+      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{label}</p>
     </div>
   );
 }

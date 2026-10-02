@@ -23,7 +23,7 @@ export default function QuickActions({ role }: { role: UserRole }) {
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl shadow-sm shadow-slate-900/[0.03] p-5">
-      <h2 className="text-sm font-semibold text-neutral-900 mb-3">Quick Actions</h2>
+      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Quick Actions</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {visible.map((a) => (
           <Link
@@ -32,7 +32,7 @@ export default function QuickActions({ role }: { role: UserRole }) {
             className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--border-subtle)] py-3 px-2 text-center hover:border-brand-300 hover:bg-brand-50/50 transition-colors"
           >
             <a.icon size={17} className="text-brand-600" strokeWidth={2} />
-            <span className="text-[11px] font-medium text-neutral-700">{a.label}</span>
+            <span className="text-[11px] font-medium text-neutral-700 dark:text-neutral-200">{a.label}</span>
           </Link>
         ))}
       </div>

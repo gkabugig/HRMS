@@ -28,7 +28,7 @@ export default async function ForecastsPage() {
 
   if (appUser?.role !== "admin" && appUser?.role !== "hr") {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600">
+      <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-6 text-sm text-neutral-600 dark:text-neutral-300">
         Forecasts are visible to HR and admin roles.
       </div>
     );
@@ -57,8 +57,8 @@ export default async function ForecastsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-neutral-900">Forecasts</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Forecasts</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           Trend-based projections — decision support only, never an automated employment decision (§5.8). Each run shows its method,
           source period and limitations.
         </p>
@@ -66,8 +66,8 @@ export default async function ForecastsPage() {
 
       <form action={runForecast} className="flex flex-wrap items-end gap-2 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4">
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Forecast type</label>
-          <select name="forecast_type" className="border border-neutral-200 rounded px-2 py-1.5 text-sm" required>
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Forecast type</label>
+          <select name="forecast_type" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 text-sm" required>
             {FORECAST_TYPES.map((t) => (
               <option key={t.key} value={t.key}>
                 {t.label}
@@ -86,20 +86,20 @@ export default async function ForecastsPage() {
           return (
             <div key={run.id} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <h2 className="text-sm font-semibold text-neutral-900 capitalize">{run.forecast_type.replace(/_/g, " ")}</h2>
+                <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 capitalize">{run.forecast_type.replace(/_/g, " ")}</h2>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_STYLE[run.data_quality_status]}`}>
                   {run.data_quality_status}
                 </span>
               </div>
-              <p className="text-xs text-neutral-400 mt-1">
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
                 {run.method} · {run.model_version} · source {run.source_period_start} → {run.source_period_end} · generated{" "}
                 {new Date(run.generated_at).toLocaleString("en-KE")}
               </p>
               {run.data_quality_note && <p className="text-xs text-amber-700 mt-1">{run.data_quality_note}</p>}
-              <p className="text-xs text-neutral-400 mt-1 italic">{run.limitations}</p>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1 italic">{run.limitations}</p>
               {runResults.length > 0 ? (
                 <table className="w-full text-xs mt-3">
-                  <thead className="text-neutral-500 text-left">
+                  <thead className="text-neutral-500 dark:text-neutral-400 text-left">
                     <tr>
                       <th className="py-1 pr-4">Period</th>
                       <th className="py-1 pr-4">Predicted</th>
@@ -109,22 +109,22 @@ export default async function ForecastsPage() {
                   </thead>
                   <tbody>
                     {runResults.map((r, i) => (
-                      <tr key={i} className="border-t border-neutral-100">
+                      <tr key={i} className="border-t border-neutral-100 dark:border-neutral-800">
                         <td className="py-1 pr-4">{r.period_date}</td>
-                        <td className="py-1 pr-4 font-medium text-neutral-800">{Number(r.predicted_value).toFixed(1)}</td>
-                        <td className="py-1 pr-4 text-neutral-400">{r.lower_bound !== null ? Number(r.lower_bound).toFixed(1) : "—"}</td>
-                        <td className="py-1 pr-4 text-neutral-400">{r.upper_bound !== null ? Number(r.upper_bound).toFixed(1) : "—"}</td>
+                        <td className="py-1 pr-4 font-medium text-neutral-800 dark:text-neutral-100">{Number(r.predicted_value).toFixed(1)}</td>
+                        <td className="py-1 pr-4 text-neutral-400 dark:text-neutral-500">{r.lower_bound !== null ? Number(r.lower_bound).toFixed(1) : "—"}</td>
+                        <td className="py-1 pr-4 text-neutral-400 dark:text-neutral-500">{r.upper_bound !== null ? Number(r.upper_bound).toFixed(1) : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <p className="text-xs text-neutral-400 mt-2">Blocked — no projection produced.</p>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">Blocked — no projection produced.</p>
               )}
             </div>
           );
         })}
-        {(runs ?? []).length === 0 && <p className="text-sm text-neutral-400">No forecasts generated yet.</p>}
+        {(runs ?? []).length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500">No forecasts generated yet.</p>}
       </div>
     </div>
   );

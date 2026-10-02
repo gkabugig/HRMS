@@ -48,8 +48,8 @@ export default async function Employee360Page({
   } catch {
     return (
       <div className="max-w-lg mx-auto text-center py-16">
-        <h1 className="text-lg font-semibold text-neutral-900 mb-2">Employee not found</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Employee not found</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           This profile doesn&apos;t exist, or you don&apos;t have permission to view it.
         </p>
       </div>
