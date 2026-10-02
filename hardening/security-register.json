@@ -1,0 +1,194 @@
+{
+  "generated": "2026-10-02",
+  "source_spec": "HRMS_P0_Security_Hardening_Implementation_and_Test_Script.docx",
+  "methodology": "Source-level audit (4 parallel read-only reviews covering all 14 spec control areas) + targeted fixes + a static migration-scanning regression test. No live Supabase project was available in this session (mcp__Supabase__list_projects returned no projects), so none of the findings below were verified by an authenticated API/DB call against a running two-organization test environment, as the spec's own test harness calls for. Every 'fixed' item below is verified only by: (a) manual re-derivation of the correct RLS/RPC/query logic against the actual schema, (b) `npm run lint`, `npx tsc --noEmit`, and `npm run build` passing, (c) the existing + new unit/static test suites passing (`npm test`), and (d) for the RLS fixes specifically, a new static test (tests/security/rls-org-scoping.test.ts) that mechanically re-checks every migration file for the exact bug shape. None of this is a substitute for live cross-tenant integration testing with two real organizations and real JWTs - that is called out explicitly per item below where it still matters.",
+  "items": [
+    {
+      "id": "SEC-001",
+      "title": "Tenant isolation - RLS policies missing org_id checks",
+      "severity": "P0 - Critical",
+      "status": "fixed (pending manual SQL application + live verification)",
+      "domain": "Database / RLS",
+      "tables": [
+        "employee_audit_log", "onboarding_tasks", "attendance", "leave_requests",
+        "salary_advances", "appraisals", "training_enrollments", "policy_acknowledgments",
+        "offboarding_records", "offboarding_assets", "employee_documents", "employee_contacts",
+        "employee_assets", "employee_compensation_history", "employee_job_history",
+        "employee_notes", "service_request_messages", "appraisal_goals", "disciplinary_actions",
+        "disciplinary_attachments", "employee_shifts", "assignments", "attendance_corrections",
+        "employee_positions", "reporting_relationships", "document_access_logs",
+        "profile_change_requests", "service_request_status_history",
+        "storage.objects (employee-documents, disciplinary-documents, employee-photos buckets)"
+      ],
+      "finding": "29 RLS policies (28 table policies + matching storage.objects policies for 3 buckets) used the shape `for all using (hrms_current_role() in ('admin','hr'))` with NO organization check. hrms_current_role() reports only the caller's role, never their org, so any admin/hr-role user in ANY organization could read/write every OTHER organization's rows on these tables via a direct PostgREST/Supabase client call, bypassing the app's own org-scoped queries entirely. This is the same bug class migration 0025 already fixed once for a different set of tables (approval_steps, workflow_tasks, etc.) - it was never swept across the rest of the schema.",
+      "remediation": "Migrations 0124 and 0128: each policy now joins back to whichever row actually carries org_id (directly via employees.org_id, or transitively through candidates->requisitions, offboarding_records->employees, service_requests, appraisals->employees, employee_documents->employees, etc.) and requires org_id = current_org_id() there.",
+      "test": "tests/security/rls-org-scoping.test.ts - statically scans every migration for this policy shape and asserts an org-scoping reference is present. 94 policy-level assertions, all passing post-fix. This does NOT replace a live cross-tenant read/write test (seed two orgs, confirm org B's admin gets zero rows / a permission error against org A's data) - that still needs to be run against a real Supabase project.",
+      "owner": "needs manual application",
+      "action_required": "Run supabase/migrations/0124_p0_security_hardening_org_scoping.sql and 0128_p0_security_hardening_org_scoping_round2.sql against the live database (no live DB access from this session)."
+    },
+    {
+      "id": "SEC-002",
+      "title": "Employee IDOR / BOLA",
+      "severity": "P0 - Critical",
+      "status": "sound - no gap found",
+      "domain": "Application / API",
+      "finding": "Payslip and payroll employee-detail access points re-derive ownership/role server-side (get-my-pay.ts filters by .eq('employee_id', employeeId) against the session-derived employee id; the HR payroll employee page has an explicit canManage role gate plus an org-filtered payroll_runs query) rather than trusting a client-supplied id.",
+      "remediation": "none needed",
+      "test": "none added - no code path changed",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-003",
+      "title": "Manager scope - department analytics over-disclosure",
+      "severity": "P1 - High",
+      "status": "fixed",
+      "domain": "Application / API",
+      "files": ["src/app/api/analytics/drilldown/route.ts"],
+      "finding": "A manager was authorized for an entire department as soon as ANY one of their in-scope employees happened to sit in it, but the employee-population query that followed returned the WHOLE department unfiltered - a manager with one report in a 50-person department could pull every name/staff-number/status in that department.",
+      "remediation": "The final query now additionally filters to the manager's own getManagerScope().employeeIds whenever their scope tier isn't 'organisation'.",
+      "test": "none added (no live DB / no existing test harness for this route) - manually verified the query builder logic and confirmed via tsc/build/lint.",
+      "owner": "fixed in this session"
+    },
+    {
+      "id": "SEC-001/003 (RPC)",
+      "title": "SECURITY DEFINER RPCs accept arbitrary caller-supplied IDs with no org check",
+      "severity": "P0 - Critical",
+      "status": "fixed (pending manual SQL application)",
+      "domain": "Database / RPC",
+      "functions": ["get_current_manager_id", "get_direct_reports", "get_current_assignment_unit"],
+      "finding": "All three are SECURITY DEFINER functions, directly callable by any authenticated client via supabase.rpc(...) (Postgres grants EXECUTE to PUBLIC by default; these were never revoked), and none checked that the target employee/manager id belonged to the caller's own organization. Any authenticated user could call e.g. get_current_manager_id({p_employee_id: '<uuid from another org>'}) directly and get back that employee's manager - a cross-tenant IDOR/enumeration leak that bypasses every RLS-protected table.",
+      "remediation": "Migration 0127: revoke execute from anon (matching 0004's existing pattern for the identity helpers), and each function now joins to employees and requires e.org_id = current_org_id(), so a cross-org target resolves to null/empty instead of leaking.",
+      "test": "none added (requires live RPC call against two orgs to verify) - manually re-derived the join logic against the real schema.",
+      "owner": "needs manual application + live verification",
+      "action_required": "Run supabase/migrations/0127_p0_lockdown_org_resolver_rpcs.sql against the live database."
+    },
+    {
+      "id": "SEC-004",
+      "title": "Payslip / payroll protection",
+      "severity": "P0 - Critical",
+      "status": "sound - no gap found",
+      "domain": "Database / Application",
+      "finding": "payslips_hr_full and payroll_runs_hr_full RLS policies are correctly org-scoped; get-my-pay.ts re-derives both ownership and org.",
+      "remediation": "none needed",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-005",
+      "title": "Documents / storage protection",
+      "severity": "P0 - Critical",
+      "status": "fixed (pending manual SQL application) - see SEC-001, same root cause",
+      "domain": "Database / Storage",
+      "finding": "employee_documents and its storage bucket policy (0124), plus the disciplinary-documents and employee-photos buckets (0128), had the identical unscoped-admin/hr-policy gap as SEC-001.",
+      "remediation": "see SEC-001 entries 0124 / 0128",
+      "owner": "needs manual application"
+    },
+    {
+      "id": "SEC-006",
+      "title": "Sensitive profile fields exposed without redaction",
+      "severity": "P1 - High",
+      "status": "fixed",
+      "domain": "Application",
+      "files": ["src/lib/employees/get-employee-360.ts", "src/app/dashboard/employees/[employeeId]/components/bio-tab.tsx"],
+      "finding": "getEmployee360's select(\"*\") against employees returned national_id, passport_no, date_of_birth, marital_status, personal_email, phone_number, physical_address, postal_address, and bank_name/bank_account_no/bank_branch_code/kra_pin/nssf_no/shif_no to ANY viewer who could reach the Employee 360 page - the route itself places no role gate in front of the Bio tab, only in front of editing contacts, and RLS legitimately allows a manager to read a direct report's employees row (is_manager_of()), so a manager viewing a report's profile saw the same sensitive identity/financial fields HR and the employee see.",
+      "remediation": "getEmployee360 now redacts the listed fields to null for any viewer who isn't admin/hr or the employee themselves (same canViewPayroll-style scope already used for salary figures). BioTab now distinguishes 'Restricted' (redacted) from 'Not on file' (genuinely blank) so the UI doesn't mislead a manager into thinking the data doesn't exist.",
+      "test": "Covered by the existing tsc/build/lint pipeline; no live-DB test possible this session. A manual check (loading the page as a manager role) would still be worth doing against a live environment.",
+      "owner": "fixed in this session",
+      "note": "This codebase also has a deliberately separate, already-correctly-scoped manager view at /dashboard/manager/team/[employeeId] (getManagerEmployee360) that never selected these columns at all - the gap was specifically that nothing stops a manager from navigating directly to the HR route instead."
+    },
+    {
+      "id": "SEC-007",
+      "title": "Approval manipulation - forgeable decision trail, silently-dropped status updates",
+      "severity": "P0 - Critical",
+      "status": "fixed (pending manual SQL application)",
+      "domain": "Database / Application",
+      "finding": "Two issues: (1) approval_actions_actor_insert only checked actor_user_id = auth.uid(), with no org or entitlement check at all - any authenticated user could insert a fabricated 'approve'/'reject' row against any org's approval_request_id, polluting the audit/decision trail cross-tenant. (2) approval_requests had no UPDATE policy for anyone except admin/hr (approval_requests_hr_full) or a requester withdrawing their own request - every decideApprovalStep() call site runs on the deciding user's own session client, so a named approver, role-matched approver, or delegate deciding a step had their own subsequent approval_requests status/current_step update silently dropped by RLS (no error, zero rows affected), leaving the request stuck on 'pending_approval' forever even though the step itself recorded a decision.",
+      "remediation": "0126: approval_actions_actor_insert now requires org match plus either (a) action='submit' by the request's own requester, or (b) a real step_id the actor is entitled to decide (named/role-matched/delegate/admin-hr), mirroring the approval_steps decide policies. 0125: new approval_requests_approver_decide UPDATE policy scoped to a caller who participates in the request's approval chain.",
+      "test": "none added (requires live multi-step approval flow across two users/orgs to verify) - manually traced every decideApprovalStep() call site and the exact RLS evaluation order.",
+      "owner": "needs manual application + live verification",
+      "action_required": "Run supabase/migrations/0125_p0_approval_requests_decide_rls.sql and 0126_p0_approval_actions_insert_rls.sql against the live database."
+    },
+    {
+      "id": "SEC-008",
+      "title": "Workflow manipulation / replay - TOCTOU race in approval decisions",
+      "severity": "P1 - High",
+      "status": "fixed",
+      "domain": "Application",
+      "files": ["src/lib/approvals/decide-approval-step.ts"],
+      "finding": "decideApprovalStep() read the step's status, checked it was 'pending' in application code, then performed a separate UPDATE with no WHERE status='pending' guard. Two concurrent decisions (e.g. one approver approving, a delegate rejecting) could both pass the read check before either wrote, letting the step flip between two conflicting terminal states and producing two contradictory approval_actions rows (the existing unique index only de-duplicates identical action values, not an approve-vs-reject race).",
+      "remediation": "The UPDATE is now an atomic compare-and-swap: `.eq('status','pending')` is added directly to the UPDATE statement, and the result is checked - a zero-row result (lost race) now throws 'This step was just decided by someone else' instead of silently succeeding.",
+      "test": "src/lib/payroll/calculate.test.ts unaffected; no new automated concurrency test added (would require a live DB to actually race two connections) - logic verified by inspection and via tsc/build.",
+      "owner": "fixed in this session",
+      "note": "workflow_tasks completion (a separate, lower-severity gap: no transition guard/idempotency check on task completion) remains open - accepted as lower priority since it is self-scoped (only the assignee can complete their own task) and has no cross-user conflict potential."
+    },
+    {
+      "id": "SEC-009",
+      "title": "AI authorization / prompt injection",
+      "severity": "P0 - Critical",
+      "status": "sound - no gap found",
+      "domain": "Application / AI gateway",
+      "finding": "loadCallerContext derives identity/role/org server-side; action tools only ever stage a request into ai_action_requests rather than executing directly; confirm-action.ts re-derives the confirming user server-side and checks role before allowing confirmation on someone else's behalf; attachment content is explicitly framed as untrusted data in the prompt construction, not instructions.",
+      "remediation": "none needed",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-010",
+      "title": "Cron / background endpoint security",
+      "severity": "P1 - High",
+      "status": "sound - no gap found",
+      "domain": "Infrastructure",
+      "finding": "All 10 cron routes use an identical Authorization: Bearer ${CRON_SECRET} check and fail closed if the secret is unconfigured.",
+      "remediation": "none needed",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-011",
+      "title": "Session / revocation handling",
+      "severity": "P1 - High",
+      "status": "sound - no gap found",
+      "domain": "Application / Auth",
+      "finding": "src/proxy.ts (this project's Next.js middleware-equivalent) redirects unauthenticated requests server-side before any page renders.",
+      "remediation": "none needed",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-012",
+      "title": "Audit integrity",
+      "severity": "P1 - High",
+      "status": "sound - no gap found",
+      "domain": "Database",
+      "finding": "audit_events has RLS enabled with no UPDATE or DELETE policy defined for any role, including admin/hr - genuinely append-only at the database level. (employee_audit_log's RLS, a DIFFERENT table that only logs employee field changes, had the SEC-001 org-scoping gap and is fixed there - it was never writable cross-role to begin with, just cross-org readable, which 0124 closes.)",
+      "remediation": "none needed beyond the SEC-001 fix already applied to employee_audit_log",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-013",
+      "title": "Secret / client exposure",
+      "severity": "P0 - Critical",
+      "status": "sound - no gap found",
+      "domain": "Application / Infrastructure",
+      "finding": "Service-role Supabase credentials are only ever instantiated in createAdminClient() (server-only module), never bundled toward the client.",
+      "remediation": "none needed",
+      "owner": "n/a"
+    },
+    {
+      "id": "SEC-014",
+      "title": "Additional hardening items from the spec not otherwise categorized above",
+      "severity": "informational",
+      "status": "no additional gaps found beyond SEC-001 through SEC-008",
+      "domain": "n/a",
+      "owner": "n/a"
+    }
+  ],
+  "accepted_lower_priority_items": [
+    {
+      "title": "workflow_tasks completion has no transition guard / idempotency protection",
+      "severity": "P3 - Low",
+      "rationale": "Self-scoped (only the row's own assignee can complete it under existing RLS); no cross-user conflict or privilege-escalation potential identified. Deferred rather than fixed in this pass."
+    }
+  ],
+  "explicitly_not_verified_live": [
+    "No live two-organization Supabase project was available in this session to run the spec's own authenticated API/DB-level test harness. Every migration in this register needs to be (a) applied to the real database and (b) exercised with two real organizations' JWTs to confirm the cross-tenant denial actually holds at the database level, not just that the SQL is syntactically and logically correct on inspection.",
+    "The approval-flow fixes (SEC-007/SEC-008) specifically need a live multi-user test: two different organizations, a named approver, a role-matched approver, and a delegate, each attempting to decide steps/insert approval_actions rows both inside and outside their own org and chain of entitlement.",
+    "The RPC lockdown (get_current_manager_id/get_direct_reports/get_current_assignment_unit) needs a live cross-org RPC call test to confirm the org check actually suppresses the result rather than erroring in an unexpected way the app code doesn't handle."
+  ]
+}
