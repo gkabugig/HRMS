@@ -5,7 +5,9 @@ import type { PayrollStatus } from "@/lib/payroll/state-machine";
 const OUTPUTS: { type: string; label: string; eligibleFrom: PayrollStatus[] }[] = [
   { type: "payroll_register", label: "Payroll Register (CSV)", eligibleFrom: ["calculated", "under_review", "approved", "processed", "paid", "closed"] },
   { type: "statutory_summary", label: "Statutory Summary (CSV)", eligibleFrom: ["calculated", "under_review", "approved", "processed", "paid", "closed"] },
-  { type: "bank_file", label: "Bank / Payment File (CSV)", eligibleFrom: ["approved", "processed", "paid", "closed"] },
+  { type: "bank_file", label: "Bank Transfer File (CSV)", eligibleFrom: ["approved", "processed", "paid", "closed"] },
+  { type: "mpesa_file", label: "M-Pesa Bulk Payment File (CSV)", eligibleFrom: ["approved", "processed", "paid", "closed"] },
+  { type: "payout_exceptions", label: "Who is missing payout details (CSV)", eligibleFrom: ["approved", "processed", "paid", "closed"] },
 ];
 
 export default function OutputCentre({
