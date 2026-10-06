@@ -48,7 +48,7 @@ export default async function SettingsPage({
       .eq("org_id", DEFAULT_ORG_ID),
     supabase.from("organizations").select("payroll_variance_warning_pct").eq("id", DEFAULT_ORG_ID).maybeSingle(),
     isAdmin
-      ? supabase.from("app_users").select("id, role, employee_id, created_at, employees(name)").order("created_at", { ascending: true })
+      ? supabase.from("app_users").select("id, role, username, employee_id, created_at, employees(name)").order("created_at", { ascending: true })
       : Promise.resolve({ data: null }),
     isAdmin ? supabase.from("employees").select("id, name").order("name") : Promise.resolve({ data: null }),
     isAdmin

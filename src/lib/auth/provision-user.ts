@@ -6,6 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { resolveLoginIdentifier, validateUsername } from "./username";
 
 export type AppRole = "admin" | "hr" | "manager" | "employee";
 
@@ -14,16 +15,24 @@ export async function createAppUserLogin(
   input: {
     orgId: string;
     actorUserId: string;
-    email: string;
+    // What the admin typed: a real email, or a username (no "@") that is
+    // stored under an internal synthetic email - see ./username.ts.
+    identifier: string;
     password: string;
     role: AppRole;
     employeeId: string | null;
   }
 ): Promise<{ userId: string }> {
+  const { email, username } = resolveLoginIdentifier(input.identifier);
+  if (username) {
+    const problem = validateUsername(username);
+    if (problem) throw new Error(problem);
+  }
+
   const admin = createAdminClient();
 
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
-    email: input.email,
+    email,
     password: input.password,
     email_confirm: true, // no email-sending configured yet — the admin hands the password over directly
   });
@@ -35,6 +44,7 @@ export async function createAppUserLogin(
     org_id: input.orgId,
     role: input.role,
     employee_id: input.employeeId,
+    username,
   });
   if (insertErr) {
     // Roll back the orphaned auth account rather than leaving a login with
@@ -52,7 +62,7 @@ export async function createAppUserLogin(
     resourceId: created.user.id,
     eventCategory: "security",
     riskLevel: "elevated",
-    metadata: { email: input.email, role: input.role, employee_id: input.employeeId },
+    metadata: { email, username, role: input.role, employee_id: input.employeeId },
   });
 
   return { userId: created.user.id };

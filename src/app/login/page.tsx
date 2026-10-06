@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { resolveLoginIdentifier } from "@/lib/auth/username";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -22,7 +23,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        // Accepts a username or an email: a username is mapped to its
+        // internal account email (see lib/auth/username.ts).
+        const { error } = await supabase.auth.signInWithPassword({ email: resolveLoginIdentifier(email).email, password });
         if (error) throw error;
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password });
@@ -72,9 +75,13 @@ export default function LoginPage() {
             </div>
           )}
           <div>
-            <label className="block text-sm text-neutral-700 dark:text-neutral-200 mb-1">Email</label>
+            <label className="block text-sm text-neutral-700 dark:text-neutral-200 mb-1">
+              {mode === "signin" ? "Username or email" : "Email"}
+            </label>
             <input
-              type="email"
+              type={mode === "signin" ? "text" : "email"}
+              autoCapitalize="none"
+              autoComplete="username"
               required
               className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2 text-sm"
               value={email}

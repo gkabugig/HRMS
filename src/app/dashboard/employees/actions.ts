@@ -217,7 +217,7 @@ export async function inviteToEss(employeeId: string, email: string, password: s
   await createAppUserLogin(supabase, {
     orgId: appUser.org_id,
     actorUserId: user.id,
-    email,
+    identifier: email,
     password,
     role,
     employeeId,

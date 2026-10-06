@@ -167,16 +167,16 @@ export async function createUserLoginAction(
   try {
     const { supabase, userId, orgId } = await requireAdmin();
 
-    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const identifier = String(formData.get("identifier") || "").trim();
     const password = String(formData.get("password") || "");
     const role = String(formData.get("role") || "") as AppRole;
     const employeeId = String(formData.get("employee_id") || "") || null;
 
-    if (!email) return { error: "Email is required." };
+    if (!identifier) return { error: "Enter a username or an email." };
     if (password.length < 8) return { error: "Password must be at least 8 characters." };
     if (!["admin", "hr", "manager", "employee"].includes(role)) return { error: "Invalid role." };
 
-    await createAppUserLogin(supabase, { orgId, actorUserId: userId, email, password, role, employeeId });
+    await createAppUserLogin(supabase, { orgId, actorUserId: userId, identifier, password, role, employeeId });
 
     revalidatePath("/dashboard/settings");
     return { success: true };

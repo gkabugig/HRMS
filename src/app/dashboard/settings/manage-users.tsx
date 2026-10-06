@@ -14,6 +14,7 @@ const initialActionState: SettingsActionState = {};
 type AppUserRow = {
   id: string;
   role: string;
+  username: string | null;
   employee_id: string | null;
   created_at: string;
   employees: { name: string } | null;
@@ -44,6 +45,7 @@ export default function ManageUsers({
         <table className="w-full text-sm">
           <thead className="text-neutral-600 dark:text-neutral-300 text-left">
             <tr>
+              <th className="px-3 py-2 font-medium">Username</th>
               <th className="px-3 py-2 font-medium">Role</th>
               <th className="px-3 py-2 font-medium">Linked employee</th>
               <th className="px-3 py-2 font-medium">Added</th>
@@ -69,6 +71,7 @@ function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
 
   return (
     <tr className="border-t border-neutral-100 dark:border-neutral-800 align-top">
+      <td className="px-3 py-2 text-neutral-600 dark:text-neutral-300">{user.username ?? "—"}</td>
       <td className="px-3 py-2">
         <form action={updateRole} className="flex items-center gap-2 flex-wrap">
           <input type="hidden" name="user_id" value={user.id} />
@@ -133,11 +136,13 @@ function CreateLoginForm({
     <div className="border-t border-[var(--border-subtle)] pt-4">
       <form key={formKey} action={formAction} className="flex items-end gap-2 flex-wrap">
         <div>
-          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Email</label>
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Username or email</label>
           <input
-            name="email"
-            type="email"
+            name="identifier"
+            type="text"
             required
+            autoCapitalize="none"
+            placeholder="e.g. jane.doe"
             className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-1.5"
           />
         </div>
@@ -192,9 +197,9 @@ function CreateLoginForm({
         </button>
       </form>
       {state.error && <p className="text-xs text-red-600 mt-2">{state.error}</p>}
-      {state.success && <p className="text-xs text-green-600 mt-2">Login created. Share the email and password with them directly.</p>}
+      {state.success && <p className="text-xs text-green-600 mt-2">Login created. Share the username (or email) and password with them directly.</p>}
       <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
-        Share the email and temporary password with them directly — no invite email is sent. They can sign in right away at{" "}
+        Type a username (letters, numbers, dots, dashes) for people without an email, or a full email address. Share the username/email and temporary password with them directly — no invite email is sent. They can sign in right away at{" "}
         <span className="font-mono">/login</span>.
       </p>
     </div>

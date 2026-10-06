@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isInternalUsernameEmail } from "@/lib/auth/username";
 
 // Area 09 §29 "Mask destinations in administrator screens unless full
 // display is authorized." Only a masked form is ever stored in
@@ -30,6 +31,8 @@ export async function lookupDestination(admin: SupabaseClient, channel: string, 
   if (channel === "email") {
     const { data, error } = await admin.auth.admin.getUserById(recipientUserId);
     if (error || !data?.user?.email) return null;
+    // Username-only accounts have a synthetic internal address that can't receive mail.
+    if (isInternalUsernameEmail(data.user.email)) return null;
     return data.user.email;
   }
   return null;
