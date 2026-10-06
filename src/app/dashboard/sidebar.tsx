@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -113,30 +113,16 @@ export default function Sidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const grouped = groupTabs(tabs);
 
-  // Collapsible sections. The section holding the current page is always
-  // open (so you can see where you are); the others open/close on click and
-  // the choice is remembered per browser. Everything starts collapsed except
-  // the active section, which keeps a long menu short at a glance.
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("hrms.sidebar.expanded");
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore saved choice after mount (avoids SSR mismatch)
-      if (saved) setExpanded(JSON.parse(saved));
-    } catch {
-      /* storage unavailable - just use defaults */
-    }
-  }, []);
+  // Accordion: only one section is open at a time. By default it's the one
+  // holding the current page; clicking a heading opens that section (closing
+  // the rest) or closes it if it's already open. The manual choice is tied to
+  // the page it was made on, so navigating somewhere new re-opens the section
+  // that page belongs to.
+  const [manual, setManual] = useState<{ path: string; group: string | null } | null>(null);
+  const activeGroup = grouped.find((g) => g.tabs.some((t) => isActive(pathname, t.href)))?.group ?? null;
+  const openGroup = manual && manual.path === pathname ? manual.group : activeGroup;
   function toggleGroup(group: string) {
-    setExpanded((prev) => {
-      const next = { ...prev, [group]: !prev[group] };
-      try {
-        window.localStorage.setItem("hrms.sidebar.expanded", JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
+    setManual({ path: pathname, group: openGroup === group ? null : group });
   }
   const badgeFor = (key: string) =>
     key === "leave" && leavePendingCount > 0
@@ -148,8 +134,7 @@ export default function Sidebar({
   const navLinks = (onNavigate?: () => void) => (
     <nav className="flex-1 overflow-y-auto thin-scrollbar px-3 py-4 space-y-4">
       {grouped.map(({ group, tabs: groupTabsList }, index) => {
-        const hasActive = groupTabsList.some((t) => isActive(pathname, t.href));
-        const open = hasActive || !!expanded[group];
+        const open = openGroup === group;
         const hiddenBadges = open ? 0 : groupTabsList.reduce((sum, t) => sum + badgeFor(t.key), 0);
         const panelId = `nav-group-${group.replace(/\W+/g, "-").toLowerCase()}`;
         return (
