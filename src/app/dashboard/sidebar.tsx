@@ -82,7 +82,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
   employee: "Employee",
 };
 
-const GROUP_ORDER: NavGroup[] = ["Overview", "People", "Workforce", "Payroll & Compliance", "Insights", "Admin"];
+const GROUP_ORDER: NavGroup[] = ["Overview", "My Space", "People", "Workforce", "Payroll & Compliance", "Insights", "Admin"];
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -114,13 +114,12 @@ export default function Sidebar({
 
   const navLinks = (onNavigate?: () => void) => (
     <nav className="flex-1 overflow-y-auto thin-scrollbar px-3 py-4 space-y-4">
-      {grouped.map(({ group, tabs: groupTabsList }) => (
-        <div key={group}>
-          {group !== "Overview" && (
-            <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--sidebar-text)]/70">
-              {group}
-            </p>
-          )}
+      {grouped.map(({ group, tabs: groupTabsList }, index) => (
+        <div key={group} className={index > 0 ? "pt-4 border-t border-[var(--sidebar-border)]" : ""}>
+          <p className="px-3 mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/60">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent-400" aria-hidden />
+            {group}
+          </p>
           <div className="space-y-0.5">
             {groupTabsList.map((t) => {
               const Icon = ICONS[t.icon];

@@ -38,7 +38,7 @@ export type NavIcon =
   | "help-circle"
   | "bot";
 
-export type NavGroup = "Overview" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
+export type NavGroup = "Overview" | "My Space" | "People" | "Workforce" | "Payroll & Compliance" | "Insights" | "Admin";
 
 export type NavTab = {
   key: string;
@@ -126,13 +126,13 @@ export const ALL_MODULES: NavTab[] = [
   // employee's self-service surface (confirmed self-scoped by RLS), and
   // /dashboard/me/requests + /dashboard/me/notifications simply redirect to
   // them, so the existing keys keep working for the employee role as-is.
-  { key: "me-profile", label: "My Profile", href: "/dashboard/me/profile", icon: "user", group: "Overview" },
-  { key: "me-attendance", label: "My Attendance", href: "/dashboard/me/attendance", icon: "clock", group: "Overview" },
-  { key: "me-leave", label: "My Leave", href: "/dashboard/me/leave", icon: "calendar-days", group: "Overview" },
-  { key: "me-pay", label: "My Pay", href: "/dashboard/me/pay", icon: "wallet", group: "Overview" },
-  { key: "me-documents", label: "My Documents", href: "/dashboard/me/documents", icon: "folder", group: "Overview" },
-  { key: "me-tasks", label: "My Tasks", href: "/dashboard/me/tasks", icon: "check-square", group: "Overview" },
-  { key: "me-help", label: "Help", href: "/dashboard/me/help", icon: "help-circle", group: "Overview" },
+  { key: "me-profile", label: "My Profile", href: "/dashboard/me/profile", icon: "user", group: "My Space" },
+  { key: "me-attendance", label: "My Attendance", href: "/dashboard/me/attendance", icon: "clock", group: "My Space" },
+  { key: "me-leave", label: "My Leave", href: "/dashboard/me/leave", icon: "calendar-days", group: "My Space" },
+  { key: "me-pay", label: "My Pay", href: "/dashboard/me/pay", icon: "wallet", group: "My Space" },
+  { key: "me-documents", label: "My Documents", href: "/dashboard/me/documents", icon: "folder", group: "My Space" },
+  { key: "me-tasks", label: "My Tasks", href: "/dashboard/me/tasks", icon: "check-square", group: "My Space" },
+  { key: "me-help", label: "Help", href: "/dashboard/me/help", icon: "help-circle", group: "My Space" },
 
   // Area 06 Manager Workspace — the manager's own purpose-built surface,
   // replacing the shared "attendance"/"leave"/"performance" keys for the
