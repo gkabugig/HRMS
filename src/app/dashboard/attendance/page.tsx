@@ -1,3 +1,4 @@
+import ActionForm from "@/components/forms/action-form";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/auth/roles";
 import { isCommandCentreRole, canCorrectAttendance } from "@/lib/attendance/attendance-permissions";
@@ -103,7 +104,7 @@ export default async function AttendancePage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">{canPickEmployee ? "Record attendance" : "Clock in / out"}</h2>
-        <form action={recordAttendance} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
+        <ActionForm action={recordAttendance} successMessage="Attendance saved." className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
           {canPickEmployee && (
             <select name="employee_id" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
@@ -129,7 +130,7 @@ export default async function AttendancePage() {
           >
             Save
           </button>
-        </form>
+        </ActionForm>
       </div>
     </div>
   );

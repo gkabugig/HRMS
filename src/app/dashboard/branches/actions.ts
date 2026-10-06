@@ -1,5 +1,6 @@
 "use server";
 
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { createClient } from "@/lib/supabase/server";
 import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
@@ -12,7 +13,8 @@ function optionalNumber(v: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export async function createBranch(formData: FormData) {
+export async function createBranch(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const latitude = optionalNumber(formData.get("latitude"));
   const longitude = optionalNumber(formData.get("longitude"));
@@ -32,9 +34,11 @@ export async function createBranch(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/branches");
   revalidatePath("/dashboard/employees");
+  });
 }
 
-export async function deleteBranch(branchId: string) {
+export async function deleteBranch(branchId: string, _prev: FormResult, _formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const { error } = await supabase.from("branches").delete().eq("id", branchId);
   if (error) {
@@ -45,4 +49,5 @@ export async function deleteBranch(branchId: string) {
   }
   revalidatePath("/dashboard/branches");
   revalidatePath("/dashboard/employees");
+  });
 }

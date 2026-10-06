@@ -19,6 +19,7 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
   const [workingDays, setWorkingDays] = useState<number | null>(null);
   const [checking, startChecking] = useTransition();
   const [submitting, startSubmitting] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function runCheck(nextType: string, nextStart: string, nextEnd: string) {
     if (!nextStart || !nextEnd || nextEnd < nextStart) {
@@ -35,8 +36,13 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
   }
 
   function onSubmit(formData: FormData) {
+    setSubmitError(null);
     startSubmitting(async () => {
-      await applyForLeave(formData);
+      const res = await applyForLeave({}, formData);
+      if (res.error) {
+        setSubmitError(res.error);
+        return;
+      }
       setOpen(false);
       setStart("");
       setEnd("");
@@ -120,6 +126,12 @@ export function LeaveRequestDialog({ employeeId }: { employeeId: string }) {
 
               {checking && <p className="text-xs text-neutral-400 dark:text-neutral-500">Checking availability…</p>}
               {!checking && (start || end) && <LeaveConflictPanel conflicts={conflicts} />}
+
+              {submitError && (
+                <p role="alert" className="text-xs text-red-600">
+                  {submitError}
+                </p>
+              )}
 
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="text-sm text-neutral-500 dark:text-neutral-400 px-3 py-2">

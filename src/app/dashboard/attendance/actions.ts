@@ -1,12 +1,14 @@
 "use server";
 
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { correctAttendance } from "@/lib/attendance/correct-attendance";
 import { createNotificationForMany } from "@/lib/notifications/create-notification";
 import { logDomainEvent } from "@/lib/domain-events/log-event";
 
-export async function recordAttendance(formData: FormData) {
+export async function recordAttendance(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -39,6 +41,7 @@ export async function recordAttendance(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/attendance");
+  });
 }
 
 export async function submitAttendanceCorrection(formData: FormData) {

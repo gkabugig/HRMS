@@ -1,5 +1,6 @@
 "use server";
 
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { createClient } from "@/lib/supabase/server";
 import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
@@ -13,7 +14,8 @@ import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
 import { authorize } from "@/lib/authz/authorize";
 
 
-export async function createEmployee(formData: FormData) {
+export async function createEmployee(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
 
   // Employees is one of the three resources the Universal RBAC rollout
@@ -107,6 +109,7 @@ export async function createEmployee(formData: FormData) {
   });
 
   revalidatePath("/dashboard/employees");
+  });
 }
 
 // Single edit form covering org structure (department, manager, branch) and
@@ -114,7 +117,8 @@ export async function createEmployee(formData: FormData) {
 // are usually settled after the employee record already exists. Every
 // changed field is written to employee_audit_log so there's a real history
 // behind the Audit Log page, not just the latest snapshot.
-export async function updateEmployee(employeeId: string, formData: FormData) {
+export async function updateEmployee(employeeId: string, _prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -198,6 +202,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   revalidatePath("/dashboard/employees");
   revalidatePath("/dashboard/organogram");
   revalidatePath(`/dashboard/employees/${employeeId}`);
+  });
 }
 
 // Not currently wired to a button anywhere (Settings -> Manage Users is the

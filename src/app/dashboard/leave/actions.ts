@@ -1,5 +1,6 @@
 "use server";
 
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { calculateLeaveDays } from "@/lib/leave/calculate-leave-days";
@@ -35,7 +36,8 @@ export async function checkLeaveConflicts(
   return { conflicts, workingDays };
 }
 
-export async function applyForLeave(formData: FormData) {
+export async function applyForLeave(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -115,9 +117,11 @@ export async function applyForLeave(formData: FormData) {
   revalidatePath("/dashboard/leave");
   revalidatePath("/dashboard/me/leave");
   revalidatePath("/dashboard/me");
+  });
 }
 
-export async function decideLeave(id: string, decision: "Approved" | "Rejected") {
+export async function decideLeave(id: string, decision: "Approved" | "Rejected"): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -181,9 +185,11 @@ export async function decideLeave(id: string, decision: "Approved" | "Rejected")
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/me/leave");
   revalidatePath("/dashboard/me");
+  });
 }
 
-export async function cancelLeaveRequest(id: string) {
+export async function cancelLeaveRequest(id: string, _prev: FormResult, _formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -201,4 +207,5 @@ export async function cancelLeaveRequest(id: string) {
 
   revalidatePath("/dashboard/leave");
   revalidatePath("/dashboard/me/leave");
+  });
 }

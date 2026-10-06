@@ -1,3 +1,4 @@
+import ActionForm from "@/components/forms/action-form";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createEmployee, updateEmployee } from "./actions";
@@ -124,8 +125,8 @@ export default async function EmployeesPage({
                     <td className="px-4 py-2">
                       <details>
                         <summary className="text-xs text-brand-600 hover:text-brand-700 cursor-pointer">Edit</summary>
-                        <form
-                          action={updateEmployee.bind(null, e.id)}
+                        <ActionForm
+                          action={updateEmployee.bind(null, e.id)} successMessage="Saved." resetOnSuccess={false}
                           className="mt-2 flex flex-col gap-2 text-xs w-56"
                         >
                           <label className="text-neutral-500 dark:text-neutral-400">
@@ -414,7 +415,7 @@ export default async function EmployeesPage({
                           <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
                             Save
                           </button>
-                        </form>
+                        </ActionForm>
                       </details>
                     </td>
                   )}
@@ -435,7 +436,7 @@ export default async function EmployeesPage({
       {canEdit && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add employee</h2>
-          <form action={createEmployee} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <ActionForm action={createEmployee} successMessage="Employee added." className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <input name="staff_no" placeholder="Staff No" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="name" placeholder="Full name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="department" placeholder="Department" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
@@ -505,7 +506,7 @@ export default async function EmployeesPage({
             <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add employee
             </button>
-          </form>
+          </ActionForm>
         </div>
       )}
     </div>

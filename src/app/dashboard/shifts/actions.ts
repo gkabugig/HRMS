@@ -1,11 +1,13 @@
 "use server";
 
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { createClient } from "@/lib/supabase/server";
 import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 
 
-export async function createShiftPattern(formData: FormData) {
+export async function createShiftPattern(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const { error } = await supabase.from("shift_patterns").insert({
     org_id: await requireOrgId(supabase),
@@ -16,9 +18,11 @@ export async function createShiftPattern(formData: FormData) {
   });
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/shifts");
+  });
 }
 
-export async function deleteShiftPattern(shiftPatternId: string) {
+export async function deleteShiftPattern(shiftPatternId: string, _prev: FormResult, _formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const { error } = await supabase.from("shift_patterns").delete().eq("id", shiftPatternId);
   if (error) {
@@ -28,9 +32,11 @@ export async function deleteShiftPattern(shiftPatternId: string) {
     throw new Error(error.message);
   }
   revalidatePath("/dashboard/shifts");
+  });
 }
 
-export async function assignShift(formData: FormData) {
+export async function assignShift(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const employeeId = String(formData.get("employee_id") || "");
   const shiftPatternId = String(formData.get("shift_pattern_id") || "");
@@ -42,12 +48,15 @@ export async function assignShift(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/shifts");
   revalidatePath("/dashboard/attendance");
+  });
 }
 
-export async function unassignShift(employeeId: string) {
+export async function unassignShift(employeeId: string, _prev: FormResult, _formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const { error } = await supabase.from("employee_shifts").delete().eq("employee_id", employeeId);
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/shifts");
   revalidatePath("/dashboard/attendance");
+  });
 }

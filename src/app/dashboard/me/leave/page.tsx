@@ -5,6 +5,7 @@
 // second leave engine. Decisions still happen on /dashboard/leave?view=requests
 // (manager/HR) exactly as before; nothing here writes a status directly
 // (spec §7 "never bypass approval by directly writing leave status").
+import ActionForm from "@/components/forms/action-form";
 import { createClient } from "@/lib/supabase/server";
 import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-context";
 import { getLeaveBalances } from "@/lib/leave/get-leave-balances";
@@ -55,7 +56,7 @@ export default async function MyLeavePage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Apply for leave</h2>
-        <form action={applyForLeave} className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+        <ActionForm action={applyForLeave} successMessage="Leave request sent." className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
           <select name="leave_type" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
             <option value="">Select leave type…</option>
             {(leaveTypes ?? []).map((t) => (
@@ -69,7 +70,7 @@ export default async function MyLeavePage() {
           <button className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1.5 font-medium justify-self-start sm:col-span-2">
             Submit request
           </button>
-        </form>
+        </ActionForm>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] overflow-hidden">
@@ -98,9 +99,9 @@ export default async function MyLeavePage() {
                   </td>
                   <td className="px-4 py-2">
                     {r.status === "Pending" && (
-                      <form action={cancelLeaveRequest.bind(null, r.id)}>
+                      <ActionForm action={cancelLeaveRequest.bind(null, r.id)} successMessage={null}>
                         <button className="text-xs text-red-600 hover:underline">Cancel</button>
-                      </form>
+                      </ActionForm>
                     )}
                   </td>
                 </tr>
