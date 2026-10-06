@@ -58,6 +58,8 @@ export type NavTab = {
 export const ALL_MODULES: NavTab[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "layout-dashboard", group: "Overview" },
   { key: "notifications", label: "Notifications", href: "/dashboard/notifications", icon: "bell", group: "Overview" },
+  // Help Centre for admin / HR / managers (employees use "me-help").
+  { key: "help", label: "Help Centre", href: "/dashboard/help", icon: "help-circle", group: "Overview" },
   { key: "approvals", label: "My Approvals", href: "/dashboard/approvals", icon: "check-circle", group: "Overview" },
   { key: "service-requests", label: "HR Service Centre", href: "/dashboard/service-requests", icon: "life-buoy", group: "Overview" },
 
@@ -185,6 +187,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "performance-insights",
     "risk",
     "assistant",
+    "help",
   ],
   employee: [
     "dashboard",
