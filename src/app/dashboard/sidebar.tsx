@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -35,6 +35,7 @@ import {
   CheckSquare,
   HelpCircle,
   Bot,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import type { NavIcon, NavTab, NavGroup, UserRole } from "@/lib/auth/roles";
@@ -112,24 +113,68 @@ export default function Sidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const grouped = groupTabs(tabs);
 
+  // Collapsible sections. The section holding the current page is always
+  // open (so you can see where you are); the others open/close on click and
+  // the choice is remembered per browser. Everything starts collapsed except
+  // the active section, which keeps a long menu short at a glance.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("hrms.sidebar.expanded");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore saved choice after mount (avoids SSR mismatch)
+      if (saved) setExpanded(JSON.parse(saved));
+    } catch {
+      /* storage unavailable - just use defaults */
+    }
+  }, []);
+  function toggleGroup(group: string) {
+    setExpanded((prev) => {
+      const next = { ...prev, [group]: !prev[group] };
+      try {
+        window.localStorage.setItem("hrms.sidebar.expanded", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+  const badgeFor = (key: string) =>
+    key === "leave" && leavePendingCount > 0
+      ? leavePendingCount
+      : key === "notifications" && unreadNotificationCount > 0
+        ? unreadNotificationCount
+        : 0;
+
   const navLinks = (onNavigate?: () => void) => (
     <nav className="flex-1 overflow-y-auto thin-scrollbar px-3 py-4 space-y-4">
-      {grouped.map(({ group, tabs: groupTabsList }, index) => (
-        <div key={group} className={index > 0 ? "pt-4 border-t border-[var(--sidebar-border)]" : ""}>
-          <p className="px-3 mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/60">
+      {grouped.map(({ group, tabs: groupTabsList }, index) => {
+        const hasActive = groupTabsList.some((t) => isActive(pathname, t.href));
+        const open = hasActive || !!expanded[group];
+        const hiddenBadges = open ? 0 : groupTabsList.reduce((sum, t) => sum + badgeFor(t.key), 0);
+        const panelId = `nav-group-${group.replace(/\W+/g, "-").toLowerCase()}`;
+        return (
+        <div key={group} className={index > 0 ? "pt-3 border-t border-[var(--sidebar-border)]" : ""}>
+          <button
+            type="button"
+            onClick={() => toggleGroup(group)}
+            aria-expanded={open}
+            aria-controls={panelId}
+            className="w-full px-3 py-1.5 mb-1 flex items-center gap-2 rounded-md text-[11px] font-bold uppercase tracking-[0.12em] text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-accent-400" aria-hidden />
-            {group}
-          </p>
-          <div className="space-y-0.5">
+            <span className="flex-1 text-left">{group}</span>
+            {hiddenBadges > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-accent-500 text-[10px] font-semibold text-white flex items-center justify-center normal-case tracking-normal">
+                {hiddenBadges}
+              </span>
+            )}
+            <ChevronDown size={14} className={`transition-transform ${open ? "" : "-rotate-90"}`} aria-hidden />
+          </button>
+          <div id={panelId} hidden={!open} className="space-y-0.5">
             {groupTabsList.map((t) => {
               const Icon = ICONS[t.icon];
               const active = isActive(pathname, t.href);
-              const badge =
-                t.key === "leave" && leavePendingCount > 0
-                  ? leavePendingCount
-                  : t.key === "notifications" && unreadNotificationCount > 0
-                    ? unreadNotificationCount
-                    : 0;
+              const badge = badgeFor(t.key);
               return (
                 <Link
                   key={t.key}
@@ -156,7 +201,8 @@ export default function Sidebar({
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
     </nav>
   );
 
