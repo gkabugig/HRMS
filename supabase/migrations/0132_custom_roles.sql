@@ -34,10 +34,12 @@ create table if not exists public.rbac_role_modules (
 );
 alter table public.rbac_role_modules enable row level security;
 
+drop policy if exists "rbac_role_modules_org_read" on public.rbac_role_modules;
 create policy "rbac_role_modules_org_read" on public.rbac_role_modules
   for select to authenticated
   using (exists (select 1 from public.rbac_roles r where r.id = role_id and r.org_id = current_org_id()));
 
+drop policy if exists "rbac_role_modules_admin_manage" on public.rbac_role_modules;
 create policy "rbac_role_modules_admin_manage" on public.rbac_role_modules
   for all to authenticated
   using (
