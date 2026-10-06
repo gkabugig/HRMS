@@ -9,6 +9,8 @@ import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-c
 import { getMyAttendanceHistory, getMyAttendanceMonthSummary, getMyAttendanceCorrectionRequests } from "@/lib/employee-portal/get-my-attendance";
 import { submitAttendanceCorrectionRequest, cancelAttendanceCorrectionRequest } from "@/lib/attendance/request-correction-actions";
 import EmptyState from "@/components/employee-portal/empty-state";
+import { ClockCard } from "./clock-card";
+import { nairobiNow } from "@/lib/attendance/nairobi-time";
 
 const STATUS_STYLE: Record<string, string> = {
   Submitted: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
@@ -29,7 +31,7 @@ export default async function MyAttendancePage() {
     supabase.from("employee_documents").select("id, file_name").eq("employee_id", ctx.employeeId).order("uploaded_at", { ascending: false }),
   ]);
 
-  const today = history.find((h) => h.workDate === new Date().toISOString().slice(0, 10));
+  const today = history.find((h) => h.workDate === nairobiNow().date);
 
   return (
     <div className="space-y-6">
@@ -42,6 +44,9 @@ export default async function MyAttendancePage() {
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <p className="text-xs text-neutral-500 dark:text-neutral-400">Today</p>
           <p className="text-sm text-neutral-900 dark:text-neutral-50 mt-1">In: <span className="font-mono">{today?.clockIn ?? "—"}</span> · Out: <span className="font-mono">{today?.clockOut ?? "—"}</span></p>
+          <div className="mt-3">
+            <ClockCard clockedIn={!!today?.clockIn} clockedOut={!!today?.clockOut} />
+          </div>
         </div>
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <p className="text-xs text-neutral-500 dark:text-neutral-400">{summary.monthLabel}</p>

@@ -30,7 +30,7 @@ export default async function AttendancePage() {
     showCommandCentre ? getAttendanceCommandCentre(supabase, today) : Promise.resolve(null),
     supabase
       .from("attendance")
-      .select("id, employee_id, work_date, clock_in, clock_out, source, employees(name)")
+      .select("id, employee_id, work_date, clock_in, clock_out, source, clock_in_in_geofence, clock_in_distance_m, clock_out_in_geofence, clock_out_distance_m, employees(name)")
       .order("work_date", { ascending: false })
       .limit(showCommandCentre ? 30 : 15),
     canPickEmployee ? supabase.from("employees").select("id, name").eq("status", "Active").order("name") : Promise.resolve({ data: null }),
@@ -67,6 +67,7 @@ export default async function AttendancePage() {
               <th className="px-4 py-2 font-medium">Date</th>
               <th className="px-4 py-2 font-medium">Clock In</th>
               <th className="px-4 py-2 font-medium">Clock Out</th>
+              <th className="px-4 py-2 font-medium">Location</th>
             </tr>
           </thead>
           <tbody>
@@ -76,11 +77,22 @@ export default async function AttendancePage() {
                 <td className="px-4 py-2">{r.work_date}</td>
                 <td className="px-4 py-2 font-mono">{r.clock_in ?? "—"}</td>
                 <td className="px-4 py-2 font-mono">{r.clock_out ?? "—"}</td>
+                <td className="px-4 py-2 text-xs">
+                  {r.clock_in_in_geofence === false || r.clock_out_in_geofence === false ? (
+                    <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
+                      Outside area ({r.clock_in_in_geofence === false ? r.clock_in_distance_m : r.clock_out_distance_m} m)
+                    </span>
+                  ) : r.source === "self_gps" ? (
+                    <span className="text-green-700">On site</span>
+                  ) : (
+                    <span className="text-neutral-400 dark:text-neutral-500">—</span>
+                  )}
+                </td>
               </tr>
             ))}
             {(!myRecords || myRecords.length === 0) && (
               <tr>
-                <td colSpan={canPickEmployee ? 4 : 3} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
+                <td colSpan={canPickEmployee ? 5 : 4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">
                   No attendance records yet.
                 </td>
               </tr>
