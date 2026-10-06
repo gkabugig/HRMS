@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 function optionalNumber(v: FormDataEntryValue | null): number | null {
   const s = String(v ?? "").trim();
@@ -22,7 +22,7 @@ export async function createBranch(formData: FormData) {
   }
   const radius = optionalNumber(formData.get("geofence_radius_m"));
   const { error } = await supabase.from("branches").insert({
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     name: String(formData.get("name") || ""),
     location: String(formData.get("location") || "") || null,
     latitude,

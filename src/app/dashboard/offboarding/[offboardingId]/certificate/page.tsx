@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export default async function CertificateOfServicePage({
   params,
@@ -9,6 +9,7 @@ export default async function CertificateOfServicePage({
 }) {
   const { offboardingId } = await params;
   const supabase = await createClient();
+  const orgId = await requireOrgId(supabase);
 
   const [{ data: record }, { data: org }] = await Promise.all([
     supabase
@@ -16,7 +17,7 @@ export default async function CertificateOfServicePage({
       .select("last_working_day, status, employees(name, staff_no, job_title, department, date_of_hire)")
       .eq("id", offboardingId)
       .single(),
-    supabase.from("organizations").select("name").eq("id", DEFAULT_ORG_ID).single(),
+    supabase.from("organizations").select("name").eq("id", orgId).single(),
   ]);
 
   if (!record || record.status !== "Completed") {

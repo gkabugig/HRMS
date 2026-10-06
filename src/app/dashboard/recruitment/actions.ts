@@ -1,11 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { defaultProbationEndDate } from "@/lib/compliance";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 async function currentAppUser() {
   const supabase = await createClient();
@@ -30,7 +30,7 @@ export async function createRequisition(formData: FormData) {
       : String(formData.get("hiring_manager_id") || "") || null;
 
   const { error } = await supabase.from("requisitions").insert({
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     role: String(formData.get("role")),
     department: String(formData.get("department")),
     headcount: Number(formData.get("headcount") || 1),
@@ -151,7 +151,7 @@ export async function hireCandidate(candidateId: string, requisitionId: string) 
   const { data: employee, error: empErr } = await supabase
     .from("employees")
     .insert({
-      org_id: DEFAULT_ORG_ID,
+      org_id: await requireOrgId(supabase),
       staff_no: placeholderStaffNo,
       name: candidate.name,
       department: requisition.department,

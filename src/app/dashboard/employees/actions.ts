@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 
 import { defaultProbationEndDate } from "@/lib/compliance";
@@ -11,7 +12,6 @@ import { recordJobHistoryChange, recordCompensationHistoryChange } from "@/lib/e
 import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
 import { authorize } from "@/lib/authz/authorize";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function createEmployee(formData: FormData) {
   const supabase = await createClient();
@@ -30,7 +30,7 @@ export async function createEmployee(formData: FormData) {
     String(formData.get("probation_end_date") || "") || defaultProbationEndDate(dateOfHire);
 
   const payload = {
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     staff_no: String(formData.get("staff_no") || ""),
     name: String(formData.get("name") || ""),
     department: String(formData.get("department") || ""),

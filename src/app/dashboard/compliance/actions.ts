@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function recordFiling(formData: FormData) {
   const supabase = await createClient();
@@ -13,7 +13,7 @@ export async function recordFiling(formData: FormData) {
 
   const { error } = await supabase.from("statutory_filing_log").upsert(
     {
-      org_id: DEFAULT_ORG_ID,
+      org_id: await requireOrgId(supabase),
       filing_key: String(formData.get("filing_key")),
       period: String(formData.get("period")),
       filed_on: String(formData.get("filed_on") || new Date().toISOString().slice(0, 10)),
@@ -30,7 +30,7 @@ export async function addComplianceDocument(formData: FormData) {
   const employeeId = String(formData.get("employee_id") || "");
 
   const { error } = await supabase.from("compliance_documents").insert({
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     employee_id: employeeId || null,
     doc_type: String(formData.get("doc_type")),
     label: String(formData.get("label")),
@@ -52,7 +52,7 @@ export async function deleteComplianceDocument(id: string) {
 export async function publishPolicy(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("policies").insert({
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     name: String(formData.get("name")),
     version: String(formData.get("version") || "") || null,
     published_on: String(formData.get("published_on") || new Date().toISOString().slice(0, 10)),

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { updateRates, updatePayrollControls } from "./actions";
 import { PermissionToggle } from "./permission-toggle";
@@ -6,7 +7,6 @@ import { ALL_MODULES } from "@/lib/auth/roles";
 import ManageUsers from "./manage-users";
 import CustomRoles from "./custom-roles";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 const ROLES = ["admin", "hr", "manager", "employee"] as const;
 
 export default async function SettingsPage({
@@ -23,7 +23,8 @@ export default async function SettingsPage({
     data: { user },
   } = await supabase.auth.getUser();
   const { data: currentAppUser } = await supabase.from("app_users").select("role, org_id").eq("id", user!.id).maybeSingle();
-  const orgId = currentAppUser?.org_id ?? DEFAULT_ORG_ID;
+  if (!currentAppUser) redirect("/dashboard");
+  const orgId = currentAppUser.org_id as string;
   const isAdmin = currentAppUser?.role === "admin";
 
   const [

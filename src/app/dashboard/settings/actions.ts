@@ -1,13 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 import { ALL_MODULES, DEFAULT_VISIBLE_MODULES, type UserRole } from "@/lib/auth/roles";
 import { customRoleCode, validateCustomRoleName } from "@/lib/auth/module-access";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -26,7 +26,7 @@ export async function updateRates(formData: FormData) {
   const supabase = await createClient();
 
   const payload = {
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     effective_from: new Date().toISOString().slice(0, 10),
     paye_bands: JSON.parse(String(formData.get("paye_bands"))),
     personal_relief: Number(formData.get("personal_relief")),
@@ -136,7 +136,7 @@ export async function toggleModulePermission(formData: FormData) {
   if (!role || !moduleKey) throw new Error("Missing role or module.");
 
   const { error } = await supabase.from("role_module_permissions").upsert(
-    { org_id: DEFAULT_ORG_ID, role, module_key: moduleKey, can_view: canView },
+    { org_id: await requireOrgId(supabase), role, module_key: moduleKey, can_view: canView },
     { onConflict: "org_id,role,module_key" }
   );
   if (error) throw new Error(error.message);

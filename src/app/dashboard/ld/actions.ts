@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 async function currentAppUser() {
   const supabase = await createClient();
@@ -21,7 +21,7 @@ async function currentAppUser() {
 export async function createCourse(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("training_courses").insert({
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     name: String(formData.get("name")),
     provider: String(formData.get("provider") || "") || null,
     mode: String(formData.get("mode") || "") || null,

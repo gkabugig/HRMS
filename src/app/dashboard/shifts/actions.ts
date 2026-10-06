@@ -1,14 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireOrgId } from "@/lib/auth/current-org";
 import { revalidatePath } from "next/cache";
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function createShiftPattern(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("shift_patterns").insert({
-    org_id: DEFAULT_ORG_ID,
+    org_id: await requireOrgId(supabase),
     name: String(formData.get("name") || ""),
     start_time: String(formData.get("start_time") || ""),
     end_time: String(formData.get("end_time") || ""),

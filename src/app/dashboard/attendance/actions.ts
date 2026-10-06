@@ -17,8 +17,12 @@ export async function recordAttendance(formData: FormData) {
     .eq("id", user!.id)
     .maybeSingle();
 
-  const employeeId =
-    appUser?.role === "employee" ? appUser.employee_id : String(formData.get("employee_id"));
+  // Typing in clock times is an HR/admin tool. Employees clock in through My
+  // Attendance, where the time and location are checked on the server.
+  if (appUser?.role !== "admin" && appUser?.role !== "hr") {
+    throw new Error("Only HR or an admin can record attendance times by hand. Use Clock in on My Attendance.");
+  }
+  const employeeId = String(formData.get("employee_id") || "");
   if (!employeeId) throw new Error("No employee selected.");
 
   const payload = {
@@ -26,7 +30,7 @@ export async function recordAttendance(formData: FormData) {
     work_date: String(formData.get("work_date")),
     clock_in: String(formData.get("clock_in") || "") || null,
     clock_out: String(formData.get("clock_out") || "") || null,
-    source: appUser?.role === "employee" ? "mobile" : "manual",
+    source: "manual",
   };
 
   const { error } = await supabase
