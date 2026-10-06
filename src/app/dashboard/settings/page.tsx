@@ -4,6 +4,7 @@ import { PermissionToggle } from "./permission-toggle";
 import { RolesAccess } from "./roles-access";
 import { ALL_MODULES } from "@/lib/auth/roles";
 import ManageUsers from "./manage-users";
+import CustomRoles from "./custom-roles";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 const ROLES = ["admin", "hr", "manager", "employee"] as const;
@@ -14,15 +15,15 @@ export default async function SettingsPage({
   searchParams: Promise<{ role?: string }>;
 }) {
   const { role: roleParam } = await searchParams;
-  const selectedRole = (ROLES as readonly string[]).includes(roleParam ?? "")
-    ? (roleParam as (typeof ROLES)[number])
-    : "admin";
+  // Built-in role code ("hr") or a custom role's code ("custom_payroll_officer").
+  const selectedRole = roleParam && /^[a-z0-9_]{2,60}$/.test(roleParam) ? roleParam : "admin";
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: currentAppUser } = await supabase.from("app_users").select("role").eq("id", user!.id).maybeSingle();
+  const { data: currentAppUser } = await supabase.from("app_users").select("role, org_id").eq("id", user!.id).maybeSingle();
+  const orgId = currentAppUser?.org_id ?? DEFAULT_ORG_ID;
   const isAdmin = currentAppUser?.role === "admin";
 
   const [
@@ -34,36 +35,41 @@ export default async function SettingsPage({
     { data: rbacRoles },
     { data: rbacPermissions },
     { data: rbacGrants },
+    { data: rbacModules },
   ] = await Promise.all([
     supabase
       .from("statutory_rates")
       .select("*")
-      .eq("org_id", DEFAULT_ORG_ID)
+      .eq("org_id", orgId)
       .order("effective_from", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
       .from("role_module_permissions")
       .select("role, module_key, can_view")
-      .eq("org_id", DEFAULT_ORG_ID),
-    supabase.from("organizations").select("payroll_variance_warning_pct").eq("id", DEFAULT_ORG_ID).maybeSingle(),
+      .eq("org_id", orgId),
+    supabase.from("organizations").select("payroll_variance_warning_pct").eq("id", orgId).maybeSingle(),
     isAdmin
-      ? supabase.from("app_users").select("id, role, username, employee_id, created_at, employees(name)").order("created_at", { ascending: true })
+      ? supabase.from("app_users").select("id, role, custom_role_id, username, employee_id, created_at, employees(name)").order("created_at", { ascending: true })
       : Promise.resolve({ data: null }),
     isAdmin ? supabase.from("employees").select("id, name").order("name") : Promise.resolve({ data: null }),
     isAdmin
-      ? supabase.from("rbac_roles").select("id, code").eq("org_id", DEFAULT_ORG_ID)
+      ? supabase.from("rbac_roles").select("id, code, name, description, is_system, base_role").eq("org_id", orgId)
       : Promise.resolve({ data: null }),
     isAdmin
       ? supabase.from("rbac_permissions").select("id, resource, action, sensitivity, description").order("resource")
       : Promise.resolve({ data: null }),
     isAdmin ? supabase.from("rbac_role_permissions").select("role_id, permission_id, scope") : Promise.resolve({ data: null }),
+    isAdmin ? supabase.from("rbac_role_modules").select("role_id, module_key, can_view") : Promise.resolve({ data: null }),
   ]);
 
   const permByKey = new Map(
     (permissions ?? []).map((p) => [`${p.role}:${p.module_key}`, p.can_view])
   );
   const isVisible = (role: string, moduleKey: string) => permByKey.get(`${role}:${moduleKey}`) ?? true;
+
+  const customRoles = (rbacRoles ?? []).filter((r) => !r.is_system);
+  const customRoleOptions = customRoles.map((r) => ({ id: r.id, name: r.name, base_role: r.base_role as string }));
 
   return (
     <div className="space-y-6">
@@ -77,6 +83,29 @@ export default async function SettingsPage({
           users={(appUsers ?? []) as unknown as Parameters<typeof ManageUsers>[0]["users"]}
           employees={employees ?? []}
           currentUserId={user!.id}
+          customRoles={customRoleOptions}
+        />
+      )}
+
+      {isAdmin && (
+        <CustomRoles
+          roles={customRoles.map((r) => ({
+            id: r.id,
+            code: r.code,
+            name: r.name,
+            description: r.description,
+            base_role: r.base_role as string,
+          }))}
+          modules={rbacModules ?? []}
+          baseVisibility={Object.fromEntries(
+            (["hr", "manager", "employee"] as const).map((role) => [
+              role,
+              ALL_MODULES.filter((m) => isVisible(role, m.key)).map((m) => m.key),
+            ])
+          )}
+          userCounts={Object.fromEntries(
+            customRoles.map((r) => [r.id, (appUsers ?? []).filter((u) => (u as { custom_role_id?: string | null }).custom_role_id === r.id).length])
+          )}
         />
       )}
 
@@ -128,7 +157,7 @@ export default async function SettingsPage({
           className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4"
         >
           <RolesAccess
-            roles={rbacRoles ?? []}
+            roles={(rbacRoles ?? []).map((r) => ({ id: r.id, code: r.code, name: r.name, is_system: r.is_system, base_role: r.base_role as string | null }))}
             permissions={rbacPermissions ?? []}
             grants={rbacGrants ?? []}
             selectedRole={selectedRole}

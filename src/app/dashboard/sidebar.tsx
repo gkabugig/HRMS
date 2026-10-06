@@ -99,12 +99,14 @@ function groupTabs(tabs: NavTab[]): { group: NavGroup; tabs: NavTab[] }[] {
 export default function Sidebar({
   tabs,
   role,
+  roleLabel,
   displayName,
   leavePendingCount = 0,
   unreadNotificationCount = 0,
 }: {
   tabs: NavTab[];
   role: UserRole;
+  roleLabel?: string;
   displayName: string;
   leavePendingCount?: number;
   unreadNotificationCount?: number;
@@ -228,7 +230,7 @@ export default function Sidebar({
               </button>
             </div>
             {navLinks(() => setMobileOpen(false))}
-            <SidebarFooter role={role} displayName={displayName} />
+            <SidebarFooter role={role} roleLabel={roleLabel} displayName={displayName} />
           </div>
         </div>
       )}
@@ -245,13 +247,13 @@ export default function Sidebar({
           </div>
         </div>
         {navLinks()}
-        <SidebarFooter role={role} displayName={displayName} />
+        <SidebarFooter role={role} roleLabel={roleLabel} displayName={displayName} />
       </aside>
     </>
   );
 }
 
-function SidebarFooter({ role, displayName }: { role: UserRole; displayName: string }) {
+function SidebarFooter({ role, roleLabel, displayName }: { role: UserRole; roleLabel?: string; displayName: string }) {
   return (
     <div className="border-t border-[var(--sidebar-border)] px-3 py-3">
       <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 bg-[var(--sidebar-bg-elevated)]">
@@ -260,7 +262,7 @@ function SidebarFooter({ role, displayName }: { role: UserRole; displayName: str
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium text-white truncate">{displayName}</p>
-          <p className="text-[10px] uppercase tracking-wide text-accent-400">{ROLE_LABEL[role]}</p>
+          <p className="text-[10px] uppercase tracking-wide text-accent-400">{roleLabel ?? ROLE_LABEL[role]}</p>
         </div>
       </div>
       <div className="mt-2 px-1 space-y-0.5">

@@ -4,6 +4,8 @@ import { toggleRolePermissionAction } from "./actions";
 
 export function RolePermissionToggle({
   roleCode,
+  roleId,
+  disabled,
   permissionId,
   resource,
   action,
@@ -12,6 +14,8 @@ export function RolePermissionToggle({
   checked,
 }: {
   roleCode: string;
+  roleId?: string;
+  disabled?: boolean;
   permissionId: string;
   resource: string;
   action: string;
@@ -25,6 +29,7 @@ export function RolePermissionToggle({
       onChange={(e) => (e.currentTarget as HTMLFormElement).requestSubmit()}
     >
       <input type="hidden" name="role_code" value={roleCode} />
+      {roleId && <input type="hidden" name="role_id" value={roleId} />}
       <input type="hidden" name="permission_id" value={permissionId} />
       <input type="hidden" name="resource" value={resource} />
       <input type="hidden" name="action" value={action} />
@@ -34,8 +39,9 @@ export function RolePermissionToggle({
       <input
         type="checkbox"
         defaultChecked={checked}
-        className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-brand-600 focus:ring-brand-500/30"
-        title={`${scope} scope`}
+        disabled={disabled}
+        className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-brand-600 focus:ring-brand-500/30 disabled:opacity-30"
+        title={disabled ? "Not available - the base role doesn't have this" : `${scope} scope`}
       />
     </form>
   );

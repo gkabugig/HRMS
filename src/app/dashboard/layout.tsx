@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { tabsForRole, DEFAULT_VISIBLE_MODULES, type UserRole } from "@/lib/auth/roles";
 import SignOutButton from "./sign-out-button";
@@ -18,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: appUser } = await supabase
     .from("app_users")
-    .select("id, org_id, role, employee_id")
+    .select("id, org_id, role, employee_id, custom_role_id")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -38,6 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const role = appUser.role as UserRole;
+  const noAccess = (await cookies()).get("hrms_no_access")?.value === "1";
 
   const [{ data: permRows }, { count: pendingLeaveCount }, { count: unreadNotificationCount }] = await Promise.all([
     supabase
@@ -63,6 +65,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
       ? new Set(permRows.filter((r) => r.can_view).map((r) => r.module_key))
       : new Set(DEFAULT_VISIBLE_MODULES[role]);
 
+  // A custom role is built on a built-in one and can only hide modules from
+  // it (never add), so: base role's visible set, minus what this role hides.
+  let customRoleName: string | null = null;
+  if (appUser.custom_role_id) {
+    const [{ data: customRole }, { data: hiddenRows }] = await Promise.all([
+      supabase.from("rbac_roles").select("name").eq("id", appUser.custom_role_id).maybeSingle(),
+      supabase.from("rbac_role_modules").select("module_key").eq("role_id", appUser.custom_role_id).eq("can_view", false),
+    ]);
+    customRoleName = customRole?.name ?? null;
+    for (const h of hiddenRows ?? []) visible.delete(h.module_key);
+  }
+
   const tabs = tabsForRole(role, visible);
   const displayName = user.email?.split("@")[0] ?? "User";
 
@@ -78,6 +92,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Sidebar
           tabs={tabs}
           role={role}
+          roleLabel={customRoleName ?? undefined}
           displayName={displayName}
           leavePendingCount={pendingLeaveCount ?? 0}
           unreadNotificationCount={unreadNotificationCount ?? 0}
@@ -88,7 +103,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <CommandSearch role={role} />
           <NotificationBell />
         </div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:max-w-none print:p-0">{children}</div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:max-w-none print:p-0">
+          {noAccess && (
+            <p role="status" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              Your role doesn&apos;t have access to that page. Ask an admin if you need it.
+            </p>
+          )}
+          {children}
+        </div>
       </main>
       <div className="print:hidden">
         <MobileBottomNav role={role} />

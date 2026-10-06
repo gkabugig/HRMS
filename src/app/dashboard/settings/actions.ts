@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { ALL_MODULES, DEFAULT_VISIBLE_MODULES, type UserRole } from "@/lib/auth/roles";
+import { customRoleCode, validateCustomRoleName } from "@/lib/auth/module-access";
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -80,20 +82,17 @@ export async function toggleRolePermissionAction(formData: FormData) {
   const { supabase, userId, orgId } = await requireAdmin();
 
   const roleCode = String(formData.get("role_code") || "");
+  const roleIdParam = String(formData.get("role_id") || "");
   const permissionId = String(formData.get("permission_id") || "");
   const scope = String(formData.get("scope") || "");
   const grant = formData.get("grant") === "true";
   const resource = String(formData.get("resource") || "");
   const action = String(formData.get("action") || "");
   const sensitivity = String(formData.get("sensitivity") || "");
-  if (!roleCode || !permissionId || !scope) throw new Error("Missing role, permission, or scope.");
+  if ((!roleCode && !roleIdParam) || !permissionId || !scope) throw new Error("Missing role, permission, or scope.");
 
-  const { data: role } = await supabase
-    .from("rbac_roles")
-    .select("id")
-    .eq("org_id", orgId)
-    .eq("code", roleCode)
-    .maybeSingle();
+  const roleQuery = supabase.from("rbac_roles").select("id").eq("org_id", orgId);
+  const { data: role } = await (roleIdParam ? roleQuery.eq("id", roleIdParam) : roleQuery.eq("code", roleCode)).maybeSingle();
   if (!role) throw new Error("Role not found for this organisation.");
 
   if (grant) {
@@ -169,14 +168,34 @@ export async function createUserLoginAction(
 
     const identifier = String(formData.get("identifier") || "").trim();
     const password = String(formData.get("password") || "");
-    const role = String(formData.get("role") || "") as AppRole;
+    const choice = String(formData.get("role") || "");
     const employeeId = String(formData.get("employee_id") || "") || null;
 
     if (!identifier) return { error: "Enter a username or an email." };
     if (password.length < 8) return { error: "Password must be at least 8 characters." };
-    if (!["admin", "hr", "manager", "employee"].includes(role)) return { error: "Invalid role." };
 
-    await createAppUserLogin(supabase, { orgId, actorUserId: userId, identifier, password, role, employeeId });
+    let role = choice as AppRole;
+    let customRoleId: string | null = null;
+    if (choice.startsWith("custom:")) {
+      customRoleId = choice.slice("custom:".length);
+      const { data: cr } = await supabase
+        .from("rbac_roles")
+        .select("base_role")
+        .eq("id", customRoleId)
+        .eq("org_id", orgId)
+        .eq("is_system", false)
+        .maybeSingle();
+      if (!cr) return { error: "That custom role no longer exists." };
+      role = cr.base_role as AppRole;
+    } else if (!["admin", "hr", "manager", "employee"].includes(role)) {
+      return { error: "Invalid role." };
+    }
+
+    const { userId: newUserId } = await createAppUserLogin(supabase, { orgId, actorUserId: userId, identifier, password, role, employeeId });
+    if (customRoleId) {
+      const { error } = await supabase.from("app_users").update({ custom_role_id: customRoleId }).eq("id", newUserId).eq("org_id", orgId);
+      if (error) return { error: `Login created, but the custom role could not be applied: ${error.message}` };
+    }
 
     revalidatePath("/dashboard/settings");
     return { success: true };
@@ -192,8 +211,26 @@ export async function updateUserRoleAction(
   try {
     const { supabase, userId, orgId } = await requireAdmin();
     const targetUserId = String(formData.get("user_id"));
-    const newRole = String(formData.get("role")) as AppRole;
-    if (!["admin", "hr", "manager", "employee"].includes(newRole)) return { error: "Invalid role." };
+    const choice = String(formData.get("role"));
+
+    // "hr" (built-in) or "custom:<role id>".
+    let newRole: AppRole | null = null;
+    let customRoleId: string | null = null;
+    if (choice.startsWith("custom:")) {
+      customRoleId = choice.slice("custom:".length);
+      const { data: cr } = await supabase
+        .from("rbac_roles")
+        .select("id, base_role")
+        .eq("id", customRoleId)
+        .eq("org_id", orgId)
+        .eq("is_system", false)
+        .maybeSingle();
+      if (!cr) return { error: "That custom role no longer exists." };
+      newRole = cr.base_role as AppRole;
+    } else {
+      newRole = choice as AppRole;
+      if (!["admin", "hr", "manager", "employee"].includes(newRole)) return { error: "Invalid role." };
+    }
 
     if (targetUserId === userId && newRole !== "admin") {
       const { count } = await supabase.from("app_users").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("role", "admin");
@@ -202,9 +239,15 @@ export async function updateUserRoleAction(
       }
     }
 
-    const { data: before } = await supabase.from("app_users").select("role").eq("id", targetUserId).maybeSingle();
+    const { data: before } = await supabase.from("app_users").select("role, custom_role_id").eq("id", targetUserId).maybeSingle();
 
-    const { error: updateErr } = await supabase.from("app_users").update({ role: newRole }).eq("id", targetUserId).eq("org_id", orgId);
+    // Picking a built-in role clears any custom role; picking a custom role
+    // sets it (the database aligns the legacy role to its base role).
+    const { error: updateErr } = await supabase
+      .from("app_users")
+      .update({ role: newRole, custom_role_id: customRoleId })
+      .eq("id", targetUserId)
+      .eq("org_id", orgId);
     if (updateErr) return { error: updateErr.message };
 
     await recordAuditEvent(supabase, {
@@ -215,8 +258,8 @@ export async function updateUserRoleAction(
       resourceId: targetUserId,
       eventCategory: "security",
       riskLevel: "elevated",
-      before: { role: before?.role ?? null },
-      after: { role: newRole },
+      before: { role: before?.role ?? null, custom_role_id: before?.custom_role_id ?? null },
+      after: { role: newRole, custom_role_id: customRoleId },
     });
 
     revalidatePath("/dashboard/settings");
@@ -224,6 +267,158 @@ export async function updateUserRoleAction(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to update role." };
   }
+}
+
+// ---- Custom roles -------------------------------------------------------
+// A custom role is built on hr / manager / employee and starts as an exact
+// copy of that role's permissions and menu; the admin then switches things
+// OFF. It can never exceed its base role (enforced again in the database).
+export async function createCustomRoleAction(
+  _prevState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  try {
+    const { supabase, userId, orgId } = await requireAdmin();
+    const name = String(formData.get("name") || "").trim();
+    const description = String(formData.get("description") || "").trim() || null;
+    const baseRole = String(formData.get("base_role") || "") as UserRole;
+
+    const nameProblem = validateCustomRoleName(name);
+    if (nameProblem) return { error: nameProblem };
+    if (!["hr", "manager", "employee"].includes(baseRole)) return { error: "Pick HR, Manager or Employee as the base." };
+
+    const code = customRoleCode(name);
+    const { data: existing } = await supabase.from("rbac_roles").select("id").eq("org_id", orgId).eq("code", code).maybeSingle();
+    if (existing) return { error: "A role with that name already exists." };
+
+    const { data: base } = await supabase
+      .from("rbac_roles")
+      .select("id")
+      .eq("org_id", orgId)
+      .eq("code", baseRole)
+      .eq("is_system", true)
+      .maybeSingle();
+    if (!base) return { error: `The built-in ${baseRole} role isn't set up for this organisation yet.` };
+
+    const { data: created, error: createErr } = await supabase
+      .from("rbac_roles")
+      .insert({ org_id: orgId, code, name, description, is_system: false, base_role: baseRole })
+      .select("id")
+      .single();
+    if (createErr || !created) return { error: createErr?.message ?? "Could not create the role." };
+
+    // Copy the base role's grants.
+    const { data: baseGrants } = await supabase.from("rbac_role_permissions").select("permission_id, scope").eq("role_id", base.id);
+    if (baseGrants && baseGrants.length > 0) {
+      const { error } = await supabase
+        .from("rbac_role_permissions")
+        .insert(baseGrants.map((g) => ({ role_id: created.id, permission_id: g.permission_id, scope: g.scope })));
+      if (error) {
+        await supabase.from("rbac_roles").delete().eq("id", created.id);
+        return { error: error.message };
+      }
+    }
+
+    // Copy the base role's menu visibility.
+    const { data: baseModules } = await supabase.from("role_module_permissions").select("module_key, can_view").eq("org_id", orgId).eq("role", baseRole);
+    const visibleByKey = new Map((baseModules ?? []).map((m) => [m.module_key, m.can_view]));
+    const defaults = new Set(DEFAULT_VISIBLE_MODULES[baseRole]);
+    const moduleRows = ALL_MODULES.map((m) => ({
+      role_id: created.id,
+      module_key: m.key,
+      can_view: baseModules && baseModules.length > 0 ? visibleByKey.get(m.key) ?? false : defaults.has(m.key),
+    }));
+    const { error: modErr } = await supabase.from("rbac_role_modules").insert(moduleRows);
+    if (modErr) {
+      await supabase.from("rbac_roles").delete().eq("id", created.id);
+      return { error: modErr.message };
+    }
+
+    await recordAuditEvent(supabase, {
+      orgId,
+      actorUserId: userId,
+      action: "rbac.custom_role_created",
+      resourceType: "rbac_role",
+      resourceId: created.id,
+      eventCategory: "security",
+      riskLevel: "elevated",
+      after: { name, code, base_role: baseRole },
+    });
+
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create role." };
+  }
+}
+
+export async function deleteCustomRoleAction(
+  _prevState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  try {
+    const { supabase, userId, orgId } = await requireAdmin();
+    const roleId = String(formData.get("role_id") || "");
+    const { data: role } = await supabase
+      .from("rbac_roles")
+      .select("id, name, base_role")
+      .eq("id", roleId)
+      .eq("org_id", orgId)
+      .eq("is_system", false)
+      .maybeSingle();
+    if (!role) return { error: "Custom role not found." };
+
+    const { count } = await supabase.from("app_users").select("id", { count: "exact", head: true }).eq("custom_role_id", roleId);
+
+    // People on it fall back to the built-in role it was based on.
+    const { error } = await supabase.from("rbac_roles").delete().eq("id", roleId).eq("org_id", orgId);
+    if (error) return { error: error.message };
+
+    await recordAuditEvent(supabase, {
+      orgId,
+      actorUserId: userId,
+      action: "rbac.custom_role_deleted",
+      resourceType: "rbac_role",
+      resourceId: roleId,
+      eventCategory: "security",
+      riskLevel: "high",
+      before: { name: role.name, base_role: role.base_role, users_affected: count ?? 0 },
+    });
+
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete role." };
+  }
+}
+
+export async function toggleCustomRoleModuleAction(formData: FormData) {
+  const { supabase, userId, orgId } = await requireAdmin();
+  const roleId = String(formData.get("role_id") || "");
+  const moduleKey = String(formData.get("module_key") || "");
+  const canView = formData.get("can_view") === "true";
+  if (!roleId || !moduleKey) throw new Error("Missing role or module.");
+  if (moduleKey === "dashboard") throw new Error("The dashboard is always available.");
+  if (!ALL_MODULES.some((m) => m.key === moduleKey)) throw new Error("Unknown module.");
+
+  const { data: role } = await supabase.from("rbac_roles").select("id").eq("id", roleId).eq("org_id", orgId).eq("is_system", false).maybeSingle();
+  if (!role) throw new Error("Custom role not found.");
+
+  const { error } = await supabase.from("rbac_role_modules").upsert({ role_id: roleId, module_key: moduleKey, can_view: canView }, { onConflict: "role_id,module_key" });
+  if (error) throw new Error(error.message);
+
+  await recordAuditEvent(supabase, {
+    orgId,
+    actorUserId: userId,
+    action: canView ? "rbac.module_enabled" : "rbac.module_disabled",
+    resourceType: "rbac_role",
+    resourceId: roleId,
+    eventCategory: "security",
+    riskLevel: "elevated",
+    after: { module: moduleKey, can_view: canView },
+  });
+
+  revalidatePath("/dashboard/settings");
 }
 
 // Revokes app access by removing the app_users row (the person's Supabase

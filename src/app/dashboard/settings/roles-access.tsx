@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { RolePermissionToggle } from "./role-permission-toggle";
+import { scopeWithinCeiling } from "@/lib/auth/module-access";
 
 // Scopes with a real resolver behind them today (user_can_access_employee/
 // _document/_payslip in 0037, plus the inline organisation-scope checks on
@@ -21,7 +22,7 @@ type Permission = {
   description: string | null;
 };
 
-type RoleRow = { id: string; code: string };
+type RoleRow = { id: string; code: string; name: string; is_system: boolean; base_role: string | null };
 
 type GrantRow = { role_id: string; permission_id: string; scope: string };
 
@@ -34,9 +35,19 @@ export function RolesAccess({
   roles: RoleRow[];
   permissions: Permission[];
   grants: GrantRow[];
-  selectedRole: (typeof ROLES)[number];
+  selectedRole: string;
 }) {
   const role = roles.find((r) => r.code === selectedRole);
+  const baseRole = role && !role.is_system ? roles.find((r) => r.is_system && r.code === role.base_role) : undefined;
+  const baseScopesByPermission = new Map<string, string[]>();
+  if (baseRole) {
+    for (const g of grants.filter((x) => x.role_id === baseRole.id)) {
+      baseScopesByPermission.set(g.permission_id, [...(baseScopesByPermission.get(g.permission_id) ?? []), g.scope]);
+    }
+  }
+  // Custom roles can only hold what their base role holds (the database enforces the same rule).
+  const allowedFor = (permissionId: string, scope: string) =>
+    !role || role.is_system || scopeWithinCeiling(scope, baseScopesByPermission.get(permissionId) ?? []);
   const grantSet = new Set(
     grants.filter((g) => g.role_id === role?.id).map((g) => `${g.permission_id}:${g.scope}`)
   );
@@ -77,7 +88,7 @@ export function RolesAccess({
       </div>
 
       <div className="flex gap-1 border-b border-neutral-200 dark:border-neutral-700">
-        {ROLES.map((r) => (
+        {[...ROLES.map((r) => ({ code: r, label: r })), ...roles.filter((r) => !r.is_system).map((r) => ({ code: r.code, label: r.name }))].map(({ code: r, label }) => (
           <a
             key={r}
             href={`/dashboard/settings?role=${r}#roles-access`}
@@ -87,10 +98,16 @@ export function RolesAccess({
                 : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 hover:dark:text-neutral-200"
             }`}
           >
-            {r}
+            {label}
           </a>
         ))}
       </div>
+      {role && !role.is_system && (
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Custom role based on <span className="font-medium capitalize">{role.base_role}</span>. Greyed-out boxes are permissions
+          the {role.base_role} role doesn&apos;t have, so this role can&apos;t be given them.
+        </p>
+      )}
 
       {!role ? (
         <p className="text-sm text-amber-600">
@@ -147,6 +164,8 @@ export function RolesAccess({
                           <td key={scope} className="px-3 py-2 text-center">
                             <RolePermissionToggle
                               roleCode={selectedRole}
+                              roleId={role.id}
+                              disabled={!allowedFor(p.id, scope)}
                               permissionId={p.id}
                               resource={p.resource}
                               action={p.action}

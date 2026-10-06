@@ -11,9 +11,35 @@ import {
 const ROLES = ["admin", "hr", "manager", "employee"] as const;
 const initialActionState: SettingsActionState = {};
 
+type CustomRoleOption = { id: string; name: string; base_role: string };
+
+function RoleOptions({ customRoles }: { customRoles: CustomRoleOption[] }) {
+  return (
+    <>
+      <optgroup label="Built-in">
+        {ROLES.map((r) => (
+          <option key={r} value={r}>
+            {r}
+          </option>
+        ))}
+      </optgroup>
+      {customRoles.length > 0 && (
+        <optgroup label="Custom">
+          {customRoles.map((r) => (
+            <option key={r.id} value={`custom:${r.id}`}>
+              {r.name} (based on {r.base_role})
+            </option>
+          ))}
+        </optgroup>
+      )}
+    </>
+  );
+}
+
 type AppUserRow = {
   id: string;
   role: string;
+  custom_role_id: string | null;
   username: string | null;
   employee_id: string | null;
   created_at: string;
@@ -24,10 +50,12 @@ export default function ManageUsers({
   users,
   employees,
   currentUserId,
+  customRoles,
 }: {
   users: AppUserRow[];
   employees: { id: string; name: string }[];
   currentUserId: string;
+  customRoles: CustomRoleOption[];
 }) {
   const linkedEmployeeIds = new Set(users.map((u) => u.employee_id).filter(Boolean));
 
@@ -54,18 +82,18 @@ export default function ManageUsers({
           </thead>
           <tbody>
             {users.map((u) => (
-              <UserRow key={u.id} user={u} isSelf={u.id === currentUserId} />
+              <UserRow key={u.id} user={u} isSelf={u.id === currentUserId} customRoles={customRoles} />
             ))}
           </tbody>
         </table>
       </div>
 
-      <CreateLoginForm employees={employees} linkedEmployeeIds={linkedEmployeeIds} />
+      <CreateLoginForm employees={employees} linkedEmployeeIds={linkedEmployeeIds} customRoles={customRoles} />
     </div>
   );
 }
 
-function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
+function UserRow({ user, isSelf, customRoles }: { user: AppUserRow; isSelf: boolean; customRoles: CustomRoleOption[] }) {
   const [roleState, updateRole, roleUpdating] = useActionState(updateUserRoleAction, initialActionState);
   const [removeState, removeAccess, removing] = useActionState(removeUserAccessAction, initialActionState);
 
@@ -77,14 +105,10 @@ function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
           <input type="hidden" name="user_id" value={user.id} />
           <select
             name="role"
-            defaultValue={user.role}
+            defaultValue={user.custom_role_id ? `custom:${user.custom_role_id}` : user.role}
             className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
           >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
+            <RoleOptions customRoles={customRoles} />
           </select>
           <button type="submit" disabled={roleUpdating} className="text-xs text-brand-600 hover:underline disabled:opacity-50">
             {roleUpdating ? "Saving..." : "Save"}
@@ -115,9 +139,11 @@ function UserRow({ user, isSelf }: { user: AppUserRow; isSelf: boolean }) {
 function CreateLoginForm({
   employees,
   linkedEmployeeIds,
+  customRoles,
 }: {
   employees: { id: string; name: string }[];
   linkedEmployeeIds: Set<string | null>;
+  customRoles: CustomRoleOption[];
 }) {
   const [state, formAction, pending] = useActionState(createUserLoginAction, initialActionState);
   // Remount the form on success so the email/password fields clear — an
@@ -164,11 +190,7 @@ function CreateLoginForm({
             defaultValue="employee"
             className="border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
           >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
+            <RoleOptions customRoles={customRoles} />
           </select>
         </div>
         <div>
