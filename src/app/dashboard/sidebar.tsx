@@ -165,19 +165,17 @@ export default function Sidebar({
                   key={t.key}
                   href={t.href}
                   onClick={onNavigate}
+                  aria-current={active ? "page" : undefined}
                   className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-white/10 text-white"
+                      ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
                       : "text-[var(--sidebar-text)] hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  {active && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r bg-accent-400" />
-                  )}
-                  <Icon size={18} strokeWidth={2} className={active ? "text-accent-400" : "text-[var(--sidebar-text)] group-hover:text-white"} />
+                  <Icon size={18} strokeWidth={2} className={active ? "text-white" : "text-[var(--sidebar-text)] group-hover:text-white"} />
                   <span className="truncate flex-1">{t.label}</span>
                   {badge > 0 && (
-                    <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-accent-500 text-[10px] font-semibold text-white flex items-center justify-center">
+                    <span className={`shrink-0 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold flex items-center justify-center ${active ? "bg-white text-brand-700" : "bg-accent-500 text-white"}`}>
                       {badge}
                     </span>
                   )}
