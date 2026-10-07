@@ -235,3 +235,67 @@ export async function runOrganisationDataQuality() {
   revalidatePath("/dashboard/organogram");
   return data as number;
 }
+
+// One-step fix used from the data-quality panel: give an employee a position
+// (existing, or a new one created from a typed title) and optionally a manager,
+// then re-run the checks so the finding list is up to date straight away.
+export async function quickFixAssignment(employeeId: string, _prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
+    const supabase = await createClient();
+    const { orgId, userId } = await requireOrgAndActor(supabase);
+
+    let positionId = String(formData.get("position_id") || "");
+    const newTitle = String(formData.get("new_position_title") || "").trim();
+    const managerId = String(formData.get("manager_id") || "") || null;
+    if (!positionId && !newTitle) throw new Error("Choose a position, or type a title to create a new one.");
+
+    if (!positionId) {
+      const { data: created, error: posErr } = await supabase
+        .from("positions")
+        .insert({ org_id: orgId, title: newTitle, approved_headcount: 1 })
+        .select("id")
+        .single();
+      if (posErr) throw new Error(posErr.message);
+      positionId = created.id;
+      await recordAuditEvent(supabase, {
+        orgId, actorUserId: userId, action: "position.created", resourceType: "position",
+        resourceId: positionId, eventCategory: "configuration", after: { title: newTitle },
+      });
+    }
+
+    const { error } = await supabase.rpc("change_employee_assignment", {
+      p_employee_id: employeeId,
+      p_position_id: positionId,
+      p_manager_id: managerId,
+      p_effective_from: new Date().toISOString().slice(0, 10),
+      p_reason: "Data-quality quick fix",
+    });
+    if (error) throw new Error(error.message);
+
+    await supabase.rpc("run_organisation_data_quality");
+    revalidatePath("/dashboard/organogram");
+    revalidatePath(`/dashboard/employees/${employeeId}`);
+  });
+}
+
+// Marks an employee as the head of the organisation (no manager by design;
+// their requests go to the HR Manager) and re-runs the checks.
+export async function markHeadOfOrganisation(employeeId: string, _prev: FormResult, _formData: FormData): Promise<FormResult> {
+  void _formData;
+  return toResult(async () => {
+    const supabase = await createClient();
+    const { orgId } = await requireOrgAndActor(supabase);
+    const { error } = await supabase
+      .from("employees")
+      .update({ is_head_of_organisation: true })
+      .eq("id", employeeId)
+      .eq("org_id", orgId);
+    if (error) {
+      if (error.code === "23505") throw new Error("Another employee is already marked as the head of the organisation.");
+      throw new Error(error.message);
+    }
+    await supabase.rpc("run_organisation_data_quality");
+    revalidatePath("/dashboard/organogram");
+    revalidatePath(`/dashboard/employees/${employeeId}`);
+  });
+}

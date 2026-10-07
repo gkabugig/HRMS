@@ -7,6 +7,8 @@ import {
   createCostCentre,
   createPosition,
   setPositionCostCentre,
+  quickFixAssignment,
+  markHeadOfOrganisation,
   assignEmployeePosition,
   setPositionActive,
   runOrganisationDataQuality,
@@ -103,7 +105,7 @@ export default async function OrganogramPage({
         </div>
       </div>
 
-      {isAdminOrHr && <DataQualityPanel supabase={supabase} orgId={orgId} />}
+      {isAdminOrHr && <DataQualityPanel supabase={supabase} orgId={orgId} employees={employees ?? []} />}
 
       {view === "chart" && <OrgChart people={employees ?? []} />}
 
@@ -150,9 +152,9 @@ export default async function OrganogramPage({
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-async function DataQualityPanel({ supabase, orgId }: { supabase: SupabaseServerClient; orgId?: string }) {
+async function DataQualityPanel({ supabase, orgId, employees }: { supabase: SupabaseServerClient; orgId?: string; employees: Employee[] }) {
   if (!orgId) return null;
-  const [{ data: rows }, { data: heads }] = await Promise.all([
+  const [{ data: rows }, { data: heads }, { data: positionRows }] = await Promise.all([
     supabase
       .from("ai_insights")
       .select("id, title, body, severity, entity_type, entity_id, suggested_action")
@@ -160,7 +162,9 @@ async function DataQualityPanel({ supabase, orgId }: { supabase: SupabaseServerC
       .eq("category", "org_structure")
       .eq("status", "open"),
     supabase.from("employees").select("id").eq("org_id", orgId).eq("is_head_of_organisation", true),
+    supabase.from("positions").select("id, title, position_code").eq("org_id", orgId).eq("is_active", true).order("title"),
   ]);
+  const hasHead = (heads ?? []).length > 0;
 
   // The head of the organisation (CEO) has no manager by design.
   const headIds = new Set((heads ?? []).map((h) => h.id as string));
@@ -220,11 +224,38 @@ async function DataQualityPanel({ supabase, orgId }: { supabase: SupabaseServerC
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{f.body}</p>
                   {f.suggested_action && <p className="text-xs text-neutral-400 dark:text-neutral-500">Fix: {f.suggested_action}</p>}
                 </div>
-                <div className="flex gap-3 shrink-0 text-xs font-medium">
+                <div className="flex flex-col items-end gap-2 shrink-0 text-xs font-medium">
+                  <div className="flex gap-3">
                   {f.entity_type === "employee" && f.entity_id && (
                     <Link href={`/dashboard/employees/${f.entity_id}`} className="text-brand-600 hover:underline">Open profile</Link>
                   )}
                   <Link href="/dashboard/organogram?view=structure" className="text-brand-600 hover:underline">Fix in Structure</Link>
+                  </div>
+                  {f.entity_type === "employee" && f.entity_id && f.title === "No current organisation assignment" && (
+                    <ActionForm action={quickFixAssignment.bind(null, f.entity_id as string)} className="flex flex-wrap justify-end gap-1.5 max-w-md" successMessage="Fixed.">
+                      <select name="position_id" className="border border-[var(--border-subtle)] rounded-md px-1.5 py-1 text-xs bg-white dark:bg-neutral-900 max-w-[170px]">
+                        <option value="">Choose position…</option>
+                        {(positionRows ?? []).map((p) => (
+                          <option key={p.id} value={p.id}>{p.title}{p.position_code ? ` (${p.position_code})` : ""}</option>
+                        ))}
+                      </select>
+                      <input name="new_position_title" placeholder="…or new title e.g. CEO" className="border border-[var(--border-subtle)] rounded-md px-1.5 py-1 text-xs w-40 bg-white dark:bg-neutral-900" />
+                      <select name="manager_id" className="border border-[var(--border-subtle)] rounded-md px-1.5 py-1 text-xs bg-white dark:bg-neutral-900 max-w-[150px]">
+                        <option value="">No manager</option>
+                        {employees.filter((m) => m.id !== f.entity_id).map((m) => (
+                          <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                      </select>
+                      <button className="bg-brand-600 text-white rounded-md px-2.5 py-1 text-xs font-medium">Assign now</button>
+                    </ActionForm>
+                  )}
+                  {f.entity_type === "employee" && f.entity_id && f.title === "No current line manager on file" && !hasHead && (
+                    <ActionForm action={markHeadOfOrganisation.bind(null, f.entity_id as string)} className="flex justify-end" successMessage="Marked as head.">
+                      <button className="border border-[var(--border-subtle)] rounded-md px-2.5 py-1 text-xs font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        This is the CEO — no manager needed
+                      </button>
+                    </ActionForm>
+                  )}
                 </div>
               </li>
             ))}
