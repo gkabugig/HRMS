@@ -11,7 +11,7 @@ export type ReportResult = {
   description: string;
   periodLabel: string;
   stats: ReportStat[];
-  chart?: { title: string; items: { label: string; value: number }[]; format?: ColumnFormat };
+  chart?: { title: string; kind?: "bars" | "doughnut"; items: { label: string; value: number; color?: string }[]; format?: ColumnFormat };
   columns: ReportColumn[];
   rows: ReportRow[];
   notes: string[];

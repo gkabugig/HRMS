@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatCell } from "@/lib/report-engine/export";
+import { Doughnut, VerticalBars } from "@/components/charts/charts";
 import type { ReportResult } from "@/lib/report-engine/types";
 
 const card = "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03]";
@@ -20,27 +21,15 @@ export function StatGrid({ stats }: { stats: ReportResult["stats"] }) {
 }
 
 export function BarChart({ chart }: { chart: NonNullable<ReportResult["chart"]> }) {
-  const items = chart.items.slice(0, 12);
-  const max = Math.max(1, ...items.map((i) => i.value));
   return (
     <div className={`${card} p-4`}>
       <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">{chart.title}</h2>
-      {items.length === 0 ? (
+      {chart.items.length === 0 || chart.items.every((i) => i.value === 0) ? (
         <p className="text-sm text-neutral-400">Nothing to chart for these filters.</p>
+      ) : chart.kind === "doughnut" ? (
+        <Doughnut items={chart.items} format={chart.format} />
       ) : (
-        <ul className="space-y-2">
-          {items.map((i) => (
-            <li key={i.label} className="text-sm">
-              <div className="flex justify-between gap-3">
-                <span className="truncate">{i.label}</span>
-                <span className="text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{formatCell(i.value, chart.format ?? "int")}</span>
-              </div>
-              <div className="h-2 rounded bg-neutral-100 dark:bg-neutral-800 mt-1 print:border print:border-neutral-300">
-                <div className="h-2 rounded bg-brand-500" style={{ width: `${(i.value / max) * 100}%` }} />
-              </div>
-            </li>
-          ))}
-        </ul>
+        <VerticalBars items={chart.items} format={chart.format} />
       )}
     </div>
   );

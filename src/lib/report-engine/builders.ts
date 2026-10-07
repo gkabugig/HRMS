@@ -46,7 +46,7 @@ export function buildHeadcount(employees: EmployeeRow[], f: ReportFilters, today
       { label: "Joined in period", value: String(joiners.length) },
       { label: "Under 1 year's service", value: String(active.filter((e) => tenure(e) < 1).length) },
     ],
-    chart: { title: "Active staff by department", items: countMap(active, (e) => e.department) },
+    chart: { kind: "doughnut", title: "Active staff by department", items: countMap(active, (e) => e.department) },
     columns: [
       { key: "staff_no", label: "Staff no" }, { key: "name", label: "Name" }, { key: "department", label: "Department" },
       { key: "job_title", label: "Job title" }, { key: "type", label: "Type" }, { key: "hired", label: "Date hired" },
@@ -90,7 +90,7 @@ export function buildTurnover(employees: EmployeeRow[], offboarding: Offboarding
       { label: "Exit interviews done", value: leavers.length ? `${pct(interviews, leavers.length)}%` : "—" },
       { label: "Headcount start → end", value: `${startHc} → ${endHc}` },
     ],
-    chart: { title: "Exits by type", items: countMap(leavers, (o) => o.exit_type) },
+    chart: { kind: "doughnut", title: "Exits by type", items: countMap(leavers, (o) => o.exit_type) },
     columns: [
       { key: "name", label: "Name" }, { key: "department", label: "Department" }, { key: "exit_type", label: "Exit type" },
       { key: "notice", label: "Notice given" }, { key: "last_day", label: "Last working day" },
@@ -209,7 +209,7 @@ export function buildLeave(
       { label: "Annual days unused", value: String(round1(sum(perEmp, (p) => p.remaining))) },
       { label: "Estimated value of unused leave", value: kes(sum(perEmp, (p) => p.value)), hint: "Unused days × basic pay ÷ 30" },
     ],
-    chart: { title: "Approved leave days by type (period)", items: [...byType.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value) },
+    chart: { kind: "doughnut", title: "Approved leave days by type (period)", items: [...byType.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value) },
     columns: [
       { key: "name", label: "Name" }, { key: "department", label: "Department" },
       { key: "entitlement", label: "Annual entitlement", align: "right", format: "int" }, { key: "taken", label: "Annual taken", align: "right", format: "decimal" },
@@ -288,7 +288,7 @@ export function buildPayrollByDepartment(employees: EmployeeRow[], slips: Paysli
       { label: "Departments", value: String(per.length) },
       { label: "Biggest cost centre", value: per[0] ? `${per[0].department} (${pct(per[0].cost, total)}%)` : "—" },
     ],
-    chart: { title: "Cost to employer by department", items: per.map((p) => ({ label: p.department, value: Math.round(p.cost) })), format: "kes" },
+    chart: { kind: "doughnut", title: "Cost to employer by department", items: per.map((p) => ({ label: p.department, value: Math.round(p.cost) })), format: "kes" },
     columns: [
       { key: "department", label: "Department" }, { key: "people", label: "People paid", align: "right", format: "int" },
       { key: "gross", label: "Gross pay", align: "right", format: "kes" }, { key: "employer", label: "Employer contributions", align: "right", format: "kes" },
@@ -334,7 +334,7 @@ export function buildStatutory(employees: EmployeeRow[], slips: PayslipRow[], f:
       { label: "Total to remit", value: kes(sum(out, (o) => o.total)) },
       ...[...byComponent.entries()].map(([label, value]) => ({ label, value: kes(value) })),
     ],
-    chart: { title: "Total by component", items: [...byComponent.entries()].map(([label, value]) => ({ label, value })), format: "kes" },
+    chart: { kind: "doughnut", title: "Total by component", items: [...byComponent.entries()].map(([label, value]) => ({ label, value })), format: "kes" },
     columns: [
       { key: "period", label: "Payroll month" }, { key: "component", label: "Component" },
       { key: "employee", label: "From employees", align: "right", format: "kes" }, { key: "employer", label: "From employer", align: "right", format: "kes" },
@@ -365,7 +365,7 @@ export function buildCompliance(employees: EmployeeRow[], docs: ComplianceRow[],
       { label: "Expiring soon", value: String(count("Expiring soon")), tone: count("Expiring soon") ? "amber" : undefined },
       { label: "Valid", value: String(count("Valid")), tone: "green" },
     ],
-    chart: { title: "By status", items: [{ label: "Expired", value: count("Expired") }, { label: "Expiring soon", value: count("Expiring soon") }, { label: "Valid", value: count("Valid") }] },
+    chart: { kind: "doughnut", title: "By status", items: [{ label: "Expired", value: count("Expired"), color: "var(--series-8)" }, { label: "Expiring soon", value: count("Expiring soon"), color: "var(--series-4)" }, { label: "Valid", value: count("Valid"), color: "var(--series-6)" }] },
     columns: [
       { key: "who", label: "Employee" }, { key: "type", label: "Type" }, { key: "label", label: "Document" },
       { key: "expiry", label: "Expires" }, { key: "left", label: "Days left", align: "right", format: "int" }, { key: "status", label: "Status" },
@@ -420,7 +420,7 @@ export function buildDisciplinary(employees: EmployeeRow[], actions: Disciplinar
       { label: "Staff with 2+ actions", value: String(repeat), tone: repeat ? "amber" : undefined },
       { label: "Departments involved", value: String(new Set(rows.map((a) => emp.get(a.employee_id)!.department)).size) },
     ],
-    chart: { title: "Actions by type", items: countMap(rows, (a) => a.action_type) },
+    chart: { kind: "doughnut", title: "Actions by type", items: countMap(rows, (a) => a.action_type) },
     columns: [
       { key: "date", label: "Hearing date" }, { key: "name", label: "Employee" }, { key: "department", label: "Department" },
       { key: "type", label: "Action" }, { key: "reason", label: "Reason" }, { key: "outcome", label: "Outcome" },
@@ -503,7 +503,7 @@ export function buildDiversity(employees: EmployeeRow[], f: ReportFilters, today
       { label: "Average age", value: ages.length ? `${round1(sum(ages, (x) => x) / ages.length)}` : "—" },
       { label: "Gender not recorded", value: String(missingGender), tone: missingGender ? "amber" : undefined, hint: "Fill in the employee records to improve this report" },
     ],
-    chart: { title: "Gender", items: gender },
+    chart: { kind: "doughnut", title: "Gender", items: gender },
     columns: [
       { key: "dimension", label: "Measure" }, { key: "segment", label: "Group" },
       { key: "count", label: "People", align: "right", format: "int" }, { key: "share", label: "Share", align: "right", format: "pct" },

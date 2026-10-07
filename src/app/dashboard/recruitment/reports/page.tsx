@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Doughnut, VerticalBars } from "@/components/charts/charts";
 import { buildRecruitmentReport } from "@/lib/recruitment/report";
 
 const card = "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4";
@@ -26,7 +27,6 @@ export default async function RecruitmentReportsPage() {
   const r = buildRecruitmentReport(candidates ?? [], history ?? []);
   const openJobs = (reqs ?? []).filter((x) => x.status === "Open" && x.approval_status === "Approved").length;
   const waiting = (reqs ?? []).filter((x) => x.approval_status === "Pending").length;
-  const top = Math.max(1, ...r.funnel.map((f) => f.count));
 
   return (
     <div className="space-y-6">
@@ -54,26 +54,20 @@ export default async function RecruitmentReportsPage() {
       <div className={card}>
         <h2 className={h2}>Hiring funnel</h2>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">How many candidates reached each stage. A big drop between two stages shows where people are lost.</p>
-        <ul className="space-y-2">
-          {r.funnel.map((f, i) => {
-            const prev = i > 0 ? r.funnel[i - 1].count : null;
-            const drop = prev && prev > 0 ? Math.round(((prev - f.count) / prev) * 100) : null;
-            return (
-              <li key={f.stage} className="text-sm">
-                <div className="flex justify-between">
-                  <span>{f.stage}</span>
-                  <span className="text-neutral-500 dark:text-neutral-400">
-                    {f.count}
-                    {drop !== null && drop > 0 && ` (−${drop}% from previous)`}
-                  </span>
-                </div>
-                <div className="h-2 rounded bg-neutral-100 dark:bg-neutral-800 mt-1">
-                  <div className="h-2 rounded bg-brand-500" style={{ width: `${(f.count / top) * 100}%` }} />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <VerticalBars items={r.funnel.map((f) => ({ label: f.stage, value: f.count }))} />
+        {(() => {
+          let worst: { from: string; to: string; drop: number } | null = null;
+          for (let i = 1; i < r.funnel.length; i++) {
+            const prev = r.funnel[i - 1].count;
+            const drop = prev > 0 ? Math.round(((prev - r.funnel[i].count) / prev) * 100) : 0;
+            if (drop > 0 && (!worst || drop > worst.drop)) worst = { from: r.funnel[i - 1].stage, to: r.funnel[i].stage, drop };
+          }
+          return worst ? (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
+              Biggest drop: {worst.from} → {worst.to} (−{worst.drop}%).
+            </p>
+          ) : null;
+        })()}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -108,15 +102,7 @@ export default async function RecruitmentReportsPage() {
 
         <div className={card}>
           <h2 className={h2}>Why candidates were rejected</h2>
-          <ul className="space-y-1.5 text-sm">
-            {r.rejectionReasons.map((x) => (
-              <li key={x.reason} className="flex justify-between border-t border-neutral-100 dark:border-neutral-800 pt-1.5 first:border-0 first:pt-0">
-                <span>{x.reason}</span>
-                <span className="text-neutral-500 dark:text-neutral-400">{x.count}</span>
-              </li>
-            ))}
-            {r.rejectionReasons.length === 0 && <li className="text-neutral-400">No rejections recorded.</li>}
-          </ul>
+          <Doughnut items={r.rejectionReasons.map((x) => ({ label: x.reason, value: x.count }))} />
         </div>
       </div>
     </div>
