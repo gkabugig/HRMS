@@ -42,11 +42,16 @@ export async function resolveApprover(
 
   switch (approverType) {
     case "REQUESTER_MANAGER": {
+      // The head of the organisation has no manager — the HR Manager approves.
+      const requester = await requireRequesterEmployee(supabase, requesterId);
+      if (requester.is_head_of_organisation) return { kind: "role", role: "hr" };
       const managerEmployeeId = await resolveRequesterManagerEmployeeId(supabase, requesterId);
       return { kind: "user", userId: await requireAppUserForEmployee(supabase, managerEmployeeId, "The requester's manager") };
     }
 
     case "SECOND_LEVEL_MANAGER": {
+      const requester = await requireRequesterEmployee(supabase, requesterId);
+      if (requester.is_head_of_organisation) return { kind: "role", role: "hr" };
       const managerEmployeeId = await resolveRequesterManagerEmployeeId(supabase, requesterId);
       const { data: manager } = await supabase
         .from("employees")
@@ -149,7 +154,7 @@ async function requireRequesterEmployee(supabase: SupabaseClient, requesterId: s
   }
   const { data: employee } = await supabase
     .from("employees")
-    .select("id, department, reporting_manager_id")
+    .select("id, department, reporting_manager_id, is_head_of_organisation")
     .eq("id", requesterAppUser.employee_id)
     .maybeSingle();
   if (!employee) throw new ApproverResolutionError("The requester's employee record was not found.");

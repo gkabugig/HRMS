@@ -172,6 +172,19 @@ export async function updateEmployee(employeeId: string, _prev: FormResult, form
   };
 
   const { error } = await supabase.from("employees").update(after).eq("id", employeeId);
+  if (!error && formData.has("is_head_of_organisation")) {
+    const makeHead = formData.get("is_head_of_organisation") === "yes";
+    const { error: headErr } = await supabase
+      .from("employees")
+      .update({ is_head_of_organisation: makeHead })
+      .eq("id", employeeId);
+    if (headErr) {
+      if (headErr.code === "23505") {
+        throw new Error("Another employee is already the head of the organisation. Remove that first.");
+      }
+      throw new Error(headErr.message);
+    }
+  }
   if (error) {
     if (error.code === "23505") {
       throw new Error("That staff number is already in use by another employee.");

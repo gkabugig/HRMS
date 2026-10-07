@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getHrManagerUserIds } from "../approvals/head-of-organisation";
 
 // Resolves who should be notified about something happening to a given
 // employee: HR/admin always, plus that employee's direct manager's app
@@ -9,12 +10,21 @@ export async function getHrAndManagerRecipients(
   orgId: string,
   employeeId: string
 ): Promise<string[]> {
-  const [{ data: hrUsers }, { data: employee }] = await Promise.all([
+  const [{ data: hrUsers }, { data: employee }, { data: self }] = await Promise.all([
     supabase.from("app_users").select("id").eq("org_id", orgId).in("role", ["admin", "hr"]),
-    supabase.from("employees").select("reporting_manager_id").eq("id", employeeId).maybeSingle(),
+    supabase.from("employees").select("reporting_manager_id, is_head_of_organisation").eq("id", employeeId).maybeSingle(),
+    supabase.from("app_users").select("id").eq("employee_id", employeeId).maybeSingle(),
   ]);
 
+  // The head of the organisation has no manager: her requests go to the HR
+  // Manager only. Nobody is ever notified to approve their own request.
+  if (employee?.is_head_of_organisation) {
+    const hrManagers = await getHrManagerUserIds(supabase, orgId);
+    return hrManagers.filter((id) => id !== self?.id);
+  }
+
   const ids = new Set((hrUsers ?? []).map((u) => u.id as string));
+  if (self?.id) ids.delete(self.id);
 
   if (employee?.reporting_manager_id) {
     const { data: managerUser } = await supabase
@@ -40,9 +50,10 @@ export async function getManagerRecipient(
 ): Promise<string[]> {
   const { data: employee } = await supabase
     .from("employees")
-    .select("reporting_manager_id")
+    .select("reporting_manager_id, org_id, is_head_of_organisation")
     .eq("id", employeeId)
     .maybeSingle();
+  if (employee?.is_head_of_organisation) return getHrManagerUserIds(supabase, employee.org_id as string);
   if (!employee?.reporting_manager_id) return [];
 
   const { data: managerUser } = await supabase

@@ -185,6 +185,17 @@ export default async function EmployeesPage({
                             </select>
                           </label>
                           <label className="text-neutral-500 dark:text-neutral-400">
+                            Head of organisation (CEO)
+                            <select
+                              name="is_head_of_organisation"
+                              defaultValue={e.is_head_of_organisation ? "yes" : "no"}
+                              className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1 mt-0.5"
+                            >
+                              <option value="no">No</option>
+                              <option value="yes">Yes — requests go to HR Manager</option>
+                            </select>
+                          </label>
+                          <label className="text-neutral-500 dark:text-neutral-400">
                             Branch
                             <select
                               name="branch_id"
