@@ -150,18 +150,27 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 async function DataQualityPanel({ supabase, orgId }: { supabase: SupabaseServerClient; orgId?: string }) {
   if (!orgId) return null;
-  const { data: findings } = await supabase
-    .from("ai_insights")
-    .select("severity")
-    .eq("org_id", orgId)
-    .eq("category", "org_structure")
-    .eq("status", "open");
+  const [{ data: rows }, { data: heads }] = await Promise.all([
+    supabase
+      .from("ai_insights")
+      .select("id, title, body, severity, entity_type, entity_id, suggested_action")
+      .eq("org_id", orgId)
+      .eq("category", "org_structure")
+      .eq("status", "open"),
+    supabase.from("employees").select("id").eq("org_id", orgId).eq("is_head_of_organisation", true),
+  ]);
 
-  const counts = (findings ?? []).reduce<Record<string, number>>((acc, f) => {
+  // The head of the organisation (CEO) has no manager by design.
+  const headIds = new Set((heads ?? []).map((h) => h.id as string));
+  const findings = (rows ?? []).filter(
+    (f) => !(f.title === "No current line manager on file" && f.entity_id && headIds.has(f.entity_id as string))
+  );
+
+  const counts = findings.reduce<Record<string, number>>((acc, f) => {
     acc[f.severity] = (acc[f.severity] ?? 0) + 1;
     return acc;
   }, {});
-  const total = findings?.length ?? 0;
+  const total = findings.length;
   const severityOrder = ["critical", "high", "medium", "low"];
   const severityColor: Record<string, string> = {
     critical: "bg-red-100 text-red-700",
@@ -169,31 +178,57 @@ async function DataQualityPanel({ supabase, orgId }: { supabase: SupabaseServerC
     medium: "bg-amber-100 text-amber-700",
     low: "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400",
   };
+  const sorted = [...findings].sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity));
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 flex items-center justify-between flex-wrap gap-3">
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Organisation data quality:</span>
-        {total === 0 ? (
-          <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">No open findings</span>
-        ) : (
-          severityOrder
-            .filter((s) => counts[s])
-            .map((s) => (
-              <span key={s} className={`text-xs px-2 py-0.5 rounded-full ${severityColor[s]}`}>
-                {counts[s]} {s}
-              </span>
-            ))
-        )}
+    <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Organisation data quality:</span>
+          {total === 0 ? (
+            <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">No open findings</span>
+          ) : (
+            severityOrder
+              .filter((s) => counts[s])
+              .map((s) => (
+                <span key={s} className={`text-xs px-2 py-0.5 rounded-full ${severityColor[s]}`}>
+                  {counts[s]} {s}
+                </span>
+              ))
+          )}
+        </div>
+        <form
+          action={async () => {
+            "use server";
+            await runOrganisationDataQuality();
+          }}
+        >
+          <button className="text-xs bg-neutral-900 text-white rounded-lg px-3 py-1.5 font-medium">Run checks</button>
+        </form>
       </div>
-      <form
-        action={async () => {
-          "use server";
-          await runOrganisationDataQuality();
-        }}
-      >
-        <button className="text-xs bg-neutral-900 text-white rounded-lg px-3 py-1.5 font-medium">Run checks</button>
-      </form>
+      {total > 0 && (
+        <details className="mt-3" open>
+          <summary className="text-xs font-medium text-brand-600 cursor-pointer">What needs fixing ({total})</summary>
+          <ul className="mt-2 divide-y divide-neutral-100 dark:divide-neutral-800 text-sm">
+            {sorted.map((f) => (
+              <li key={f.id} className="py-2 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded-full mr-2 ${severityColor[f.severity] ?? ""}`}>{f.severity}</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-50">{f.title}</span>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{f.body}</p>
+                  {f.suggested_action && <p className="text-xs text-neutral-400 dark:text-neutral-500">Fix: {f.suggested_action}</p>}
+                </div>
+                <div className="flex gap-3 shrink-0 text-xs font-medium">
+                  {f.entity_type === "employee" && f.entity_id && (
+                    <Link href={`/dashboard/employees/${f.entity_id}`} className="text-brand-600 hover:underline">Open profile</Link>
+                  )}
+                  <Link href="/dashboard/organogram?view=structure" className="text-brand-600 hover:underline">Fix in Structure</Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }
