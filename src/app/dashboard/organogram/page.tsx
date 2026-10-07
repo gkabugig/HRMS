@@ -203,14 +203,9 @@ async function DataQualityPanel({ supabase, orgId, employees }: { supabase: Supa
               ))
           )}
         </div>
-        <form
-          action={async () => {
-            "use server";
-            await runOrganisationDataQuality();
-          }}
-        >
+        <ActionForm action={runOrganisationDataQuality} resetOnSuccess={false} successMessage="Checks re-run.">
           <button className="text-xs bg-neutral-900 text-white rounded-lg px-3 py-1.5 font-medium">Run checks</button>
-        </form>
+        </ActionForm>
       </div>
       {total > 0 && (
         <details className="mt-3" open>
@@ -234,7 +229,7 @@ async function DataQualityPanel({ supabase, orgId, employees }: { supabase: Supa
                   {f.entity_type === "employee" && f.entity_id && f.title === "No current organisation assignment" && (
                     <ActionForm action={quickFixAssignment.bind(null, f.entity_id as string)} className="flex flex-wrap justify-end gap-1.5 max-w-md" successMessage="Fixed.">
                       <select name="position_id" className="border border-[var(--border-subtle)] rounded-md px-1.5 py-1 text-xs bg-white dark:bg-neutral-900 max-w-[170px]">
-                        <option value="">Choose position…</option>
+                        <option value="">Choose position (or leave blank to repair)…</option>
                         {(positionRows ?? []).map((p) => (
                           <option key={p.id} value={p.id}>{p.title}{p.position_code ? ` (${p.position_code})` : ""}</option>
                         ))}

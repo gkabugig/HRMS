@@ -21,6 +21,41 @@ async function requireOrgAndActor(supabase: Awaited<ReturnType<typeof createClie
   return { orgId: appUser.org_id as string, userId: user.id };
 }
 
+
+// The data-quality check treats someone as "unassigned" when their position
+// has no organisation unit (get_current_assignment_unit returns null). So make
+// sure the position is linked to a unit — the employee's department, created
+// if it doesn't exist yet.
+async function ensurePositionHasUnit(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  orgId: string,
+  positionId: string,
+  employeeId: string
+) {
+  const { data: position } = await supabase.from("positions").select("organisation_unit_id").eq("id", positionId).maybeSingle();
+  if (!position || position.organisation_unit_id) return;
+  const { data: emp } = await supabase.from("employees").select("department").eq("id", employeeId).maybeSingle();
+  const dept = (emp?.department as string | null)?.trim();
+  if (!dept) return;
+  let { data: unit } = await supabase
+    .from("organisation_units")
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("unit_type", "department")
+    .eq("name", dept)
+    .maybeSingle();
+  if (!unit) {
+    const { data: created, error } = await supabase
+      .from("organisation_units")
+      .insert({ org_id: orgId, name: dept, unit_type: "department" })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    unit = created;
+  }
+  await supabase.from("positions").update({ organisation_unit_id: unit!.id }).eq("id", positionId);
+}
+
 export async function createOrgUnit(formData: FormData) {
   const supabase = await createClient();
   const { orgId, userId } = await requireOrgAndActor(supabase);
@@ -181,6 +216,9 @@ export async function assignEmployeePosition(_prev: FormResult, formData: FormDa
   const effectiveFrom = String(formData.get("effective_from") || "") || new Date().toISOString().slice(0, 10);
   if (!employeeId || !positionId) throw new Error("Employee and position are required.");
 
+  const { orgId: assignOrgId } = await requireOrgAndActor(supabase);
+  await ensurePositionHasUnit(supabase, assignOrgId, positionId, employeeId);
+
   const { error } = await supabase.rpc("change_employee_assignment", {
     p_employee_id: employeeId,
     p_position_id: positionId,
@@ -225,15 +263,18 @@ export async function setPositionActive(positionId: string, isActive: boolean) {
 // Runs the Area 04 data-quality checks (spec §27/§28) and refreshes the
 // findings shown on the organogram page. Thin wrapper over the SQL function
 // so every finding is computed in one transactional pass server-side.
-export async function runOrganisationDataQuality() {
-  const supabase = await createClient();
-  await requireOrgAndActor(supabase);
+export async function runOrganisationDataQuality(_prev?: FormResult, _formData?: FormData): Promise<FormResult> {
+  void _prev;
+  void _formData;
+  return toResult(async () => {
+    const supabase = await createClient();
+    await requireOrgAndActor(supabase);
 
-  const { data, error } = await supabase.rpc("run_organisation_data_quality");
-  if (error) throw new Error(error.message);
+    const { error } = await supabase.rpc("run_organisation_data_quality");
+    if (error) throw new Error(`Run checks failed: ${error.message}`);
 
-  revalidatePath("/dashboard/organogram");
-  return data as number;
+    revalidatePath("/dashboard/organogram");
+  });
 }
 
 // One-step fix used from the data-quality panel: give an employee a position
@@ -247,30 +288,46 @@ export async function quickFixAssignment(employeeId: string, _prev: FormResult, 
     let positionId = String(formData.get("position_id") || "");
     const newTitle = String(formData.get("new_position_title") || "").trim();
     const managerId = String(formData.get("manager_id") || "") || null;
-    if (!positionId && !newTitle) throw new Error("Choose a position, or type a title to create a new one.");
 
-    if (!positionId) {
-      const { data: created, error: posErr } = await supabase
-        .from("positions")
-        .insert({ org_id: orgId, title: newTitle, approved_headcount: 1 })
-        .select("id")
-        .single();
-      if (posErr) throw new Error(posErr.message);
-      positionId = created.id;
-      await recordAuditEvent(supabase, {
-        orgId, actorUserId: userId, action: "position.created", resourceType: "position",
-        resourceId: positionId, eventCategory: "configuration", after: { title: newTitle },
+    // Already assigned (e.g. an earlier attempt succeeded but its position had
+    // no department, so the check kept flagging it): repair that assignment
+    // instead of trying to assign again.
+    const { data: current } = await supabase
+      .from("employee_positions")
+      .select("position_id")
+      .eq("employee_id", employeeId)
+      .eq("is_primary", true)
+      .is("effective_to", null)
+      .maybeSingle();
+
+    if (current?.position_id && !positionId && !newTitle) {
+      await ensurePositionHasUnit(supabase, orgId, current.position_id as string, employeeId);
+    } else {
+      if (!positionId && !newTitle) throw new Error("Choose a position, or type a title to create a new one.");
+      if (!positionId) {
+        const { data: created, error: posErr } = await supabase
+          .from("positions")
+          .insert({ org_id: orgId, title: newTitle, approved_headcount: 1 })
+          .select("id")
+          .single();
+        if (posErr) throw new Error(posErr.message);
+        positionId = created.id;
+        await recordAuditEvent(supabase, {
+          orgId, actorUserId: userId, action: "position.created", resourceType: "position",
+          resourceId: positionId, eventCategory: "configuration", after: { title: newTitle },
+        });
+      }
+      await ensurePositionHasUnit(supabase, orgId, positionId, employeeId);
+
+      const { error } = await supabase.rpc("change_employee_assignment", {
+        p_employee_id: employeeId,
+        p_position_id: positionId,
+        p_manager_id: managerId,
+        p_effective_from: new Date().toISOString().slice(0, 10),
+        p_reason: "Data-quality quick fix",
       });
+      if (error) throw new Error(error.message);
     }
-
-    const { error } = await supabase.rpc("change_employee_assignment", {
-      p_employee_id: employeeId,
-      p_position_id: positionId,
-      p_manager_id: managerId,
-      p_effective_from: new Date().toISOString().slice(0, 10),
-      p_reason: "Data-quality quick fix",
-    });
-    if (error) throw new Error(error.message);
 
     await supabase.rpc("run_organisation_data_quality");
     revalidatePath("/dashboard/organogram");
@@ -292,6 +349,9 @@ export async function markHeadOfOrganisation(employeeId: string, _prev: FormResu
       .eq("org_id", orgId);
     if (error) {
       if (error.code === "23505") throw new Error("Another employee is already marked as the head of the organisation.");
+      if (/is_head_of_organisation|column/i.test(error.message)) {
+        throw new Error("The database update for 'head of organisation' hasn't been applied yet. Run the 0136 SQL in Supabase, then try again.");
+      }
       throw new Error(error.message);
     }
     await supabase.rpc("run_organisation_data_quality");
