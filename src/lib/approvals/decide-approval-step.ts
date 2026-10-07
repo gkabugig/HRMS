@@ -166,6 +166,35 @@ export async function decideApprovalStep(
         .update({ started_at: new Date().toISOString() })
         .eq("approval_request_id", request.id)
         .eq("step_order", step.step_order + 1);
+
+      // Tell the next approver the request has reached them.
+      const { data: nextStep } = await supabase
+        .from("approval_steps")
+        .select("id")
+        .eq("approval_request_id", request.id)
+        .eq("step_order", step.step_order + 1)
+        .maybeSingle();
+      if (nextStep) {
+        const nextEventId = await emitNotificationEvent(supabase, {
+          orgId: input.orgId,
+          eventType: "approval.requested",
+          aggregateType: "approval_step",
+          aggregateId: nextStep.id,
+          actorId: actorUserId,
+          idempotencyKey: `approval.requested:${nextStep.id}`,
+          payload: {
+            requestId: request.id,
+            stepId: nextStep.id,
+            actionUrl: "/dashboard/approvals",
+            defaultTitle: "Approval needed",
+            defaultMessage: "A request is waiting for your approval.",
+            defaultActionUrl: "/dashboard/approvals",
+          },
+        });
+        if (nextEventId) {
+          await processEventImmediately(createAdminClient(), nextEventId).catch((err) => console.error("processEventImmediately failed:", err));
+        }
+      }
     }
   }
 

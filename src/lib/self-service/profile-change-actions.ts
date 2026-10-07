@@ -169,7 +169,7 @@ export async function decideProfileChangeApproval(stepId: string, decision: "app
     if (changeRequest?.sensitivity === "highly_restricted") sensitivity = "highly_restricted";
   }
 
-  const { requestId } = await decideApprovalStep(supabase, {
+  const { requestId, requestStatus } = await decideApprovalStep(supabase, {
     stepId,
     orgId: appUser.org_id,
     decision,
@@ -177,6 +177,13 @@ export async function decideProfileChangeApproval(stepId: string, decision: "app
       ? { resource: "employees", action: "edit", sensitivity, recordId: subjectEmployeeId }
       : undefined,
   });
+
+  // Multi-step requests (e.g. an administrator's, approved by HR then the CEO):
+  // the change only takes effect once the FINAL step is approved.
+  if (decision === "approved" && requestStatus !== "approved") {
+    revalidatePath("/dashboard/approvals");
+    return;
+  }
 
   // Hands off to the Workflow Automation Engine (Area 03): decideApprovalStep
   // itself stays completely unaware that a workflow exists (Area 02

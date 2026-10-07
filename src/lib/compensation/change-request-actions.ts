@@ -150,7 +150,7 @@ export async function decideCompensationChangeRequest(stepId: string, decision: 
   const changeRequestId = approvalRequestRow?.entity_id ?? null;
   if (!changeRequestId) throw new Error("Compensation change request not found.");
 
-  const { requestId } = await decideApprovalStep(supabase, {
+  const { requestId, requestStatus } = await decideApprovalStep(supabase, {
     stepId,
     orgId: appUser.org_id,
     decision,
@@ -161,6 +161,13 @@ export async function decideCompensationChangeRequest(stepId: string, decision: 
       ? { resource: "payroll", action: "edit", sensitivity: "highly_restricted", recordId: approvalRequestRow.subject_employee_id }
       : undefined,
   });
+
+  // Multi-step requests (e.g. an administrator's, approved by HR then the CEO):
+  // the change only takes effect once the FINAL step is approved.
+  if (decision === "approved" && requestStatus !== "approved") {
+    revalidatePath("/dashboard/approvals");
+    return { requestId };
+  }
 
   const { data: changeRequest } = await supabase.from("compensation_change_requests").select("id, org_id, effective_from").eq("id", changeRequestId).single();
   if (!changeRequest) throw new Error("Compensation change request not found.");

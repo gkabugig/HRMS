@@ -117,7 +117,14 @@ export async function decideWorkforcePlanApproval(stepId: string, decision: "app
   const planId = (stepRow?.approval_requests as unknown as { entity_id: string | null } | null)?.entity_id ?? null;
   if (!planId) throw new Error("Workforce plan not found.");
 
-  const { requestId } = await decideApprovalStep(supabase, { stepId, orgId: appUser.org_id, decision });
+  const { requestId, requestStatus } = await decideApprovalStep(supabase, { stepId, orgId: appUser.org_id, decision });
+
+  // Multi-step requests (e.g. an administrator's, approved by HR then the CEO):
+  // the change only takes effect once the FINAL step is approved.
+  if (decision === "approved" && requestStatus !== "approved") {
+    revalidatePath("/dashboard/approvals");
+    return { requestId };
+  }
 
   await supabase
     .from("workforce_plans")

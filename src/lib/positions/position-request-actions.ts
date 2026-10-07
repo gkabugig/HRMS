@@ -194,7 +194,14 @@ export async function decidePositionRequest(stepId: string, decision: "approved"
   const positionRequestId = approvalRequestRow?.entity_id ?? null;
   if (!positionRequestId) throw new Error("Position request not found.");
 
-  const { requestId } = await decideApprovalStep(supabase, { stepId, orgId: appUser.org_id, decision });
+  const { requestId, requestStatus } = await decideApprovalStep(supabase, { stepId, orgId: appUser.org_id, decision });
+
+  // Multi-step requests (e.g. an administrator's, approved by HR then the CEO):
+  // the change only takes effect once the FINAL step is approved.
+  if (decision === "approved" && requestStatus !== "approved") {
+    revalidatePath("/dashboard/approvals");
+    return { requestId };
+  }
 
   const { data: positionRequest } = await supabase
     .from("position_requests")

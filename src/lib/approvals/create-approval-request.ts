@@ -21,6 +21,32 @@ export type ApprovalStepInput = {
   dueAt?: string | null;
 };
 
+// Requests raised by a system administrator are never left to a single
+// reviewer: the HR Manager reviews first, then the head of the organisation
+// (CEO) signs off. Each step is skipped if it can't apply (no HR user other
+// than the requester, no CEO marked or the CEO has no login, or the
+// requester IS the CEO), and if neither applies the original steps stand.
+async function administratorSteps(supabase: SupabaseClient, orgId: string, requestedBy: string): Promise<ApprovalStepInput[] | null> {
+  const { data: requester } = await supabase.from("app_users").select("role").eq("id", requestedBy).maybeSingle();
+  if (requester?.role !== "admin") return null;
+
+  const { data: hrUsers } = await supabase.from("app_users").select("id").eq("org_id", orgId).eq("role", "hr");
+  const { data: head } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("is_head_of_organisation", true)
+    .maybeSingle();
+  const { data: ceoUser } = head
+    ? await supabase.from("app_users").select("id").eq("employee_id", head.id).maybeSingle()
+    : { data: null };
+
+  const steps: ApprovalStepInput[] = [];
+  if ((hrUsers ?? []).some((u) => u.id !== requestedBy)) steps.push({ approverRole: "hr" });
+  if (ceoUser && ceoUser.id !== requestedBy) steps.push({ approverUserId: ceoUser.id as string });
+  return steps.length > 0 ? steps : null;
+}
+
 export async function createApprovalRequest(
   supabase: SupabaseClient,
   input: {
@@ -38,6 +64,10 @@ export async function createApprovalRequest(
     dueAt?: string | null;
   }
 ): Promise<string> {
+  // Auto-approved requests (no steps) stay that way; everything else raised by
+  // an administrator goes HR Manager -> CEO.
+  const steps = input.steps.length > 0 ? ((await administratorSteps(supabase, input.orgId, input.requestedBy)) ?? input.steps) : input.steps;
+
   const { data: request, error } = await supabase
     .from("approval_requests")
     .insert({
@@ -60,7 +90,7 @@ export async function createApprovalRequest(
   if (error) throw new Error(error.message);
 
   await supabase.from("approval_steps").insert(
-    input.steps.map((s, i) => ({
+    steps.map((s, i) => ({
       approval_request_id: request.id,
       step_order: i + 1,
       approver_user_id: s.approverUserId ?? null,

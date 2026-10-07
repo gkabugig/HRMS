@@ -142,7 +142,7 @@ export async function decideAttendanceCorrectionRequest(stepId: string, decision
   const correctionRequestId = approvalRequestRow?.entity_id ?? null;
   if (!correctionRequestId) throw new Error("Correction request not found.");
 
-  const { requestId } = await decideApprovalStep(supabase, {
+  const { requestId, requestStatus } = await decideApprovalStep(supabase, {
     stepId,
     orgId: appUser.org_id,
     decision,
@@ -150,6 +150,13 @@ export async function decideAttendanceCorrectionRequest(stepId: string, decision
       ? { resource: "attendance", action: "edit", sensitivity: "normal", recordId: approvalRequestRow.subject_employee_id }
       : undefined,
   });
+
+  // Multi-step requests (e.g. an administrator's, approved by HR then the CEO):
+  // the change only takes effect once the FINAL step is approved.
+  if (decision === "approved" && requestStatus !== "approved") {
+    revalidatePath("/dashboard/approvals");
+    return { requestId };
+  }
 
   const { data: correctionRequest } = await supabase
     .from("attendance_correction_requests")

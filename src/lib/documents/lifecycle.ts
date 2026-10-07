@@ -196,7 +196,7 @@ export async function decideDocumentApproval(stepId: string, decision: "approved
   const versionId = approvalRequestRow?.entity_id ?? null;
   if (!versionId) throw new Error("Document version not found for this approval.");
 
-  const { requestId } = await decideApprovalStep(supabase, {
+  const { requestId, requestStatus } = await decideApprovalStep(supabase, {
     stepId,
     orgId: appUser.org_id,
     decision,
@@ -204,6 +204,13 @@ export async function decideDocumentApproval(stepId: string, decision: "approved
       ? { resource: "documents", action: "approve", sensitivity: "confidential", recordId: approvalRequestRow.subject_employee_id }
       : undefined,
   });
+
+  // Multi-step requests (e.g. an administrator's, approved by HR then the CEO):
+  // the change only takes effect once the FINAL step is approved.
+  if (decision === "approved" && requestStatus !== "approved") {
+    revalidatePath("/dashboard/approvals");
+    return { requestId };
+  }
 
   const { data: version } = await supabase
     .from("document_versions")
