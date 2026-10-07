@@ -10,6 +10,7 @@ import KpiGrid from "./components/kpi-grid";
 import ActionCentre from "./components/action-centre";
 import WorkforceTrend from "./components/workforce-trend";
 import WorkforceBreakdown from "./components/workforce-breakdown";
+import { EmploymentMixCard, TenureCard } from "./components/workforce-mix";
 import PayrollSnapshotCard from "./components/payroll-snapshot";
 import AttendanceSnapshotCard from "./components/attendance-snapshot";
 import RecruitmentSnapshotCard from "./components/recruitment-snapshot";
@@ -80,6 +81,8 @@ export default async function DashboardHome({
       {workforce.departmentBreakdown.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <WorkforceBreakdown workforce={workforce} />
+          <EmploymentMixCard workforce={workforce} />
+          <TenureCard workforce={workforce} />
           <RecentActivity activity={activity} />
         </div>
       )}

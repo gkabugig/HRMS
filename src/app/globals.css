@@ -105,6 +105,19 @@
   --series-8: #e66767;
 }
 
+/* Vivid dashboard palette — saturated hues that stay punchy on both themes. */
+:root {
+  --vivid-1: #6366f1;
+  --vivid-2: #f43f5e;
+  --vivid-3: #10b981;
+  --vivid-4: #f59e0b;
+  --vivid-5: #06b6d4;
+  --vivid-6: #a855f7;
+  --vivid-7: #3b82f6;
+  --vivid-8: #f97316;
+  --vivid-other: #94a3b8;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
