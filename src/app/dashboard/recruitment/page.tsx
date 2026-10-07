@@ -1,3 +1,4 @@
+import ActionForm from "@/components/forms/action-form";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createRequisition, closeRequisition } from "./actions";
@@ -58,9 +59,9 @@ export default async function RecruitmentPage() {
                 <td className="px-4 py-2">{r.status}</td>
                 <td className="px-4 py-2">
                   {r.status === "Open" && (isHrLike || isManager) && (
-                    <form action={closeRequisition.bind(null, r.id)}>
+                    <ActionForm action={closeRequisition.bind(null, r.id)} successMessage={null}>
                       <button className="text-xs text-neutral-500 dark:text-neutral-400 underline">Close</button>
-                    </form>
+                    </ActionForm>
                   )}
                 </td>
               </tr>
@@ -79,7 +80,7 @@ export default async function RecruitmentPage() {
       {(isHrLike || isManager) && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Raise a requisition</h2>
-          <form action={createRequisition} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
+          <ActionForm action={createRequisition} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
             <input name="role" placeholder="Role / Job title" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="department" placeholder="Department" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="headcount" type="number" min={1} defaultValue={1} className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
@@ -96,7 +97,7 @@ export default async function RecruitmentPage() {
             <button type="submit" className="sm:col-span-4 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Raise requisition
             </button>
-          </form>
+          </ActionForm>
         </div>
       )}
     </div>

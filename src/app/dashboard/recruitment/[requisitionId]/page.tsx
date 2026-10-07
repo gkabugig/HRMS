@@ -1,3 +1,4 @@
+import ActionForm from "@/components/forms/action-form";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -71,7 +72,7 @@ export default async function RequisitionDetailPage({
             </div>
 
             {canEdit && c.stage !== "Hired" && (
-              <form action={updateCandidateStage} className="mt-3 flex gap-2 text-sm">
+              <ActionForm action={updateCandidateStage} className="mt-3 flex gap-2 text-sm">
                 <input type="hidden" name="candidate_id" value={c.id} />
                 <input type="hidden" name="requisition_id" value={requisitionId} />
                 <select name="stage" defaultValue={c.stage} className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1">
@@ -84,11 +85,11 @@ export default async function RequisitionDetailPage({
                 <button type="submit" className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1">
                   Update stage
                 </button>
-              </form>
+              </ActionForm>
             )}
 
             {canEdit && c.stage === "Offered" && (
-              <form action={hireCandidate.bind(null, c.id, requisitionId)} className="mt-3">
+              <ActionForm action={hireCandidate.bind(null, c.id, requisitionId)} className="mt-3" successMessage={null}>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
                   Creates an employee record for {c.name} in {requisition.department} as{" "}
                   {requisition.role} — staff no, compensation, branch, and the rest are filled in
@@ -97,7 +98,7 @@ export default async function RequisitionDetailPage({
                 <button type="submit" className="text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
                   Hire → create employee record
                 </button>
-              </form>
+              </ActionForm>
             )}
 
             {(c.stage === "Offered" || c.stage === "Hired") && (
@@ -106,17 +107,17 @@ export default async function RequisitionDetailPage({
                 <ul className="space-y-1">
                   {(c.onboarding_tasks as unknown as { id: string; task: string; done: boolean }[]).map((t) => (
                     <li key={t.id} className="flex items-center gap-2 text-sm">
-                      <form action={toggleOnboardingTask.bind(null, t.id, requisitionId, !t.done)}>
+                      <ActionForm action={toggleOnboardingTask.bind(null, t.id, requisitionId, !t.done)} successMessage={null}>
                         <button type="submit" className={t.done ? "text-green-600" : "text-neutral-400 dark:text-neutral-500"}>
                           {t.done ? "☑" : "☐"}
                         </button>
-                      </form>
+                      </ActionForm>
                       <span className={t.done ? "line-through text-neutral-400 dark:text-neutral-500" : ""}>{t.task}</span>
                     </li>
                   ))}
                 </ul>
                 {canEdit && (
-                  <form
+                  <ActionForm
                     action={addOnboardingTask.bind(null, c.id, requisitionId)}
                     className="mt-2 flex gap-2 text-sm"
                   >
@@ -124,7 +125,7 @@ export default async function RequisitionDetailPage({
                     <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
                       Add
                     </button>
-                  </form>
+                  </ActionForm>
                 )}
               </div>
             )}
@@ -138,13 +139,13 @@ export default async function RequisitionDetailPage({
       {canEdit && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add candidate</h2>
-          <form action={addCandidate.bind(null, requisitionId)} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <ActionForm action={addCandidate.bind(null, requisitionId)} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <input name="name" placeholder="Candidate name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="source" placeholder="Source (referral, job board...)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add candidate
             </button>
-          </form>
+          </ActionForm>
         </div>
       )}
     </div>

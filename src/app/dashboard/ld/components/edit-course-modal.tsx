@@ -27,12 +27,9 @@ export default function EditCourseModal({ course }: { course: Course }) {
   function onSubmit(formData: FormData) {
     setError(null);
     startSubmitting(async () => {
-      try {
-        await updateCourse(course.id, formData);
-        setOpen(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Couldn't save changes.");
-      }
+      const res = await updateCourse(course.id, {}, formData);
+      if (res.error) setError(res.error);
+      else setOpen(false);
     });
   }
 

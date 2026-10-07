@@ -1,3 +1,4 @@
+import ActionForm from "@/components/forms/action-form";
 import { createClient } from "@/lib/supabase/server";
 import {
   createCourse,
@@ -90,11 +91,11 @@ export default async function LearningDevelopmentPage() {
                   </td>
                   <td className="px-4 py-2 text-right">
                     {appUser?.employee_id && !myEnrolledCourseIds.has(c.id) && (
-                      <form action={enrollSelf.bind(null, c.id)}>
+                      <ActionForm action={enrollSelf.bind(null, c.id)} successMessage={null}>
                         <button type="submit" className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1">
                           Enroll
                         </button>
-                      </form>
+                      </ActionForm>
                     )}
                     {myEnrolledCourseIds.has(c.id) && (
                       <span className="text-xs text-neutral-400 dark:text-neutral-500">Enrolled</span>
@@ -125,7 +126,7 @@ export default async function LearningDevelopmentPage() {
       {isHrLike && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add a course</h2>
-          <form action={createCourse} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <ActionForm action={createCourse} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <input name="name" placeholder="Course name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <input name="provider" placeholder="Provider" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
             <select name="mode" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
@@ -143,7 +144,7 @@ export default async function LearningDevelopmentPage() {
             <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add course
             </button>
-          </form>
+          </ActionForm>
         </div>
       )}
 
@@ -192,7 +193,7 @@ export default async function LearningDevelopmentPage() {
                       {e.status !== "Completed" && (
                         <details>
                           <summary className="text-xs text-blue-600 cursor-pointer">Mark complete</summary>
-                          <form
+                          <ActionForm
                             action={markEnrollmentComplete.bind(null, e.id)}
                             className="mt-2 flex flex-col gap-2 items-end"
                           >
@@ -210,7 +211,7 @@ export default async function LearningDevelopmentPage() {
                             <button type="submit" className="text-xs bg-green-700 text-white rounded px-3 py-1">
                               Save
                             </button>
-                          </form>
+                          </ActionForm>
                         </details>
                       )}
                     </td>
@@ -232,7 +233,7 @@ export default async function LearningDevelopmentPage() {
       {isHrLike && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Enroll an employee</h2>
-          <form action={enrollEmployee} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <ActionForm action={enrollEmployee} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <select name="employee_id" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
               <option value="">Select employee</option>
               {(employees ?? []).map((e) => (
@@ -252,7 +253,7 @@ export default async function LearningDevelopmentPage() {
             <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Enroll
             </button>
-          </form>
+          </ActionForm>
         </div>
       )}
     </div>

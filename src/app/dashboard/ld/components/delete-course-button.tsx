@@ -9,8 +9,8 @@ export default function DeleteCourseButton({ courseId, courseName }: { courseId:
       className="text-xs text-red-600 dark:text-red-400 hover:underline"
       onClick={() => {
         if (confirm(`Delete "${courseName}"? This can't be undone.`)) {
-          deleteCourse(courseId).catch((err) => {
-            alert(err instanceof Error ? err.message : "Couldn't delete course.");
+          deleteCourse(courseId).then((res) => {
+            if (res.error) alert(res.error);
           });
         }
       }}
