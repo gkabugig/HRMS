@@ -9,6 +9,7 @@ export type LeaveRequestRow = {
   status: "Pending" | "Approved" | "Rejected";
   applied_on: string;
   decided_on: string | null;
+  edit_count?: number | null;
   employees: { name: string; department: string; reporting_manager_id: string | null } | null;
 };
 

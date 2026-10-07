@@ -10,13 +10,16 @@ import { createNotification, createNotificationForMany } from "@/lib/notificatio
 import { getHrAndManagerRecipients, getEmployeeUserId } from "@/lib/notifications/recipients";
 import { logDomainEvent } from "@/lib/domain-events/log-event";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { leaveEditOutcome } from "@/lib/leave/leave-edit-outcome";
 import { startWorkflowRun, completeWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 
 export async function checkLeaveConflicts(
   employeeId: string,
   leaveType: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  excludeRequestId?: string
 ): Promise<{ conflicts: LeaveConflict[]; workingDays: number }> {
   const supabase = await createClient();
   const { data: appUser } = await supabase.auth.getUser();
@@ -31,7 +34,7 @@ export async function checkLeaveConflicts(
     .gte("holiday_date", startDate);
 
   const workingDays = calculateLeaveDays(startDate, endDate, new Set((holidays ?? []).map((h) => h.holiday_date)));
-  const conflicts = await getLeaveConflicts(supabase, caller.org_id, { employeeId, leaveType, startDate, endDate });
+  const conflicts = await getLeaveConflicts(supabase, caller.org_id, { employeeId, leaveType, startDate, endDate, excludeRequestId });
 
   return { conflicts, workingDays };
 }
@@ -207,5 +210,172 @@ export async function cancelLeaveRequest(id: string, _prev: FormResult, _formDat
 
   revalidatePath("/dashboard/leave");
   revalidatePath("/dashboard/me/leave");
+  });
+}
+
+// Edit a leave request at any stage (Pending, Approved or Rejected) so people
+// can adapt to changed circumstances. Who may edit: the employee (own
+// request), HR/admin, or the employee's manager. See leaveEditOutcome for
+// what happens to the status afterwards.
+export async function editLeaveRequest(id: string, _prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("You are not signed in.");
+    const { data: appUser } = await supabase
+      .from("app_users")
+      .select("org_id, role, employee_id")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!appUser) throw new Error("Your account is not set up.");
+
+    // RLS limits what this returns to requests the caller may see.
+    const { data: existing } = await supabase
+      .from("leave_requests")
+      .select("id, employee_id, leave_type, start_date, end_date, days, status, reason, employees(name, org_id)")
+      .eq("id", id)
+      .maybeSingle();
+    if (!existing) throw new Error("Leave request not found.");
+    const emp = existing.employees as unknown as { name: string; org_id: string } | null;
+    if (emp && emp.org_id !== appUser.org_id) throw new Error("Leave request not found.");
+
+    const isOwn = existing.employee_id === appUser.employee_id;
+    const canApprove = !isOwn && (appUser.role === "admin" || appUser.role === "hr" || appUser.role === "manager");
+    if (!isOwn && !canApprove) throw new Error("You can't edit this leave request.");
+
+    const leaveType = String(formData.get("leave_type") || "");
+    const start = String(formData.get("start_date") || "");
+    const end = String(formData.get("end_date") || "");
+    const reason = String(formData.get("reason") || "").trim() || null;
+    if (!leaveType || !start || !end) throw new Error("Choose a leave type and both dates.");
+    if (end < start) throw new Error("The end date can't be before the start date.");
+
+    const { data: holidays } = await supabase
+      .from("public_holidays")
+      .select("holiday_date")
+      .eq("org_id", appUser.org_id)
+      .lte("holiday_date", end)
+      .gte("holiday_date", start);
+    const days = calculateLeaveDays(start, end, new Set((holidays ?? []).map((h) => h.holiday_date)));
+    if (days <= 0) throw new Error("Those dates contain no working days.");
+
+    const conflicts = await getLeaveConflicts(supabase, appUser.org_id, {
+      employeeId: existing.employee_id,
+      leaveType,
+      startDate: start,
+      endDate: end,
+      excludeRequestId: id,
+    });
+    const blocking = conflicts.find((c) => c.type === "insufficient_balance");
+    // Approvers may knowingly override a balance warning; employees may not.
+    if (blocking && isOwn) throw new Error(blocking.message);
+
+    const oldStatus = existing.status as "Pending" | "Approved" | "Rejected";
+    const newStatus = leaveEditOutcome({
+      editorIsApprover: canApprove,
+      oldStatus,
+      oldType: existing.leave_type,
+      oldStart: existing.start_date,
+      oldEnd: existing.end_date,
+      oldDays: existing.days,
+      newType: leaveType,
+      newStart: start,
+      newEnd: end,
+      newDays: days,
+    });
+    const backToPending = newStatus === "Pending" && oldStatus !== "Pending";
+
+    const { data: current } = await supabase.from("leave_requests").select("edit_count").eq("id", id).maybeSingle();
+    const patch: Record<string, unknown> = {
+      leave_type: leaveType,
+      start_date: start,
+      end_date: end,
+      days,
+      reason,
+      status: newStatus,
+      edited_at: new Date().toISOString(),
+      edited_by: user.id,
+      edit_count: ((current?.edit_count as number | undefined) ?? 0) + 1,
+    };
+    if (backToPending) {
+      patch.approved_by = null;
+      patch.decided_on = null;
+    }
+
+    // Employees have no update right on their own rows (by design), so the
+    // write for their own request goes through the admin client — only after
+    // the ownership and org checks above. Approvers use their own session.
+    const writer = isOwn ? createAdminClient() : supabase;
+    const { error } = await writer.from("leave_requests").update(patch).eq("id", id);
+    if (error) throw new Error(error.message);
+
+    const before = { leaveType: existing.leave_type, start: existing.start_date, end: existing.end_date, days: existing.days, status: oldStatus };
+    const after = { leaveType, start, end, days, status: newStatus };
+    const who = emp?.name ?? "An employee";
+
+    if (isOwn) {
+      const recipients = await getHrAndManagerRecipients(supabase, appUser.org_id, existing.employee_id);
+      await createNotificationForMany(supabase, recipients, {
+        orgId: appUser.org_id,
+        type: backToPending || oldStatus === "Pending" ? "LEAVE_APPROVAL_REQUIRED" : "LEAVE_EDITED",
+        category: "leave",
+        priority: backToPending || oldStatus === "Pending" ? "action_required" : "information",
+        title: backToPending ? "Leave change needs approval" : "Leave request edited",
+        message: `${who} changed ${existing.leave_type} leave (${existing.start_date} → ${existing.end_date}) to ${leaveType} (${start} → ${end}), ${days} day(s).`,
+        entityType: "leave_request",
+        entityId: id,
+        actionUrl: "/dashboard/leave?view=requests",
+      });
+    } else {
+      const employeeUserId = await getEmployeeUserId(supabase, existing.employee_id);
+      if (employeeUserId) {
+        await createNotification(supabase, {
+          orgId: appUser.org_id,
+          recipientUserId: employeeUserId,
+          type: "LEAVE_EDITED",
+          category: "leave",
+          priority: "information",
+          title: "Your leave request was updated",
+          message: `Your leave is now ${leaveType} (${start} → ${end}), ${days} day(s), status ${newStatus}.`,
+          entityType: "leave_request",
+          entityId: id,
+          actionUrl: "/dashboard/me/leave",
+        });
+      }
+    }
+
+    await logDomainEvent(supabase, {
+      orgId: appUser.org_id,
+      eventType: "LEAVE_EDITED",
+      entityType: "leave_request",
+      entityId: id,
+      actorId: user.id,
+      payload: { before, after },
+    });
+    await recordAuditEvent(supabase, {
+      orgId: appUser.org_id,
+      actorUserId: user.id,
+      action: "leave.edited",
+      resourceType: "leave_request",
+      resourceId: id,
+      eventCategory: "workflow",
+      before,
+      after,
+    });
+    if (backToPending) {
+      await startWorkflowRun(supabase, {
+        orgId: appUser.org_id,
+        key: PRIORITY_WORKFLOW_KEYS.LEAVE_APPROVAL,
+        entityType: "leave_request",
+        entityId: id,
+      });
+    }
+
+    revalidatePath("/dashboard/leave");
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/me/leave");
+    revalidatePath("/dashboard/me");
   });
 }

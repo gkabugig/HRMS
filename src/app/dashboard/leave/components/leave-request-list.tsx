@@ -1,6 +1,7 @@
 import type { LeaveRequestRow } from "@/lib/leave/leave-types";
 import DecideButtons from "../decide-buttons";
 import CancelButton from "./cancel-button";
+import EditLeaveDialog from "./edit-leave-dialog";
 
 export function LeaveRequestList({
   requests,
@@ -33,10 +34,21 @@ export function LeaveRequestList({
                 {r.start_date} → {r.end_date}
               </td>
               <td className="px-4 py-2">{r.days}</td>
-              <td className="px-4 py-2">{r.status}</td>
               <td className="px-4 py-2">
-                {r.status === "Pending" && canDecide && <DecideButtons id={r.id} />}
-                {r.status === "Pending" && !canDecide && r.employee_id === selfEmployeeId && <CancelButton id={r.id} />}
+                {r.status}
+                {(r.edit_count ?? 0) > 0 && <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500">Edited</span>}
+              </td>
+              <td className="px-4 py-2">
+                <div className="flex items-start gap-2">
+                  {r.status === "Pending" && canDecide && <DecideButtons id={r.id} />}
+                  {(canDecide || r.employee_id === selfEmployeeId) && (
+                    <EditLeaveDialog
+                      request={{ id: r.id, employee_id: r.employee_id, leave_type: r.leave_type, start_date: r.start_date, end_date: r.end_date, days: r.days, reason: r.reason, status: r.status }}
+                      asApprover={canDecide && r.employee_id !== selfEmployeeId}
+                    />
+                  )}
+                  {r.status === "Pending" && !canDecide && r.employee_id === selfEmployeeId && <CancelButton id={r.id} />}
+                </div>
               </td>
             </tr>
           ))}

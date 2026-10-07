@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-context";
 import { getLeaveBalances } from "@/lib/leave/get-leave-balances";
 import { applyForLeave, cancelLeaveRequest } from "@/app/dashboard/leave/actions";
+import EditLeaveDialog from "@/app/dashboard/leave/components/edit-leave-dialog";
 import EmptyState from "@/components/employee-portal/empty-state";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -27,7 +28,7 @@ export default async function MyLeavePage() {
     supabase.from("leave_policies").select("leave_type").eq("org_id", ctx.orgId),
     supabase
       .from("leave_requests")
-      .select("id, leave_type, start_date, end_date, days, status, reason, applied_on")
+      .select("id, leave_type, start_date, end_date, days, status, reason, applied_on, edit_count")
       .eq("employee_id", ctx.employeeId)
       .order("applied_on", { ascending: false })
       .limit(20),
@@ -96,13 +97,17 @@ export default async function MyLeavePage() {
                   <td className="px-4 py-2">{r.days}</td>
                   <td className="px-4 py-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLE[r.status] ?? "bg-neutral-100 dark:bg-neutral-800"}`}>{r.status}</span>
+                    {(r.edit_count ?? 0) > 0 && <span className="ml-1.5 text-[10px] text-neutral-500">Edited</span>}
                   </td>
                   <td className="px-4 py-2">
+                    <div className="flex items-center gap-3">
+                    <EditLeaveDialog request={{ id: r.id, employee_id: ctx.employeeId, leave_type: r.leave_type, start_date: r.start_date, end_date: r.end_date, days: r.days, reason: r.reason, status: r.status as "Pending" | "Approved" | "Rejected" }} asApprover={false} />
                     {r.status === "Pending" && (
                       <ActionForm action={cancelLeaveRequest.bind(null, r.id)} successMessage={null}>
                         <button className="text-xs text-red-600 hover:underline">Cancel</button>
                       </ActionForm>
                     )}
+                    </div>
                   </td>
                 </tr>
               ))}

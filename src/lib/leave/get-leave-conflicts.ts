@@ -112,6 +112,7 @@ export async function getLeaveConflicts(
       .eq("employee_id", params.employeeId)
       .eq("leave_type", params.leaveType)
       .eq("status", "Approved")
+      .neq("id", params.excludeRequestId ?? "00000000-0000-0000-0000-000000000000")
       .gte("start_date", yearStart);
     const used = (usedRows ?? []).reduce((sum, r) => sum + r.days, 0);
     const remaining = policy.annual_entitlement_days - used;

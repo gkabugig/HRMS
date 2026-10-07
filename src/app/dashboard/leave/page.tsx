@@ -67,7 +67,7 @@ export default async function LeavePage({
   if (view === "requests") {
     const { data } = await supabase
       .from("leave_requests")
-      .select("id, employee_id, leave_type, start_date, end_date, days, reason, status, applied_on, decided_on, employees(name, department, reporting_manager_id)")
+      .select("id, employee_id, leave_type, start_date, end_date, days, reason, status, applied_on, decided_on, edit_count, employees(name, department, reporting_manager_id)")
       .order("applied_on", { ascending: false });
     requestRows = (data ?? []) as unknown as typeof requestRows;
   }
