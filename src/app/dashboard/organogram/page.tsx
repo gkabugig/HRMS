@@ -6,11 +6,13 @@ import {
   createLocation,
   createCostCentre,
   createPosition,
+  setPositionCostCentre,
   assignEmployeePosition,
   setPositionActive,
   runOrganisationDataQuality,
 } from "@/lib/org-structure/actions";
 import OrgChart from "./org-chart";
+import ActionForm from "@/components/forms/action-form";
 import { getOrgTree, type OrgTreeNode } from "@/lib/organisation/get-org-tree";
 
 type Employee = {
@@ -356,7 +358,7 @@ async function StructureView({
     supabase.from("cost_centres").select("id, code, name").order("code"),
     supabase
       .from("positions")
-      .select("id, title, position_code, status, is_active, approved_headcount, organisation_units(name), locations(name)")
+      .select("id, title, position_code, status, is_active, approved_headcount, cost_centre_id, organisation_units(name), locations(name)")
       .order("title"),
   ]);
 
@@ -447,6 +449,15 @@ async function StructureView({
                   </span>
                 </span>
                 <span className="flex items-center gap-2">
+                  <ActionForm action={setPositionCostCentre.bind(null, p.id)} className="flex items-center gap-1" successMessage="Saved">
+                    <select name="cost_centre_id" defaultValue={p.cost_centre_id ?? ""} className="border border-[var(--border-subtle)] rounded-md px-1.5 py-0.5 text-xs bg-white dark:bg-neutral-900 max-w-[140px]">
+                      <option value="">No cost centre</option>
+                      {(costCentres ?? []).map((c) => (
+                        <option key={c.id} value={c.id}>{c.code}</option>
+                      ))}
+                    </select>
+                    <button className="text-xs text-brand-600 hover:underline">Set</button>
+                  </ActionForm>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "occupied" ? "bg-green-100 text-green-700" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"}`}>
                     {p.status}
                   </span>
@@ -459,7 +470,7 @@ async function StructureView({
           })}
           {(!positions || positions.length === 0) && <p className="text-sm text-neutral-400 dark:text-neutral-500">None yet.</p>}
         </ul>
-        <form action={createPosition} className="flex flex-wrap gap-2 text-sm mb-4">
+        <ActionForm action={createPosition} className="flex flex-wrap gap-2 text-sm mb-4">
           <input name="title" placeholder="Title" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 flex-1 min-w-[120px]" />
           <input name="position_code" placeholder="Code (optional)" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 w-32" />
           <input name="approved_headcount" type="number" min={1} defaultValue={1} className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 w-20" />
@@ -475,15 +486,21 @@ async function StructureView({
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
           </select>
+          <select name="cost_centre_id" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900">
+            <option value="">No cost centre</option>
+            {(costCentres ?? []).map((c) => (
+              <option key={c.id} value={c.id}>{c.code} — {c.name}</option>
+            ))}
+          </select>
           <button className="bg-brand-600 text-white rounded-lg px-3 py-1.5 font-medium">Add</button>
-        </form>
+        </ActionForm>
 
         <h3 className="text-xs font-semibold text-neutral-600 dark:text-neutral-300 uppercase tracking-wide mb-2">Change assignment</h3>
         <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-2">
           Assigns (or transfers) an employee to a position and, optionally, sets their line manager — effective-dated,
           transactional, and kept in sync with the employee&apos;s legacy department/manager fields.
         </p>
-        <form action={assignEmployeePosition} className="flex flex-wrap gap-2 text-sm">
+        <ActionForm action={assignEmployeePosition} className="flex flex-wrap gap-2 text-sm" successMessage="Assignment saved. Click Run checks to refresh the findings.">
           <select name="employee_id" required className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-900 flex-1 min-w-[140px]">
             <option value="">Employee…</option>
             {employees.map((e) => (
@@ -505,7 +522,7 @@ async function StructureView({
           <input name="effective_from" type="date" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5" />
           <input name="reason" placeholder="Reason (optional)" className="border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 flex-1 min-w-[120px]" />
           <button className="bg-brand-600 text-white rounded-lg px-3 py-1.5 font-medium">Assign</button>
-        </form>
+        </ActionForm>
       </section>
     </div>
   );

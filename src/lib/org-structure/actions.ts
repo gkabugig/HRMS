@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 
 // Organisation Hierarchy (Phase 2 spec §5) — additive alongside
@@ -94,7 +95,8 @@ export async function createCostCentre(formData: FormData) {
   revalidatePath("/dashboard/organogram");
 }
 
-export async function createPosition(formData: FormData) {
+export async function createPosition(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   const { orgId, userId } = await requireOrgAndActor(supabase);
 
@@ -128,6 +130,33 @@ export async function createPosition(formData: FormData) {
   });
 
   revalidatePath("/dashboard/organogram");
+  });
+}
+
+// Sets (or clears) the cost centre of an existing position — clears the
+// "Occupied position has no cost centre" data-quality finding.
+export async function setPositionCostCentre(positionId: string, _prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
+    const supabase = await createClient();
+    const { orgId, userId } = await requireOrgAndActor(supabase);
+    const costCentreId = String(formData.get("cost_centre_id") || "") || null;
+    const { error } = await supabase
+      .from("positions")
+      .update({ cost_centre_id: costCentreId })
+      .eq("id", positionId)
+      .eq("org_id", orgId);
+    if (error) throw new Error(error.message);
+    await recordAuditEvent(supabase, {
+      orgId,
+      actorUserId: userId,
+      action: "position.cost_centre_set",
+      resourceType: "position",
+      resourceId: positionId,
+      eventCategory: "configuration",
+      after: { cost_centre_id: costCentreId },
+    });
+    revalidatePath("/dashboard/organogram");
+  });
 }
 
 // Links an employee to a position — and, authoritative as of Area 04,
@@ -140,7 +169,8 @@ export async function createPosition(formData: FormData) {
 // the resolvers/view yet, and records both a domain event and an audit
 // event. Admin/HR only — enforced inside the function itself, independent
 // of this action's own RLS-scoped client.
-export async function assignEmployeePosition(formData: FormData) {
+export async function assignEmployeePosition(_prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
   const supabase = await createClient();
   await requireOrgAndActor(supabase);
 
@@ -162,6 +192,7 @@ export async function assignEmployeePosition(formData: FormData) {
 
   revalidatePath("/dashboard/organogram");
   revalidatePath(`/dashboard/employees/${employeeId}`);
+  });
 }
 
 // Marks a position active/inactive (spec §8 "retire instead of hard-delete
