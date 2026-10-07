@@ -68,6 +68,30 @@ export async function getExecutiveInsights(db: SupabaseClient, orgId: string): P
     sev[s] += 1;
   }
 
+  // Rewards (null until the module has been set up).
+  let rewards: ExecutiveInsights["rewards"] = null;
+  try {
+    const [pools, recs, cases] = await Promise.all([
+      db.from("reward_pool_status").select("approved_budget, committed").eq("org_id", orgId),
+      db.from("reward_recommendations").select("status, recommended_amount").eq("org_id", orgId),
+      db.from("promotion_cases").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "In Review"),
+    ]);
+    if (!pools.error && !recs.error) {
+      const p = pools.data ?? [];
+      const r = recs.data ?? [];
+      rewards = {
+        approvedToDate: r.filter((x) => ["Finalised", "Paid"].includes(x.status as string)).reduce((a, x) => a + Number(x.recommended_amount), 0),
+        budgetTotal: p.reduce((a, x) => a + Number(x.approved_budget), 0),
+        committedTotal: p.reduce((a, x) => a + Number(x.committed), 0),
+        recommendationsInReview: r.filter((x) => x.status === "In Review").length,
+        promotionsInReview: cases.count ?? 0,
+        poolsNearLimit: p.filter((x) => Number(x.approved_budget) > 0 && Number(x.committed) / Number(x.approved_budget) >= 0.9).length,
+      };
+    }
+  } catch {
+    rewards = null;
+  }
+
   return {
     pendingApprovalsByType: [...byType.entries()].map(([l, value]) => ({ label: l, value })).sort((a, b) => b.value - a.value),
     pendingApprovalsTotal: approvals.data?.length ?? 0,
@@ -77,5 +101,6 @@ export async function getExecutiveInsights(db: SupabaseClient, orgId: string): P
     openDisciplinaryCases: discipline.count ?? 0,
     pendingLeaveRequests: leave.count ?? 0,
     dataQuality: { high: sev.high, attention: sev.attention, info: sev.info, total: sev.high + sev.attention + sev.info },
+    rewards,
   };
 }

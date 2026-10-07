@@ -106,6 +106,7 @@ export type ExecutiveInsights = {
   openDisciplinaryCases: number;
   pendingLeaveRequests: number;
   dataQuality: { high: number; attention: number; info: number; total: number };
+  rewards: { approvedToDate: number; budgetTotal: number; committedTotal: number; recommendationsInReview: number; promotionsInReview: number; poolsNearLimit: number } | null;
 };
 
 export type DashboardData = {
