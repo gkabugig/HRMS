@@ -23,6 +23,8 @@ const ALERT_LABEL: Record<string, string> = {
 export default async function ManagerHomePage() {
   const supabase = await createClient();
   const home = await getManagerHome(supabase);
+  const { data: me } = await supabase.from("employees").select("name").eq("id", home.managerEmployeeId).maybeSingle();
+  const firstName = ((me?.name as string | undefined) ?? "").trim().split(" ")[0] || "there";
 
   const onLeaveToday = home.team.filter((t) => t.onLeave).length;
   const lateToday = home.team.filter((t) => t.attendanceToday === "late").length;
@@ -47,7 +49,7 @@ export default async function ManagerHomePage() {
   return (
     <div className="space-y-6">
       <RoleHeader
-        name="Manager"
+        name={firstName}
         subtitle={`${home.team.length} direct report${home.team.length === 1 ? "" : "s"}${
           home.scopeTier !== "direct_reports" && home.scopeTier !== "none" ? ` · scope: ${home.scopeTier.replace("_", " ")}` : ""
         }`}
