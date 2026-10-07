@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { toResult, type FormResult } from "@/lib/actions/form-result";
-import { syncAllReportingLines } from "@/lib/organisation/sync-reporting-lines";
+import { autoAssignPosition } from "@/lib/org-structure/auto-assign";
+import { syncAllReportingLines, syncReportingLine } from "@/lib/organisation/sync-reporting-lines";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 
 // Organisation Hierarchy (Phase 2 spec §5) — additive alongside
@@ -362,5 +363,58 @@ export async function markHeadOfOrganisation(employeeId: string, _prev: FormResu
     await supabase.rpc("run_organisation_data_quality");
     revalidatePath("/dashboard/organogram");
     revalidatePath(`/dashboard/employees/${employeeId}`);
+  });
+}
+
+// One click: repair every person the organisation data-quality check has
+// flagged, as far as it can be done without guessing. Anything it can't fix
+// (and why) is reported back so nothing fails silently.
+export async function autoFixOrganisationData(_prev?: FormResult, _formData?: FormData): Promise<FormResult> {
+  void _prev;
+  void _formData;
+  return toResult(async () => {
+    const supabase = await createClient();
+    const { orgId } = await requireOrgAndActor(supabase);
+    const problems: string[] = [];
+
+    // 1. Authoritative reporting lines from each "Reports to" field.
+    try {
+      await syncAllReportingLines(supabase, orgId);
+    } catch (e) {
+      problems.push(`Reporting lines: ${e instanceof Error ? e.message : "failed"}`);
+    }
+
+    // 2. Everyone currently flagged.
+    await supabase.rpc("run_organisation_data_quality");
+    const { data: findings } = await supabase
+      .from("ai_insights")
+      .select("title, entity_id")
+      .eq("org_id", orgId)
+      .eq("category", "org_structure")
+      .eq("status", "open")
+      .eq("entity_type", "employee");
+
+    for (const f of findings ?? []) {
+      if (!f.entity_id) continue;
+      const id = f.entity_id as string;
+      const { data: emp } = await supabase.from("employees").select("name, reporting_manager_id, is_head_of_organisation").eq("id", id).maybeSingle();
+      const who = emp?.name ?? "An employee";
+      try {
+        if (f.title === "No current organisation assignment") {
+          await autoAssignPosition(supabase, orgId, id);
+        } else if (f.title === "No current line manager on file") {
+          if (emp?.is_head_of_organisation) continue;
+          if (emp?.reporting_manager_id) await syncReportingLine(supabase, id, emp.reporting_manager_id as string);
+          else problems.push(`${who} has no manager chosen. Set "Reports to" on their record, or mark them as the CEO if they head the organisation.`);
+        }
+      } catch (e) {
+        problems.push(`${who}: ${e instanceof Error ? e.message : "could not be fixed"}`);
+      }
+    }
+
+    await supabase.rpc("run_organisation_data_quality");
+    revalidatePath("/dashboard/organogram");
+    revalidatePath("/dashboard/employees");
+    if (problems.length > 0) throw new Error(`Fixed what it could. Still needs you: ${problems.join(" | ")}`);
   });
 }

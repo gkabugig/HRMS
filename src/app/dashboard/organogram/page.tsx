@@ -12,6 +12,7 @@ import {
   assignEmployeePosition,
   setPositionActive,
   runOrganisationDataQuality,
+  autoFixOrganisationData,
 } from "@/lib/org-structure/actions";
 import OrgChart from "./org-chart";
 import ActionForm from "@/components/forms/action-form";
@@ -203,9 +204,16 @@ async function DataQualityPanel({ supabase, orgId, employees }: { supabase: Supa
               ))
           )}
         </div>
-        <ActionForm action={runOrganisationDataQuality} resetOnSuccess={false} successMessage="Checks re-run.">
-          <button className="text-xs bg-neutral-900 text-white rounded-lg px-3 py-1.5 font-medium">Run checks</button>
-        </ActionForm>
+        <div className="flex items-start gap-2 flex-wrap">
+          {total > 0 && (
+            <ActionForm action={autoFixOrganisationData} resetOnSuccess={false} successMessage="Everything fixed.">
+              <button className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-lg px-3 py-1.5 font-medium">Fix all automatically</button>
+            </ActionForm>
+          )}
+          <ActionForm action={runOrganisationDataQuality} resetOnSuccess={false} successMessage="Checks re-run.">
+            <button className="text-xs bg-neutral-900 text-white rounded-lg px-3 py-1.5 font-medium">Run checks</button>
+          </ActionForm>
+        </div>
       </div>
       {total > 0 && (
         <details className="mt-3" open>

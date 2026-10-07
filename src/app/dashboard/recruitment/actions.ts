@@ -1,5 +1,6 @@
 "use server";
 
+import { autoAssignPosition } from "@/lib/org-structure/auto-assign";
 import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -603,8 +604,17 @@ export async function hireCandidate(
       .eq("id", candidateId);
     if (candErr) throw new Error(candErr.message);
 
+    // Give the new employee a position straight away so they don't appear as
+    // "no organisation assignment" in the organogram checks. Best-effort.
+    try {
+      await autoAssignPosition(c.supabase, c.appUser.org_id, employee.id);
+    } catch (e) {
+      console.error("autoAssignPosition failed:", e);
+    }
+
     refresh(requisitionId, candidateId);
     revalidatePath("/dashboard/employees");
+    revalidatePath("/dashboard/organogram");
     redirect("/dashboard/employees");
   });
 }
