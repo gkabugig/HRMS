@@ -15,6 +15,7 @@ import PayrollSnapshotCard from "./components/payroll-snapshot";
 import AttendanceSnapshotCard from "./components/attendance-snapshot";
 import RecruitmentSnapshotCard from "./components/recruitment-snapshot";
 import RecentActivity from "./components/recent-activity";
+import ExecutiveSection from "./components/executive-section";
 import QuickActions from "./components/quick-actions";
 
 export default async function DashboardHome({
@@ -34,9 +35,9 @@ export default async function DashboardHome({
     );
   }
 
-  const { context, kpis, actions, workforce, payroll, attendance, recruitment, activity } = data;
+  const { context, kpis, actions, workforce, payroll, attendance, recruitment, activity, executive } = data;
   const criticalCount = actions.filter((a) => a.severity === "critical").length;
-  const isEmployeeOnly = context.role === "employee";
+  const isEmployeeOnly = context.role === "employee" && !executive;
 
   // Area 05 build sequence item 19 — "convert existing employee dashboard
   // into Employee Home": rather than maintaining the stripped-down
@@ -52,7 +53,7 @@ export default async function DashboardHome({
   // Area 06 — same alias relationship as the employee redirect above: the
   // manager workspace is the real landing experience for the manager role,
   // /dashboard stays the one entry point login/nav both target.
-  if (context.role === "manager") {
+  if (context.role === "manager" && !executive) {
     redirect("/dashboard/manager");
   }
 
@@ -66,6 +67,8 @@ export default async function DashboardHome({
       />
 
       <KpiGrid kpis={kpis} />
+
+      {executive && <ExecutiveSection insights={executive} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WorkforceTrend workforce={workforce} />
@@ -87,7 +90,7 @@ export default async function DashboardHome({
         </div>
       )}
 
-      <QuickActions role={context.role} />
+      {!executive && <QuickActions role={context.role} />}
 
       {workforce.departmentBreakdown.length === 0 && <RecentActivity activity={activity} />}
     </div>

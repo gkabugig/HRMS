@@ -14,6 +14,9 @@ import { getWorkforceAnalytics } from "./get-workforce-analytics";
 import { getPayrollSnapshot } from "./get-payroll-snapshot";
 import { getAttendanceSnapshot } from "./get-attendance-snapshot";
 import { getRecruitmentSnapshot } from "./get-recruitment-snapshot";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isHeadOfOrganisation } from "@/lib/approvals/head-of-organisation";
+import { getExecutiveInsights } from "./get-executive-insights";
 import { getRecentActivity } from "./get-recent-activity";
 import type { DashboardContext, DashboardData } from "./dashboard-types";
 
@@ -59,9 +62,17 @@ export async function getDashboardContext(
 }
 
 export async function getDashboard(selectedPayrollPeriod?: string): Promise<DashboardData | null> {
-  const supabase = await createClient();
-  const context = await getDashboardContext(supabase);
-  if (!context) return null;
+  const userClient = await createClient();
+  const baseContext = await getDashboardContext(userClient);
+  if (!baseContext) return null;
+
+  // The head of the organisation (CEO) gets the organisation-wide view,
+  // whatever her login role. The identity check uses her own session; only
+  // then are the privileged client and an admin-level context used, and
+  // only for reading (Quick Actions are not shown in this view).
+  const isHead = baseContext.employeeId ? await isHeadOfOrganisation(userClient, baseContext.employeeId) : false;
+  const supabase: SupabaseClient = isHead ? createAdminClient() : userClient;
+  const context: DashboardContext = isHead ? { ...baseContext, role: "admin" } : baseContext;
 
   const permissions = getDashboardPermissions(context.role);
 
@@ -76,7 +87,7 @@ export async function getDashboard(selectedPayrollPeriod?: string): Promise<Dash
   const orgEmployeeIds = (orgEmployees ?? []).map((e) => e.id);
   const activeEmployeeIds = (orgEmployees ?? []).filter((e) => e.status === "Active").map((e) => e.id);
 
-  const [workforce, attendance, payroll, recruitment, actions, activity] = await Promise.all([
+  const [workforce, attendance, payroll, recruitment, actions, activity, executive] = await Promise.all([
     getWorkforceAnalytics(supabase, context, orgEmployeeIds),
     getAttendanceSnapshot(supabase, context, activeEmployeeIds),
     permissions.canViewPayroll
@@ -87,6 +98,7 @@ export async function getDashboard(selectedPayrollPeriod?: string): Promise<Dash
       : Promise.resolve(null),
     getActionCentre(supabase, context, permissions, activeEmployeeIds),
     getRecentActivity(supabase, context, permissions),
+    isHead ? getExecutiveInsights(supabase, context.orgId) : Promise.resolve(undefined),
   ]);
 
   const kpis = getDashboardKpis({
@@ -100,5 +112,5 @@ export async function getDashboard(selectedPayrollPeriod?: string): Promise<Dash
     criticalActionsCount: actions.filter((a) => a.severity === "critical").length,
   });
 
-  return { context, kpis, actions, workforce, payroll, attendance, recruitment, activity };
+  return { context: isHead ? { ...context, role: baseContext.role } : context, kpis, actions, workforce, payroll, attendance, recruitment, activity, executive };
 }

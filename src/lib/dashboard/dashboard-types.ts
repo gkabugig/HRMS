@@ -97,6 +97,17 @@ export type ActivityItem = {
   occurredAt: string;
 };
 
+export type ExecutiveInsights = {
+  pendingApprovalsByType: { label: string; value: number }[];
+  pendingApprovalsTotal: number;
+  oldestApprovalDays: number | null;
+  establishment: { approvedSeats: number; vacantSeats: number; filledSeats: number };
+  payrollTrend: { label: string; value: number }[];
+  openDisciplinaryCases: number;
+  pendingLeaveRequests: number;
+  dataQuality: { high: number; attention: number; info: number; total: number };
+};
+
 export type DashboardData = {
   context: DashboardContext;
   kpis: DashboardKPI[];
@@ -106,4 +117,5 @@ export type DashboardData = {
   attendance: AttendanceSnapshot;
   recruitment: RecruitmentSnapshot | null;
   activity: ActivityItem[];
+  executive?: ExecutiveInsights; // present only for the head of organisation
 };
