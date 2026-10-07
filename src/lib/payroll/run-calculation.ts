@@ -86,6 +86,21 @@ export async function calculatePayrollRun(
     .gte("start_date", windowStart)
     .lte("start_date", periodEnd);
 
+  // Approved bonuses, incentives and awards for this pay period (Rewards
+  // module). They are employment income: they join gross pay here, so PAYE
+  // and the other statutory deductions apply through computePayslip as usual.
+  // Re-running a calculation picks the same rows up again (they stay tied
+  // to this run), so nothing is ever paid twice.
+  const { data: rewardTx } = await supabase
+    .from("reward_transactions")
+    .select("id, employee_id, amount, payroll_status, payroll_run_id")
+    .eq("org_id", orgId)
+    .eq("tx_type", "earning")
+    .eq("payroll_period", period)
+    .or(`payroll_status.eq.pending,and(payroll_status.eq.included,payroll_run_id.eq.${runId})`);
+  const oneOffByEmployee = new Map<string, number>();
+  for (const t of rewardTx ?? []) oneOffByEmployee.set(t.employee_id as string, (oneOffByEmployee.get(t.employee_id as string) ?? 0) + Number(t.amount ?? 0));
+
   const payslipRows = [];
   for (const emp of employees ?? []) {
     const empAdvances = (advances ?? []).filter((a) => a.employee_id === emp.id);
@@ -97,7 +112,8 @@ export async function calculatePayrollRun(
     const dailyRate = (emp.basic || 0) / 26;
     const leaveReduction = sickLeavePayReduction(daysAlreadyUsed, daysThisPeriod, dailyRate);
 
-    const slip = computePayslip(emp, rates, advanceRequested, leaveReduction);
+    const oneOff = oneOffByEmployee.get(emp.id) ?? 0;
+    const slip = computePayslip(oneOff > 0 ? { ...emp, other_allowance: (emp.other_allowance || 0) + oneOff } : emp, rates, advanceRequested, leaveReduction);
     payslipRows.push({
       payroll_run_id: runId,
       employee_id: emp.id,
@@ -112,6 +128,7 @@ export async function calculatePayrollRun(
       employer_housing_levy: slip.employer_housing_levy,
       leave_deduction: slip.leave_deduction,
       deduction_capped: slip.deduction_capped,
+      one_off_earnings: oneOff,
     });
 
     let remainingToApply = slip.advance_applied;
@@ -131,6 +148,13 @@ export async function calculatePayrollRun(
   if (payslipRows.length > 0) {
     const { error: slipErr } = await supabase.from("payslips").insert(payslipRows);
     if (slipErr) throw new Error(slipErr.message);
+  }
+
+  if ((rewardTx ?? []).length > 0) {
+    await supabase
+      .from("reward_transactions")
+      .update({ payroll_status: "included", payroll_run_id: runId })
+      .in("id", (rewardTx ?? []).map((t) => t.id));
   }
 
   return { payslipCount: payslipRows.length };

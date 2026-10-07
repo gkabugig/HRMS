@@ -130,6 +130,19 @@ export async function transitionRun(
     if (to === "closed") updates.locked = true;
     await supabase.from("payroll_runs").update(updates).eq("id", run.id);
 
+    // Rewards module: once payroll confirms payment, the awards paid in this
+    // run move from Finalised to Paid.
+    if (to === "paid") {
+      const { data: paidTx } = await supabase
+        .from("reward_transactions")
+        .update({ payroll_status: "paid" })
+        .eq("payroll_run_id", run.id)
+        .eq("payroll_status", "included")
+        .select("recommendation_id");
+      const recIds = (paidTx ?? []).map((t) => t.recommendation_id as string);
+      if (recIds.length > 0) await supabase.from("reward_recommendations").update({ status: "Paid" }).in("id", recIds);
+    }
+
     if (["under_review", "approved", "processed", "paid", "closed"].includes(to)) {
       await supabase.from("payroll_approvals").insert({
         payroll_run_id: run.id,

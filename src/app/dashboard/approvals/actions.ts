@@ -9,6 +9,7 @@ import { decideAttendanceCorrectionRequest } from "@/lib/attendance/request-corr
 import { decideDocumentApproval } from "@/lib/documents/lifecycle";
 import { decidePositionRequest } from "@/lib/positions/position-request-actions";
 import { decideWorkforcePlanApproval } from "@/lib/positions/workforce-plan-actions";
+import { decideRewardRecommendation } from "@/lib/rewards/review-actions";
 import { decideCompensationChangeRequest } from "@/lib/compensation/change-request-actions";
 
 // Single entry point the inbox calls, regardless of which module opened
@@ -52,6 +53,11 @@ export async function decideApproval(stepId: string, decision: "approved" | "rej
 
   if (requestType === "workforce_plan_approval" && (decision === "approved" || decision === "rejected")) {
     await decideWorkforcePlanApproval(stepId, decision);
+    return;
+  }
+
+  if (requestType === "reward_recommendation" && (decision === "approved" || decision === "rejected")) {
+    await decideRewardRecommendation(stepId, decision);
     return;
   }
 

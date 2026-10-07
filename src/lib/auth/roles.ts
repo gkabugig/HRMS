@@ -101,6 +101,10 @@ export const ALL_MODULES: NavTab[] = [
   // itself (change requests, reviews, budgets, payroll export) is sensitive
   // enough to keep out of every role's sidebar.
   { key: "compensation", label: "Compensation Management", href: "/dashboard/compensation", icon: "wallet", group: "People" },
+  // Rewards & Merit — merit increases, bonuses, incentives and spot awards,
+  // calculated from locked performance results and approved before payroll.
+  // Managers see only their own direct reports (RLS); HR/admin see everyone.
+  { key: "rewards", label: "Rewards & Merit", href: "/dashboard/rewards", icon: "sparkles", group: "People" },
 
   // Area 12 AI HR Assistant — a secure natural-language interface that
   // inherits the caller's own RBAC/RLS scope (spec §9.1), so it is visible
@@ -132,6 +136,7 @@ export const ALL_MODULES: NavTab[] = [
   { key: "me-attendance", label: "My Attendance", href: "/dashboard/me/attendance", icon: "clock", group: "My Space" },
   { key: "me-leave", label: "My Leave", href: "/dashboard/me/leave", icon: "calendar-days", group: "My Space" },
   { key: "me-pay", label: "My Pay", href: "/dashboard/me/pay", icon: "wallet", group: "My Space" },
+  { key: "me-rewards", label: "My Rewards", href: "/dashboard/me/rewards", icon: "sparkles", group: "My Space" },
   { key: "me-documents", label: "My Documents", href: "/dashboard/me/documents", icon: "folder", group: "My Space" },
   { key: "me-tasks", label: "My Tasks", href: "/dashboard/me/tasks", icon: "check-square", group: "My Space" },
   { key: "me-help", label: "Help", href: "/dashboard/me/help", icon: "help-circle", group: "My Space" },
@@ -183,6 +188,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "manager-analytics",
     "manager-organisation",
     "manager-compensation",
+    "rewards",
     "assignments",
     "performance-insights",
     "risk",
@@ -197,6 +203,7 @@ export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
     "me-attendance",
     "me-leave",
     "me-pay",
+    "me-rewards",
     "me-documents",
     "me-tasks",
     "me-help",
