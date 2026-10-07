@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { toResult, type FormResult } from "@/lib/actions/form-result";
+import { syncAllReportingLines } from "@/lib/organisation/sync-reporting-lines";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 
 // Organisation Hierarchy (Phase 2 spec §5) — additive alongside
@@ -268,7 +269,10 @@ export async function runOrganisationDataQuality(_prev?: FormResult, _formData?:
   void _formData;
   return toResult(async () => {
     const supabase = await createClient();
-    await requireOrgAndActor(supabase);
+    const { orgId } = await requireOrgAndActor(supabase);
+
+    // Make the authoritative reporting lines match each "Reports to" field first.
+    await syncAllReportingLines(supabase, orgId);
 
     const { error } = await supabase.rpc("run_organisation_data_quality");
     if (error) throw new Error(`Run checks failed: ${error.message}`);
@@ -329,6 +333,7 @@ export async function quickFixAssignment(employeeId: string, _prev: FormResult, 
       if (error) throw new Error(error.message);
     }
 
+    await syncAllReportingLines(supabase, orgId);
     await supabase.rpc("run_organisation_data_quality");
     revalidatePath("/dashboard/organogram");
     revalidatePath(`/dashboard/employees/${employeeId}`);

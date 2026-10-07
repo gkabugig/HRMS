@@ -11,6 +11,7 @@ import { recordAuditEvent } from "@/lib/audit/record-audit-event";
 import { startWorkflowRun, PRIORITY_WORKFLOW_KEYS } from "@/lib/workflows/start-workflow-run";
 import { recordJobHistoryChange, recordCompensationHistoryChange } from "@/lib/employees/history";
 import { createAppUserLogin, type AppRole } from "@/lib/auth/provision-user";
+import { syncReportingLine } from "@/lib/organisation/sync-reporting-lines";
 import { authorize } from "@/lib/authz/authorize";
 
 
@@ -65,6 +66,7 @@ export async function createEmployee(_prev: FormResult, formData: FormData): Pro
 
   const { data: created, error } = await supabase.from("employees").insert(payload).select("id").single();
   if (error) throw new Error(error.message);
+  await syncReportingLine(supabase, created.id, payload.reporting_manager_id).catch((e) => console.error("syncReportingLine failed:", e));
 
   const { data: { user: creator } } = await supabase.auth.getUser();
   await recordAuditEvent(supabase, {
@@ -192,6 +194,8 @@ export async function updateEmployee(employeeId: string, _prev: FormResult, form
     }
     throw new Error(error.message);
   }
+
+  await syncReportingLine(supabase, employeeId, after.reporting_manager_id as string | null).catch((e) => console.error("syncReportingLine failed:", e));
 
   if (before && user) {
     await logEmployeeChanges(supabase, employeeId, user.id, before as Record<string, unknown>, after);
