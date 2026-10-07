@@ -1,6 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const pathname = usePathname();
   return (
     <div className="max-w-lg mx-auto text-center py-16">
       <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Something went wrong loading the dashboard</h1>
@@ -9,6 +13,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-5 font-mono break-words bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3 text-left">
           {error.message}
           {error.digest && <span className="block mt-1 text-neutral-300 dark:text-neutral-600">digest: {error.digest}</span>}
+          <span className="block mt-1 text-neutral-300 dark:text-neutral-600">page: {pathname}</span>
         </p>
       )}
       <button
@@ -17,6 +22,9 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       >
         Try again
       </button>
+      <Link href="/dashboard" className="ml-3 text-sm font-medium text-brand-600 hover:underline">
+        Back to dashboard
+      </Link>
     </div>
   );
 }
