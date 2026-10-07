@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getRewardContext } from "@/lib/rewards/context";
 import ActionForm from "@/components/forms/action-form";
+import { decideHeldReward } from "@/lib/rewards/approval-actions";
 import { createDefaultPolicy, createPool, createRewardCycle } from "@/lib/rewards/setup-actions";
 import { StatCard, StatGrid } from "../components/role-home";
-import { BTN, INPUT, LABEL, Empty, Meter, PageHead, Panel, StatusChip, kes } from "./ui";
+import { BTN, BTN_GHOST, INPUT, LABEL, Empty, Meter, PageHead, Panel, StatusChip, kes } from "./ui";
 
 export default async function RewardsHome() {
   const { supabase, orgId, role } = await getRewardContext();
@@ -18,6 +19,7 @@ export default async function RewardsHome() {
     isHr ? supabase.from("appraisals").select("cycle") : Promise.resolve({ data: [] }),
   ]);
 
+  const { data: held } = isHr ? await supabase.from("reward_transactions").select("id, amount, effective_date, employees(name)").eq("org_id", orgId).eq("payroll_status", "held") : { data: [] };
   const list = recs ?? [];
   const inReview = list.filter((r) => r.status === "In Review").length;
   const exceptions = list.filter((r) => r.is_exception && ["Open", "In Review"].includes(r.status as string)).length;
@@ -80,6 +82,24 @@ export default async function RewardsHome() {
           )}
         </Panel>
       </div>
+
+      {isHr && (held ?? []).length > 0 && (
+        <Panel title={`On hold: employee left (${(held ?? []).length})`} subtitle="These rewards were approved but not yet paid when the employee left. Payroll skips them until you decide.">
+          <ul className="divide-y divide-[var(--border-subtle)]">
+            {(held ?? []).map((h) => (
+              <li key={h.id as string} className="py-3 space-y-2">
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{(h.employees as unknown as { name: string } | null)?.name ?? "Employee"} · {kes(h.amount)}</p>
+                {(["pay", "cancel"] as const).map((d) => (
+                  <ActionForm key={d} action={decideHeldReward.bind(null, h.id as string, d)} successMessage={d === "pay" ? "Released to payroll." : "Cancelled."} className="flex flex-wrap items-center gap-2">
+                    <input name="reason" required placeholder="Reason" className={`${INPUT} !w-72`} />
+                    <button className={d === "pay" ? BTN : BTN_GHOST}>{d === "pay" ? "Pay anyway" : "Do not pay"}</button>
+                  </ActionForm>
+                ))}
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
 
       {isHr && (policies ?? []).length === 0 && (
         <Panel title="Start here: reward policy" subtitle="The policy holds score bands, the merit matrix, eligibility and bonus rules. You can edit every figure after creating it.">

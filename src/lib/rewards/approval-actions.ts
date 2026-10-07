@@ -71,3 +71,22 @@ export async function amendRecommendation(recId: string, _prev: FormResult, form
     if (rec.cycle_id) revalidatePath(`/dashboard/rewards/cycles/${rec.cycle_id}`);
   });
 }
+
+// A leaver's unpaid reward is held. HR decides: pay it anyway, or cancel it.
+export async function decideHeldReward(txId: string, decision: "pay" | "cancel", _prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
+    const { supabase, userId, orgId } = await requireRewardHr();
+    const reason = str(formData.get("reason"));
+    if (reason.length < 10) throw new Error("Write the reason for this decision (at least 10 characters).");
+    const { data: tx } = await supabase.from("reward_transactions").select("id, recommendation_id, payroll_status, amount").eq("id", txId).eq("org_id", orgId).maybeSingle();
+    if (!tx || tx.payroll_status !== "held") throw new Error("This reward is not on hold.");
+    if (decision === "pay") {
+      await supabase.from("reward_transactions").update({ payroll_status: "pending" }).eq("id", txId);
+    } else {
+      await supabase.from("reward_transactions").delete().eq("id", txId);
+      await supabase.from("reward_recommendations").update({ status: "Rejected", rejection_reason: `Cancelled: ${reason}` }).eq("id", tx.recommendation_id);
+    }
+    await rewardAudit(supabase, { orgId, actorUserId: userId, event: decision === "pay" ? "reward.held_released" : "reward.held_cancelled", recordType: "reward_transaction", recordId: txId, after: { amount: tx.amount }, reason });
+    revalidatePath("/dashboard/rewards");
+  });
+}
