@@ -1,39 +1,39 @@
 import ActionForm from "@/components/forms/action-form";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import {
-  addCandidate,
-  updateCandidateStage,
-  addOnboardingTask,
-  toggleOnboardingTask,
-  hireCandidate,
-} from "../actions";
+import { addCandidate, updateRequisitionAd, setRequisitionPublished, decideRequisition } from "../actions";
+import MoveCandidateForm from "../components/move-candidate-form";
+import { BOARD_STAGES } from "@/lib/recruitment/stages";
 
-const STAGES = ["Screened", "Shortlisted", "Interviewed", "Offered", "Hired", "Rejected"];
+const input = "border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2";
+const card = "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03]";
 
-export default async function RequisitionDetailPage({
-  params,
-}: {
-  params: Promise<{ requisitionId: string }>;
-}) {
+type Cand = {
+  id: string;
+  name: string;
+  source: string | null;
+  stage: string;
+  email: string | null;
+  applied_via: string;
+  rejection_reason: string | null;
+  stage_changed_at: string;
+  added_on: string;
+};
+
+export default async function RequisitionDetailPage({ params }: { params: Promise<{ requisitionId: string }> }) {
   const { requisitionId } = await params;
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: appUser } = await supabase
-    .from("app_users")
-    .select("role")
-    .eq("id", user!.id)
-    .maybeSingle();
-  const canEdit = appUser?.role === "admin" || appUser?.role === "hr" || appUser?.role === "manager";
+  const { data: appUser } = await supabase.from("app_users").select("role, org_id").eq("id", user!.id).maybeSingle();
+  const canEdit = appUser?.role === "admin" || appUser?.role === "hr";
 
   const [{ data: requisition }, { data: candidates }] = await Promise.all([
     supabase.from("requisitions").select("*, employees(name)").eq("id", requisitionId).single(),
     supabase
       .from("candidates")
-      .select("id, name, source, stage, employee_id, added_on, onboarding_tasks(id, task, done)")
+      .select("id, name, source, stage, email, applied_via, rejection_reason, stage_changed_at, added_on")
       .eq("requisition_id", requisitionId)
       .order("added_on", { ascending: false }),
   ]);
@@ -41,6 +41,11 @@ export default async function RequisitionDetailPage({
   if (!requisition) {
     return <p className="text-sm text-neutral-500 dark:text-neutral-400">Requisition not found.</p>;
   }
+
+  const all = (candidates ?? []) as Cand[];
+  const rejected = all.filter((c) => c.stage === "Rejected");
+  const approved = requisition.approval_status === "Approved";
+  const open = requisition.status === "Open";
 
   return (
     <div className="space-y-6">
@@ -52,97 +57,124 @@ export default async function RequisitionDetailPage({
           {requisition.role} — {requisition.department}
         </h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Headcount {requisition.headcount} · Hiring manager:{" "}
-          {(requisition.employees as unknown as { name: string } | null)?.name ?? "—"} · Status{" "}
-          {requisition.status}
+          Headcount {requisition.headcount} · Hiring manager: {(requisition.employees as unknown as { name: string } | null)?.name ?? "—"} · {requisition.status}
+          {requisition.closing_date && ` · applications close ${requisition.closing_date}`}
         </p>
       </div>
 
-      <div className="space-y-4">
-        {(candidates ?? []).map((c) => (
-          <div key={c.id} className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="font-medium">{c.name}</span>
-                {c.source && <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-2">via {c.source}</span>}
-              </div>
-              <span className="text-xs uppercase tracking-wide bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 px-2 py-0.5 rounded">
-                {c.stage}
-              </span>
-            </div>
+      {!approved && (
+        <div className={`${card} p-4 text-sm`}>
+          <p className="font-medium">{requisition.approval_status === "Pending" ? "This hiring request is waiting for HR approval." : "This hiring request was declined."}</p>
+          {requisition.approval_note && <p className="text-neutral-500 dark:text-neutral-400 mt-1">Note: {requisition.approval_note}</p>}
+          {canEdit && requisition.approval_status === "Pending" && (
+            <ActionForm action={decideRequisition.bind(null, requisition.id, "Approved")} className="mt-3" successMessage={null}>
+              <button className="text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg px-3 py-1.5">Approve</button>
+            </ActionForm>
+          )}
+        </div>
+      )}
 
-            {canEdit && c.stage !== "Hired" && (
-              <ActionForm action={updateCandidateStage} className="mt-3 flex gap-2 text-sm">
-                <input type="hidden" name="candidate_id" value={c.id} />
-                <input type="hidden" name="requisition_id" value={requisitionId} />
-                <select name="stage" defaultValue={c.stage} className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1">
-                  {STAGES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <button type="submit" className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors px-3 py-1">
-                  Update stage
-                </button>
-              </ActionForm>
-            )}
+      {canEdit && approved && (
+        <details className={`${card} p-4 text-sm`}>
+          <summary className="cursor-pointer font-medium text-neutral-900 dark:text-neutral-50">
+            Job advert {requisition.published ? "· published on the careers page" : "· not published"}
+          </summary>
+          <ActionForm action={updateRequisitionAd.bind(null, requisition.id)} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3" resetOnSuccess={false}>
+            <input name="location" defaultValue={requisition.location ?? ""} placeholder="Location" className={input} />
+            <select name="employment_type" defaultValue={requisition.employment_type} className={input} aria-label="Employment type">
+              {["Permanent", "Contract", "Casual", "Intern"].map((t) => (
+                <option key={t}>{t}</option>
+              ))}
+            </select>
+            <input name="closing_date" type="date" defaultValue={requisition.closing_date ?? ""} className={input} aria-label="Closing date" />
+            <textarea name="description" rows={4} defaultValue={requisition.description ?? ""} placeholder="Job description" className={`${input} sm:col-span-3`} />
+            <textarea name="requirements" rows={4} defaultValue={requisition.requirements ?? ""} placeholder="Requirements" className={`${input} sm:col-span-3`} />
+            <button className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg py-2 font-medium">Save advert</button>
+          </ActionForm>
+          {open && (
+            <ActionForm action={setRequisitionPublished.bind(null, requisition.id, !requisition.published)} className="mt-3" successMessage={null}>
+              <button className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 hover:border-brand-300">
+                {requisition.published ? "Take off the careers page" : "Publish on the careers page"}
+              </button>
+              {requisition.published && appUser?.org_id && (
+                <Link href={`/careers/${appUser.org_id}/${requisition.id}`} target="_blank" className="ml-3 text-brand-600 hover:underline">
+                  View public advert ↗
+                </Link>
+              )}
+            </ActionForm>
+          )}
+        </details>
+      )}
 
-            {canEdit && c.stage === "Offered" && (
-              <ActionForm action={hireCandidate.bind(null, c.id, requisitionId)} className="mt-3" successMessage={null}>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
-                  Creates an employee record for {c.name} in {requisition.department} as{" "}
-                  {requisition.role} — staff no, compensation, branch, and the rest are filled in
-                  on the Employees page right after.
-                </p>
-                <button type="submit" className="text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors px-3 py-1.5 font-medium">
-                  Hire → create employee record
-                </button>
-              </ActionForm>
-            )}
-
-            {(c.stage === "Offered" || c.stage === "Hired") && (
-              <div className="mt-3 border-t border-neutral-100 dark:border-neutral-800 pt-3">
-                <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">Onboarding checklist</p>
-                <ul className="space-y-1">
-                  {(c.onboarding_tasks as unknown as { id: string; task: string; done: boolean }[]).map((t) => (
-                    <li key={t.id} className="flex items-center gap-2 text-sm">
-                      <ActionForm action={toggleOnboardingTask.bind(null, t.id, requisitionId, !t.done)} successMessage={null}>
-                        <button type="submit" className={t.done ? "text-green-600" : "text-neutral-400 dark:text-neutral-500"}>
-                          {t.done ? "☑" : "☐"}
-                        </button>
-                      </ActionForm>
-                      <span className={t.done ? "line-through text-neutral-400 dark:text-neutral-500" : ""}>{t.task}</span>
-                    </li>
-                  ))}
-                </ul>
-                {canEdit && (
-                  <ActionForm
-                    action={addOnboardingTask.bind(null, c.id, requisitionId)}
-                    className="mt-2 flex gap-2 text-sm"
-                  >
-                    <input name="task" placeholder="Add a task…" required className="flex-1 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-2 py-1" />
-                    <button type="submit" className="text-xs bg-neutral-200 dark:bg-neutral-700 rounded px-3 py-1">
-                      Add
-                    </button>
-                  </ActionForm>
-                )}
-              </div>
-            )}
+      {approved && (
+        <div className="overflow-x-auto">
+          <div className="grid grid-flow-col auto-cols-[minmax(13rem,1fr)] gap-3 min-w-max sm:min-w-0">
+            {BOARD_STAGES.map((stage) => {
+              const inStage = all.filter((c) => c.stage === stage);
+              return (
+                <div key={stage} className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-2 min-h-24">
+                  <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-300 px-1 pb-2 flex justify-between">
+                    <span>{stage}</span>
+                    <span className="text-neutral-400">{inStage.length}</span>
+                  </p>
+                  <div className="space-y-2">
+                    {inStage.map((c) => (
+                      <div key={c.id} className={`${card} p-2.5 text-sm`}>
+                        <Link href={`/dashboard/recruitment/${requisitionId}/${c.id}`} className="font-medium text-brand-600 hover:text-brand-700 hover:underline">
+                          {c.name}
+                        </Link>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                          {c.applied_via === "careers" ? "Careers page" : c.source ?? "Added by HR"}
+                        </p>
+                        {canEdit && stage !== "Hired" && (
+                          <div className="mt-2">
+                            <MoveCandidateForm candidateId={c.id} requisitionId={requisitionId} stage={c.stage} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {inStage.length === 0 && <p className="text-xs text-neutral-400 px-1">Nobody here</p>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
-        {(!candidates || candidates.length === 0) && (
-          <p className="text-sm text-neutral-400 dark:text-neutral-500">No candidates yet.</p>
-        )}
-      </div>
+        </div>
+      )}
 
-      {canEdit && (
-        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
+      {rejected.length > 0 && (
+        <details className={`${card} p-4 text-sm`}>
+          <summary className="cursor-pointer font-medium">Rejected ({rejected.length})</summary>
+          <ul className="mt-3 space-y-2">
+            {rejected.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  <Link href={`/dashboard/recruitment/${requisitionId}/${c.id}`} className="text-brand-600 hover:underline">
+                    {c.name}
+                  </Link>
+                  <span className="text-neutral-500 dark:text-neutral-400"> — {c.rejection_reason ?? "no reason recorded"}</span>
+                </span>
+                {canEdit && <MoveCandidateForm candidateId={c.id} requisitionId={requisitionId} stage={c.stage} />}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      {canEdit && approved && open && (
+        <div className={`${card} p-4`}>
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add candidate</h2>
           <ActionForm action={addCandidate.bind(null, requisitionId)} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <input name="name" placeholder="Candidate name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="source" placeholder="Source (referral, job board...)" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
+            <input name="name" placeholder="Candidate name" required className={input} />
+            <input name="email" type="email" placeholder="Email" className={input} />
+            <input name="phone" placeholder="Phone" className={input} />
+            <input name="source" placeholder="Source (referral, job board...)" className={input} />
+            <label className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-300 sm:col-span-2">
+              CV (PDF or Word, up to 5 MB)
+              <input name="cv" type="file" accept=".pdf,.doc,.docx" className="text-xs" />
+            </label>
+            <textarea name="notes" rows={2} placeholder="Notes" className={`${input} sm:col-span-3`} />
+            <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
               Add candidate
             </button>
           </ActionForm>
