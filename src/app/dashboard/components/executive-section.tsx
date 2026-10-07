@@ -24,8 +24,8 @@ export default function ExecutiveSection({ insights }: { insights: ExecutiveInsi
 
       {insights.rewards && (
         <StatGrid>
-          <StatCard index={0} label="Rewards approved" value={`KES ${money(insights.rewards.approvedToDate)}`} note="Merit counted per year" href="/dashboard/rewards" />
-          <StatCard index={1} label="Reward budget used" value={insights.rewards.budgetTotal > 0 ? `${Math.round((insights.rewards.committedTotal / insights.rewards.budgetTotal) * 100)}%` : "—"} noteTone={insights.rewards.poolsNearLimit > 0 ? "warn" : "good"} note={insights.rewards.poolsNearLimit > 0 ? `${insights.rewards.poolsNearLimit} pool(s) at 90%+` : "All pools within budget"} href="/dashboard/rewards" />
+          <StatCard index={0} label="Rewards approved" value={`KES ${money(insights.rewards.approvedToDate)}`} note="Merit counted per year" href="/dashboard/executive/rewards" />
+          <StatCard index={1} label="Reward budget used" value={insights.rewards.budgetTotal > 0 ? `${Math.round((insights.rewards.committedTotal / insights.rewards.budgetTotal) * 100)}%` : "—"} noteTone={insights.rewards.poolsNearLimit > 0 ? "warn" : "good"} note={insights.rewards.poolsNearLimit > 0 ? `${insights.rewards.poolsNearLimit} pool(s) at 90%+` : "All pools within budget"} href="/dashboard/executive/rewards" />
           <StatCard index={2} label="Rewards awaiting approval" value={insights.rewards.recommendationsInReview} href="/dashboard/approvals" />
           <StatCard index={3} label="Promotions in review" value={insights.rewards.promotionsInReview} href="/dashboard/approvals" />
         </StatGrid>
@@ -53,7 +53,7 @@ export default function ExecutiveSection({ insights }: { insights: ExecutiveInsi
           value={insights.openDisciplinaryCases}
           note="Without an outcome yet"
           noteTone={insights.openDisciplinaryCases > 0 ? "warn" : "good"}
-          href="/dashboard/disciplinary"
+          href="/dashboard/executive/disciplinary"
         />
         <StatCard
           index={3}
@@ -92,9 +92,9 @@ export default function ExecutiveSection({ insights }: { insights: ExecutiveInsi
       </div>
 
       {insights.payrollTrend.length > 0 && (
-        <ChartCard title="Payroll cost" subtitle="Gross pay, last runs (KES)" href="/dashboard/payroll" linkLabel="Payroll" accent="var(--vivid-1)">
+        <ChartCard title="Payroll cost" subtitle="Gross pay, last runs (KES)" href="/dashboard/executive/payroll" linkLabel="Payroll" accent="var(--vivid-1)">
           <VerticalBars
-            items={insights.payrollTrend.map((p) => ({ ...p, href: "/dashboard/payroll" }))}
+            items={insights.payrollTrend.map((p) => ({ ...p, href: "/dashboard/executive/payroll" }))}
             palette="vivid"
             multicolor
             format="int"
