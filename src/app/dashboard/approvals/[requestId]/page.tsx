@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import PositionRequestActions from "../../positions/requests/request-actions";
 
 type NamedUser = { id: string; employees: { name: string } | null } | null;
 
@@ -63,6 +64,33 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
     .eq("request_id", requestId)
     .order("created_at");
 
+  // The initiator can edit or delete a position request until someone acts on it.
+  let ownPositionRequest: { id: string; request_type: string; payload_json: unknown; justification: string | null } | null = null;
+  let units: { id: string; name: string }[] = [];
+  let types: { id: string; name: string }[] = [];
+  const stepsUntouched = (steps ?? []).every((st) => st.status === "pending");
+  if (
+    (request.request_type as string).startsWith("position_") &&
+    request.requested_by === user.id &&
+    request.status === "pending_approval" &&
+    stepsUntouched
+  ) {
+    const { data: pr } = await supabase
+      .from("position_requests")
+      .select("id, request_type, payload_json, justification, status")
+      .eq("approval_request_id", requestId)
+      .maybeSingle();
+    if (pr && pr.status === "submitted") {
+      ownPositionRequest = pr;
+      const [{ data: u }, { data: t }] = await Promise.all([
+        supabase.from("organisation_units").select("id, name").order("name"),
+        supabase.from("position_types").select("id, name").order("name"),
+      ]);
+      units = u ?? [];
+      types = t ?? [];
+    }
+  }
+
   type TimelineEntry = { at: string; kind: "action" | "escalation"; node: React.ReactNode };
   const timeline: TimelineEntry[] = [
     ...(actions ?? []).map((a) => ({
@@ -102,6 +130,21 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
           {userName(request.requester) ?? "—"} on {new Date(request.created_at as string).toLocaleString("en-KE")}
         </p>
       </div>
+
+      {ownPositionRequest && (
+        <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Your request</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">You can change or delete this until an approver acts on it.</p>
+          <PositionRequestActions
+            id={ownPositionRequest.id}
+            requestType={ownPositionRequest.request_type}
+            payload={(ownPositionRequest.payload_json ?? {}) as Record<string, unknown>}
+            justification={ownPositionRequest.justification ?? ""}
+            units={units}
+            types={types}
+          />
+        </div>
+      )}
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4 space-y-3">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">Steps</h2>

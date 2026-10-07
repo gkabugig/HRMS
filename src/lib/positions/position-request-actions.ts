@@ -15,6 +15,8 @@ import { revalidatePath } from "next/cache";
 import { createApprovalRequest } from "@/lib/approvals/create-approval-request";
 import { decideApprovalStep } from "@/lib/approvals/decide-approval-step";
 import { recordAuditEvent } from "@/lib/audit/record-audit-event";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { toResult, type FormResult } from "@/lib/actions/form-result";
 
 const REQUEST_TYPES = ["create", "change", "freeze", "unfreeze", "close"] as const;
 type RequestType = (typeof REQUEST_TYPES)[number];
@@ -304,4 +306,119 @@ export async function activatePosition(positionId: string) {
   });
 
   revalidatePath("/dashboard/positions");
+}
+
+// ---------------------------------------------------------------------
+// Initiator self-service: edit or delete your own position request while
+// it is still waiting for its first decision. Requesters have no UPDATE /
+// DELETE rights on these tables (RLS), so — after proving from the session
+// that the caller is the initiator and the request is untouched — the
+// service-role client performs the change.
+// ---------------------------------------------------------------------
+async function loadOwnOpenRequest(positionRequestId: string) {
+  const supabase = await createClient();
+  const { userId, orgId, role } = await requireRequester(supabase);
+  const admin = createAdminClient();
+  const { data: pr } = await admin
+    .from("position_requests")
+    .select("id, org_id, requested_by, status, request_type, payload_json, justification, approval_request_id, position_id")
+    .eq("id", positionRequestId)
+    .maybeSingle();
+  if (!pr || pr.org_id !== orgId) throw new Error("Request not found.");
+  if (pr.requested_by !== userId) throw new Error("Only the person who submitted a request can edit or delete it.");
+  if (pr.status !== "submitted") throw new Error("This request has already been decided and can no longer be changed.");
+  if (pr.approval_request_id) {
+    const { data: steps } = await admin.from("approval_steps").select("status").eq("approval_request_id", pr.approval_request_id);
+    if ((steps ?? []).some((st) => st.status !== "pending")) {
+      throw new Error("An approver has already acted on this request, so it can no longer be changed.");
+    }
+  }
+  return { admin, pr, userId, orgId, role };
+}
+
+export async function editPositionRequest(positionRequestId: string, _prev: FormResult, formData: FormData): Promise<FormResult> {
+  return toResult(async () => {
+    const { admin, pr, userId, orgId, role } = await loadOwnOpenRequest(positionRequestId);
+
+    const justification = String(formData.get("justification") || "").trim();
+    if (!justification) throw new Error("A justification is required.");
+
+    const payload: Record<string, unknown> = { ...((pr.payload_json ?? {}) as Record<string, unknown>), justification };
+    let summary: string | null = null;
+
+    if (pr.request_type === "create" || pr.request_type === "change") {
+      const title = String(formData.get("title") || "").trim();
+      if (pr.request_type === "create" && !title) throw new Error("Title is required.");
+      const set = (key: string, value: unknown) => {
+        if (value === "" || value === null) delete payload[key];
+        else payload[key] = value;
+      };
+      set("title", title);
+      set("position_code", String(formData.get("position_code") || "").trim());
+      set("organisation_unit_id", String(formData.get("organisation_unit_id") || ""));
+      set("position_type_id", String(formData.get("position_type_id") || ""));
+      const hc = String(formData.get("approved_headcount") || "");
+      if (hc) {
+        const n = Number(hc);
+        if (!Number.isInteger(n) || n < 1) throw new Error("Approved headcount must be a whole number of 1 or more.");
+        payload.approved_headcount = n;
+      } else delete payload.approved_headcount;
+      if (pr.request_type === "create") summary = `New position request: ${title}`;
+    }
+
+    const { error } = await admin
+      .from("position_requests")
+      .update({ payload_json: payload, justification })
+      .eq("id", pr.id)
+      .eq("status", "submitted");
+    if (error) throw new Error(error.message);
+
+    if (pr.approval_request_id) {
+      await admin
+        .from("approval_requests")
+        .update({ impact_json: payload, ...(summary ? { summary } : {}) })
+        .eq("id", pr.approval_request_id);
+    }
+
+    await recordAuditEvent(admin, {
+      orgId,
+      actorUserId: userId,
+      actorRole: role,
+      action: `position_request.${pr.request_type}.edited`,
+      resourceType: "position_request",
+      resourceId: pr.id,
+      eventCategory: "workflow",
+      after: { justification },
+    });
+
+    revalidatePath("/dashboard/positions/requests");
+    revalidatePath("/dashboard/approvals");
+  });
+}
+
+export async function deletePositionRequest(positionRequestId: string): Promise<FormResult> {
+  return toResult(async () => {
+    const { admin, pr, userId, orgId, role } = await loadOwnOpenRequest(positionRequestId);
+
+    const { error } = await admin.from("position_requests").delete().eq("id", pr.id).eq("status", "submitted");
+    if (error) throw new Error(error.message);
+    if (pr.approval_request_id) {
+      // approval_steps / approval_actions cascade with the request.
+      await admin.from("approval_requests").delete().eq("id", pr.approval_request_id);
+    }
+
+    await recordAuditEvent(admin, {
+      orgId,
+      actorUserId: userId,
+      actorRole: role,
+      action: `position_request.${pr.request_type}.deleted`,
+      resourceType: "position_request",
+      resourceId: pr.id,
+      eventCategory: "workflow",
+      before: { justification: pr.justification, payload: pr.payload_json },
+    });
+
+    revalidatePath("/dashboard/positions/requests");
+    revalidatePath("/dashboard/approvals");
+  });
 }

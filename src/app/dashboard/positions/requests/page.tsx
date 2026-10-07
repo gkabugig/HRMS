@@ -4,6 +4,7 @@
 // happens in the universal /dashboard/approvals inbox.
 import { createClient } from "@/lib/supabase/server";
 import { submitPositionRequest } from "@/lib/positions/position-request-actions";
+import PositionRequestActions from "./request-actions";
 
 export default async function PositionRequestsPage() {
   const supabase = await createClient();
@@ -19,7 +20,7 @@ export default async function PositionRequestsPage() {
     supabase.from("organisation_units").select("id, name").eq("org_id", appUser.org_id).order("name"),
     supabase
       .from("position_requests")
-      .select("id, request_type, status, justification, created_at, positions(title)")
+      .select("id, request_type, status, justification, created_at, requested_by, payload_json, positions(title)")
       .eq("org_id", appUser.org_id)
       .order("created_at", { ascending: false })
       .limit(50),
@@ -90,6 +91,7 @@ export default async function PositionRequestsPage() {
               <th className="px-4 py-2 font-medium">Justification</th>
               <th className="px-4 py-2 font-medium">Status</th>
               <th className="px-4 py-2 font-medium">Submitted</th>
+              <th className="px-4 py-2 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -104,11 +106,25 @@ export default async function PositionRequestsPage() {
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColor[r.status] ?? "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"}`}>{r.status}</span>
                   </td>
                   <td className="px-4 py-2 text-xs text-neutral-400 dark:text-neutral-500">{new Date(r.created_at).toLocaleDateString("en-KE")}</td>
+                  <td className="px-4 py-2 align-top">
+                    {r.requested_by === user!.id && r.status === "submitted" ? (
+                      <PositionRequestActions
+                        id={r.id}
+                        requestType={r.request_type}
+                        payload={(r.payload_json ?? {}) as Record<string, unknown>}
+                        justification={r.justification ?? ""}
+                        units={units ?? []}
+                        types={positionTypes ?? []}
+                      />
+                    ) : (
+                      <span className="text-xs text-neutral-300 dark:text-neutral-600">—</span>
+                    )}
+                  </td>
                 </tr>
               );
             })}
             {(requests ?? []).length === 0 && (
-              <tr><td className="px-4 py-4 text-xs text-neutral-400 dark:text-neutral-500" colSpan={5}>No requests yet.</td></tr>
+              <tr><td className="px-4 py-4 text-xs text-neutral-400 dark:text-neutral-500" colSpan={6}>No requests yet.</td></tr>
             )}
           </tbody>
         </table>
