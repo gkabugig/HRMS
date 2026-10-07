@@ -1,7 +1,8 @@
 import ActionForm from "@/components/forms/action-form";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { createEmployee, updateEmployee } from "./actions";
+import { updateEmployee } from "./actions";
+import EmployeeEntryForm from "./employee-entry-form";
 
 function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
@@ -446,78 +447,8 @@ export default async function EmployeesPage({
 
       {canEdit && (
         <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl shadow-sm shadow-slate-900/[0.03] p-4">
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add employee</h2>
-          <ActionForm action={createEmployee} successMessage="Employee added." className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <input name="staff_no" placeholder="Staff No" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="name" placeholder="Full name" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="department" placeholder="Department" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="job_title" placeholder="Job title" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <select name="employment_type" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
-              <option>Permanent</option>
-              <option>Contract</option>
-              <option>Casual</option>
-              <option>Intern</option>
-            </select>
-            <input name="date_of_hire" type="date" required className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <select name="reporting_manager_id" defaultValue="" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
-              <option value="">Reports to (optional)</option>
-              {(employees ?? []).map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-            <select name="branch_id" defaultValue="" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
-              <option value="">Branch (optional)</option>
-              {(branches ?? []).map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-            <label className="text-xs text-neutral-500 dark:text-neutral-400 flex flex-col gap-1">
-              Probation ends (defaults to hire date + 6 months)
-              <input name="probation_end_date" type="date" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            </label>
-            <label className="text-xs text-neutral-500 dark:text-neutral-400 flex flex-col gap-1">
-              Written contract issued on
-              <input name="contract_issued_on" type="date" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            </label>
-            <input name="basic" type="number" step="0.01" placeholder="Basic salary" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="house_allowance" type="number" step="0.01" placeholder="House allowance" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="transport_allowance" type="number" step="0.01" placeholder="Transport allowance" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="other_allowance" type="number" step="0.01" placeholder="Other allowance" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="kra_pin" placeholder="KRA PIN" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="nssf_no" placeholder="NSSF No" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="shif_no" placeholder="SHIF No" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <label className="text-xs text-neutral-500 dark:text-neutral-400 flex flex-col gap-1 sm:col-span-3 pt-1 border-t border-neutral-100 dark:border-neutral-800">
-              Personal &amp; contact details (optional — can also be added later from Edit)
-            </label>
-            <input name="date_of_birth" type="date" placeholder="Date of birth" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <select name="gender" defaultValue="" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
-              <option value="">Gender (optional)</option>
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-            </select>
-            <select name="marital_status" defaultValue="" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2">
-              <option value="">Marital status (optional)</option>
-              <option value="Single">Single</option>
-              <option value="Married">Married</option>
-              <option value="Divorced">Divorced</option>
-              <option value="Widowed">Widowed</option>
-            </select>
-            <input name="nationality" placeholder="Nationality" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="national_id" placeholder="National ID" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="passport_no" placeholder="Passport no." className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="phone_number" placeholder="Phone number" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="personal_email" type="email" placeholder="Personal email" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="physical_address" placeholder="Physical address" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <input name="postal_address" placeholder="Postal address" className="border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors px-3 py-2" />
-            <button type="submit" className="sm:col-span-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors py-2 font-medium">
-              Add employee
-            </button>
-          </ActionForm>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 mb-3">Add or edit employee</h2>
+          <EmployeeEntryForm employees={(employees ?? []).map((m) => ({ id: m.id, name: m.name }))} branches={(branches ?? []).map((b) => ({ id: b.id, name: b.name }))} />
         </div>
       )}
     </div>

@@ -27,6 +27,7 @@ export async function createEmployee(_prev: FormResult, formData: FormData): Pro
   const decision = await authorize(supabase, { resource: "employees", action: "create" });
   if (!decision.allowed) throw new Error("You do not have permission to add employees.");
 
+  if (!String(formData.get("staff_no") || "").trim()) throw new Error("Type the staff number in the box above the form first.");
   const dateOfHire = String(formData.get("date_of_hire") || "");
   const probationEndDate =
     String(formData.get("probation_end_date") || "") || defaultProbationEndDate(dateOfHire);
@@ -244,4 +245,32 @@ export async function inviteToEss(employeeId: string, email: string, password: s
   revalidatePath("/dashboard/employees");
   revalidatePath(`/dashboard/employees/${employeeId}`);
   revalidatePath("/dashboard/settings");
+}
+
+export type EmployeeLookup = { error?: string; employee?: Record<string, string | number | null> & { id: string; name: string } };
+
+const LOOKUP_FIELDS = [
+  "id", "staff_no", "name", "department", "job_title", "employment_type", "date_of_hire", "reporting_manager_id", "branch_id",
+  "probation_end_date", "contract_issued_on", "basic", "house_allowance", "transport_allowance", "other_allowance",
+  "kra_pin", "nssf_no", "shif_no", "date_of_birth", "gender", "marital_status", "national_id", "passport_no",
+  "nationality", "personal_email", "phone_number", "physical_address", "postal_address", "status",
+] as const;
+
+// Finds an employee by staff number (or, failing that, national ID) so the
+// Add employee form can load their details for review / editing. Runs on the
+// caller's own session, so RLS decides what they can see.
+export async function lookupEmployee(query: string): Promise<EmployeeLookup> {
+  const q = query.trim();
+  if (!q) return { error: "Type a staff number first." };
+  try {
+    const supabase = await createClient();
+    const { data: byStaff } = await supabase.from("employees").select("*").ilike("staff_no", q).limit(1).maybeSingle();
+    const found = byStaff ?? (await supabase.from("employees").select("*").eq("national_id", q).limit(1).maybeSingle()).data;
+    if (!found) return { error: `No employee found with staff number or national ID "${q}".` };
+    const employee: Record<string, string | number | null> = {};
+    for (const f of LOOKUP_FIELDS) employee[f] = (found as Record<string, string | number | null>)[f] ?? null;
+    return { employee: employee as EmployeeLookup["employee"] };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Lookup failed." };
+  }
 }

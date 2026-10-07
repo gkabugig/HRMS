@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
 import type { FormResult } from "@/lib/actions/form-result";
 
 // A <form> wired to a server action that returns { error | success }.
@@ -12,12 +12,14 @@ export default function ActionForm({
   children,
   successMessage = "Saved.",
   resetOnSuccess = true,
+  onSuccess,
 }: {
   action: (prev: FormResult, formData: FormData) => Promise<FormResult>;
   className?: string;
   children: ReactNode;
   successMessage?: string | null;
   resetOnSuccess?: boolean;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, {} as FormResult);
   const [key, setKey] = useState(0);
@@ -26,6 +28,11 @@ export default function ActionForm({
     setSeen(state);
     if (state.success && resetOnSuccess) setKey((k) => k + 1);
   }
+
+  useEffect(() => {
+    if (state.success) onSuccess?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form key={key} action={formAction} className={className} aria-busy={pending}>
