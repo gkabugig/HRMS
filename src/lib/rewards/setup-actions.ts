@@ -2,6 +2,7 @@
 
 // Rewards module setup: policy versions, cycles, pools, schemes and the
 // results (actuals) that incentives are paid on. HR / administrator only.
+import { hrUserIds, notifyRewards } from "./letters";
 import { revalidatePath } from "next/cache";
 import { toResult, type FormResult } from "@/lib/actions/form-result";
 import { DEFAULT_POLICY, validatePolicy, type RewardPolicyConfig } from "./config";
@@ -126,6 +127,11 @@ export async function advanceCycle(cycleId: string, _prev: FormResult, _formData
       if ((count ?? 0) > 0) throw new Error(`${count} recommendation(s) are still waiting for a decision.`);
     }
     await supabase.from("reward_cycles").update({ status: next }).eq("id", cycleId);
+    if (next === "Finalised") await notifyRewards(supabase, { orgId, userIds: await hrUserIds(supabase, orgId), type: "REWARD_CYCLE_FINALISED", category: "payroll", title: "A reward cycle was finalised", message: "Approved earnings will be picked up by the next payroll run.", entityType: "reward_cycle", entityId: cycleId, actionUrl: `/dashboard/rewards/cycles/${cycleId}` });
+    if (next === "Open") {
+      const { data: mgrs } = await supabase.from("app_users").select("id").eq("org_id", orgId).eq("role", "manager");
+      await notifyRewards(supabase, { orgId, userIds: (mgrs ?? []).map((m) => m.id as string), type: "REWARD_CYCLE_OPENED", title: "A reward cycle is open", message: "Review your team's recommendations and submit them.", entityType: "reward_cycle", entityId: cycleId, actionUrl: `/dashboard/rewards/cycles/${cycleId}` });
+    }
     await rewardAudit(supabase, { orgId, actorUserId: userId, event: "cycle.status", recordType: "reward_cycle", recordId: cycleId, before: { status: cycle.status }, after: { status: next } });
     revalidatePath(`/dashboard/rewards/cycles/${cycleId}`);
     revalidatePath("/dashboard/rewards");

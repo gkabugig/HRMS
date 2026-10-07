@@ -11,6 +11,7 @@ import { createApprovalRequest, type ApprovalStepInput } from "@/lib/approvals/c
 import { decideApprovalStep } from "@/lib/approvals/decide-approval-step";
 import { applyCompensationChange } from "@/lib/compensation/apply-change";
 import { mergePolicy, requireRewardHr, requireRewardReviewer, rewardAudit, todayIso, type Db, type RewardContext } from "./context";
+import { fileLetter } from "./letters";
 import { buildCandidates } from "./promotion-data";
 import { DEFAULT_PROMOTION_RULE, promotedSalary, promotionLetter, readinessScore, type PromotionRuleConfig } from "./promotion-engine";
 
@@ -282,6 +283,7 @@ export async function decidePromotionCase(stepId: string, decision: "approved" |
       orgName: (org?.name as string) ?? "Human Resources",
     });
     await db.from("promotion_cases").update({ status: "Finalised", letter_text: letter, decision_reason: immediate ? "Approved and applied" : "Approved; applies on the effective date (update the job title then)" }).eq("id", caseId);
+    await fileLetter(db, { orgId: appUser.org_id, employeeId: c.employee_id as string, type: "promotion", title: `Promotion to ${c.proposed_title}`, body: letter, promotionCaseId: caseId });
     await rewardAudit(db, { orgId: appUser.org_id, actorUserId: user.id, event: "promotion_case.approved_and_committed", recordType: "promotion_case", recordId: caseId, after: { title: c.proposed_title, salary: c.proposed_salary, effective: c.effective_date } });
   }
   revalidatePath("/dashboard/approvals");

@@ -37,6 +37,10 @@
       "schedule": "0 2 * * *"
     },
     {
+      "path": "/api/cron/reward-letters-release",
+      "schedule": "20 3 * * *"
+    },
+    {
       "path": "/api/cron/compensation-apply-scheduled",
       "schedule": "0 3 * * *"
     }

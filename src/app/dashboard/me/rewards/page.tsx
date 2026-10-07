@@ -13,12 +13,11 @@ export default async function MyRewardsPage() {
     .select("id, tx_type, amount, new_salary, effective_date, payroll_period, payroll_status")
     .eq("employee_id", ctx.employeeId)
     .order("effective_date", { ascending: false });
-  const { data: promo } = await supabase
-    .from("promotion_cases")
-    .select("id, proposed_title, effective_date, letter_text")
+  const { data: letters } = await supabase
+    .from("reward_letters")
+    .select("id, title, body, release_date")
     .eq("employee_id", ctx.employeeId)
-    .eq("status", "Finalised")
-    .order("effective_date", { ascending: false });
+    .order("release_date", { ascending: false });
   return (
     <div className="space-y-6">
       <div>
@@ -45,9 +44,9 @@ export default async function MyRewardsPage() {
           </ul>
         )}
       </Panel>
-      {(promo ?? []).map((p) => (
-        <Panel key={p.id as string} title={`Promotion to ${p.proposed_title as string}`} subtitle={`Effective ${p.effective_date as string}`}>
-          <pre className="whitespace-pre-wrap text-sm text-neutral-800 dark:text-neutral-100 font-sans">{p.letter_text as string}</pre>
+      {(letters ?? []).map((l) => (
+        <Panel key={l.id as string} title={l.title as string} subtitle={`Issued ${l.release_date as string}`} right={<a className="text-xs text-brand-600 underline" href={`/api/rewards/letters/${l.id}`}>Download</a>}>
+          <pre className="whitespace-pre-wrap text-sm text-neutral-800 dark:text-neutral-100 font-sans">{l.body as string}</pre>
         </Panel>
       ))}
     </div>

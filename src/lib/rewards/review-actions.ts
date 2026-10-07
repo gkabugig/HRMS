@@ -14,6 +14,8 @@ import { applyCompensationChange } from "@/lib/compensation/apply-change";
 import { bonusWithinDiscretion, computeMerit, roundMoney } from "./engine";
 import { mergePolicy, monthOf, requireRewardHr, requireRewardReviewer, rewardAudit, todayIso, type Db, type RewardContext } from "./context";
 import type { RewardPolicyConfig } from "./config";
+import { checkPoolAlert, fileLetter, notifyRewards } from "./letters";
+import { earningLetter, meritLetter } from "./reward-letter";
 import { DEFAULT_CHAIN, pickWorkflow, resolveStages, type Workflow } from "./approval-chain";
 
 const str = (v: FormDataEntryValue | null) => String(v ?? "").trim();
@@ -303,6 +305,7 @@ export async function decideRewardRecommendation(stepId: string, decision: "appr
   if (decision === "rejected") {
     await db.from("reward_recommendations").update({ status: "Rejected" }).eq("id", recId);
     await rewardAudit(db, { orgId: appUser.org_id, actorUserId: user.id, event: "recommendation.rejected", recordType: "reward_recommendation", recordId: recId });
+    await notifyRewards(db, { orgId: appUser.org_id, userIds: [rec.recommended_by as string | null], type: "REWARD_REJECTED", title: "A reward recommendation was returned", message: `${(rec.snapshot as { employeeName?: string })?.employeeName ?? "An employee"}'s ${String(rec.reward_type).replace("_", " ")} recommendation was rejected. Open it to review and resubmit.`, entityType: "reward_recommendation", entityId: recId, actionUrl: `/dashboard/rewards/recommendations/${recId}` });
   } else {
     await commitApproved(db, rec as unknown as Rec, appUser.org_id, user.id, requestId);
   }
@@ -348,5 +351,13 @@ async function commitApproved(db: Db, rec: Rec, orgId: string, actorId: string, 
     await db.from("reward_transactions").insert({ org_id: orgId, recommendation_id: rec.id, employee_id: rec.employee_id, tx_type: "earning", amount: rec.recommended_amount, effective_date: effective, payroll_period: period, payroll_status: "pending" });
   }
   await db.from("reward_recommendations").update({ status: "Finalised" }).eq("id", rec.id);
+  const [{ data: emp }, { data: org }] = await Promise.all([db.from("employees").select("name").eq("id", rec.employee_id).maybeSingle(), db.from("organizations").select("name").eq("id", orgId).maybeSingle()]);
+  const letterBase = { name: (emp?.name as string) ?? "Colleague", orgName: (org?.name as string) ?? "Human Resources" };
+  const letter =
+    rec.reward_type === "merit"
+      ? meritLetter({ ...letterBase, pct: Number(rec.pct), oldSalary: Number(rec.current_salary), newSalary: Number(rec.new_salary), effective })
+      : earningLetter({ ...letterBase, type: rec.reward_type, amount: Number(rec.recommended_amount), payPeriod: rec.payout_period ?? monthOf(effective > todayIso() ? effective : todayIso()), reason: rec.reward_type === "spot" ? rec.justification : null });
+  await fileLetter(db, { orgId, employeeId: rec.employee_id, type: rec.reward_type, title: letter.title, body: letter.body, recommendationId: rec.id });
+  await checkPoolAlert(db, orgId, rec.pool_id);
   await rewardAudit(db, { orgId, actorUserId: actorId, event: "recommendation.approved_and_committed", recordType: "reward_recommendation", recordId: rec.id, after: { type: rec.reward_type, amount: rec.recommended_amount, effective } });
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { notifyEmployee } from "@/lib/rewards/letters";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { calculatePayrollRun } from "@/lib/payroll/run-calculation";
@@ -140,6 +141,10 @@ export async function transitionRun(
         .eq("payroll_status", "included")
         .select("recommendation_id");
       const recIds = (paidTx ?? []).map((t) => t.recommendation_id as string);
+      if (recIds.length > 0) {
+        const { data: paidRecs } = await supabase.from("reward_recommendations").select("id, employee_id, reward_type").in("id", recIds);
+        for (const r of paidRecs ?? []) await notifyEmployee(supabase, orgId, r.employee_id as string, { type: "REWARD_PAID", category: "payroll", title: r.reward_type === "merit" ? "Your salary increase is now in payroll" : "Your reward has been paid", message: "See My Rewards for the details.", entityType: "reward_recommendation", entityId: r.id as string, actionUrl: "/dashboard/me/rewards" });
+      }
       if (recIds.length > 0) await supabase.from("reward_recommendations").update({ status: "Paid" }).in("id", recIds);
     }
 
