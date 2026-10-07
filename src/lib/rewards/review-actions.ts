@@ -14,6 +14,7 @@ import { applyCompensationChange } from "@/lib/compensation/apply-change";
 import { bonusWithinDiscretion, computeMerit, roundMoney } from "./engine";
 import { mergePolicy, monthOf, requireRewardHr, requireRewardReviewer, rewardAudit, todayIso, type Db, type RewardContext } from "./context";
 import type { RewardPolicyConfig } from "./config";
+import { DEFAULT_CHAIN, pickWorkflow, resolveStages, type Workflow } from "./approval-chain";
 
 const str = (v: FormDataEntryValue | null) => String(v ?? "").trim();
 const fmt = (n: number) => `KES ${Math.round(n).toLocaleString("en-KE")}`;
@@ -135,13 +136,13 @@ async function submitOne(ctx: RewardContext, recId: string) {
     if (cycle && !["Open", "Calibration", "Approval"].includes(cycle.status as string)) throw new Error(`The cycle is in ${cycle.status}. Open it before submitting.`);
   }
 
-  // Default chain: HR review, then (for exceptions) the head of the organisation.
-  // Whoever recommends never approves: an HR submitter goes to an administrator.
-  const steps: ApprovalStepInput[] = [{ approverRole: ctx.role === "hr" ? "admin" : "hr" }];
-  if (rec.is_exception) {
-    const head = await headUserId(ctx.supabase, ctx.orgId);
-    if (head && head !== ctx.userId) steps.push({ approverUserId: head });
-  }
+  // Chain: the most specific configured workflow, else HR (plus the head for exceptions).
+  // Whoever recommends never approves.
+  const { data: wfRows } = await ctx.supabase.from("reward_approval_workflows").select("id, name, reward_type, min_amount, max_amount, exceptions_only, stages, due_days").eq("org_id", ctx.orgId).eq("is_active", true);
+  const wf = pickWorkflow(((wfRows ?? []) as unknown as Workflow[]).map((w) => ({ ...w, min_amount: Number(w.min_amount), max_amount: w.max_amount === null ? null : Number(w.max_amount) })), { rewardType: rec.reward_type, amount: Number(rec.recommended_amount), isException: rec.is_exception });
+  const head = await headUserId(ctx.supabase, ctx.orgId);
+  const dueAt = new Date(Date.now() + (wf?.due_days ?? DEFAULT_CHAIN.dueDays) * 86_400_000).toISOString();
+  const steps: ApprovalStepInput[] = resolveStages(wf?.stages ?? DEFAULT_CHAIN.stages, { submitterRole: ctx.role, submitterUserId: ctx.userId, headUserId: head, isException: rec.is_exception, hasWorkflow: !!wf }).map((s) => ({ ...s, dueAt }));
 
   const name = String(rec.snapshot?.employeeName ?? "employee");
   const label = rec.reward_type === "merit" ? `Merit increase ${rec.pct}% (${fmt(Number(rec.new_salary))}/month)` : `${rec.reward_type.replace("_", " ")} ${fmt(Number(rec.recommended_amount))}`;

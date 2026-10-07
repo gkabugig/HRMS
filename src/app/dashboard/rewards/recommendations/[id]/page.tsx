@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getRewardContext } from "@/lib/rewards/context";
 import ActionForm from "@/components/forms/action-form";
+import { amendRecommendation } from "@/lib/rewards/approval-actions";
 import { adjustRecommendation, reopenRecommendation, submitRecommendation } from "@/lib/rewards/review-actions";
 import { BTN, BTN_GHOST, INPUT, LABEL, PageHead, Panel, StatusChip, kes } from "../../ui";
 
@@ -121,6 +122,15 @@ export default async function RecommendationPage({ params }: { params: Promise<{
                   <button className={BTN_GHOST}>Reopen for review</button>
                 </ActionForm>
               )}
+            </Panel>
+          )}
+
+          {rec.status === "Finalised" && isHr && (
+            <Panel title="Amend after approval" subtitle="Reopens only this record, keeps the earlier version, and sends it through approval again. Possible until it reaches a pay run (or the salary change takes effect).">
+              <ActionForm action={amendRecommendation.bind(null, id)} successMessage="Reopened for amendment." resetOnSuccess={false} className="space-y-2">
+                <textarea name="reason" rows={2} required placeholder="Why is this being amended?" className={INPUT} />
+                <button className={BTN_GHOST}>Amend</button>
+              </ActionForm>
             </Panel>
           )}
 

@@ -52,6 +52,7 @@ const TABS = [
   { href: "/dashboard/rewards/history", label: "Reward history" },
   { href: "/dashboard/rewards/calibration", label: "Calibration", hr: true },
   { href: "/dashboard/rewards/fairness", label: "Fairness", hr: true },
+  { href: "/dashboard/rewards/approvals", label: "Approval chains", hr: true },
   { href: "/dashboard/rewards/policy", label: "Policy", hr: true },
   { href: "/dashboard/rewards/audit", label: "Audit log", hr: true },
 ];
