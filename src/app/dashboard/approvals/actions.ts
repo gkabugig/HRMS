@@ -9,6 +9,7 @@ import { decideAttendanceCorrectionRequest } from "@/lib/attendance/request-corr
 import { decideDocumentApproval } from "@/lib/documents/lifecycle";
 import { decidePositionRequest } from "@/lib/positions/position-request-actions";
 import { decideWorkforcePlanApproval } from "@/lib/positions/workforce-plan-actions";
+import { decidePromotionCase } from "@/lib/rewards/promotion-actions";
 import { decideRewardRecommendation } from "@/lib/rewards/review-actions";
 import { decideCompensationChangeRequest } from "@/lib/compensation/change-request-actions";
 
@@ -53,6 +54,11 @@ export async function decideApproval(stepId: string, decision: "approved" | "rej
 
   if (requestType === "workforce_plan_approval" && (decision === "approved" || decision === "rejected")) {
     await decideWorkforcePlanApproval(stepId, decision);
+    return;
+  }
+
+  if (requestType === "promotion_case" && (decision === "approved" || decision === "rejected")) {
+    await decidePromotionCase(stepId, decision);
     return;
   }
 
