@@ -121,10 +121,10 @@ export async function resolveTemplate(
 
   return {
     templateId: null,
-    title: String(variables.defaultTitle ?? "HRMS notification"),
-    body: String(variables.defaultMessage ?? "You have a new HRMS notification. Sign in to review it."),
-    safePreview: "You have a new HRMS notification. Sign in to review it.",
-    actionLabel: "Open HRMS",
+    title: String(variables.defaultTitle ?? "SKMG-HR notification"),
+    body: String(variables.defaultMessage ?? "You have a new SKMG-HR notification. Sign in to review it."),
+    safePreview: "You have a new SKMG-HR notification. Sign in to review it.",
+    actionLabel: "Open SKMG-HR",
     actionUrl: typeof variables.defaultActionUrl === "string" ? variables.defaultActionUrl : null,
   };
 }

@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeScript } from "@/components/theme/theme-script";
 
 export const metadata: Metadata = {
-  title: "HRMS",
+  title: "SKMG-HR",
   description: "Human Resource Management System",
 };
 

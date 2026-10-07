@@ -47,12 +47,12 @@ export async function sendDueDigests(admin: SupabaseClient): Promise<{ sent: num
     if (!destination) continue;
 
     const bodyLines = items.map((i) => `<li><strong>${i.notifications.title}</strong> — ${i.notifications.safe_preview ?? i.notifications.message}</li>`).join("");
-    const html = `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;"><h2>Your HRMS digest</h2><ul>${bodyLines}</ul><p><a href="/dashboard/notifications">Open HRMS</a></p></div>`;
+    const html = `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;"><h2>Your SKMG-HR digest</h2><ul>${bodyLines}</ul><p><a href="/dashboard/notifications">Open SKMG-HR</a></p></div>`;
 
     const result = await channelAdapters.email.send({
       notificationId: items[0].notification_id,
       destination,
-      title: `Your HRMS digest (${items.length} update${items.length > 1 ? "s" : ""})`,
+      title: `Your SKMG-HR digest (${items.length} update${items.length > 1 ? "s" : ""})`,
       body: html,
     });
 

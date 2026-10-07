@@ -199,7 +199,7 @@ export default function Sidebar({
           <div className="h-7 w-7 rounded-md bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white text-xs font-bold">
             H
           </div>
-          <span className="text-white font-semibold text-sm tracking-tight">HRMS</span>
+          <span className="text-white font-semibold text-sm tracking-tight">SKMG-HR</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="[&_button]:border-[var(--sidebar-border)] [&_button]:text-[var(--sidebar-text)] [&_button:hover]:border-white/30">
@@ -224,7 +224,7 @@ export default function Sidebar({
           <div className="fixed inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <div className="relative w-72 bg-[var(--sidebar-bg)] h-full flex flex-col">
             <div className="flex items-center justify-between px-4 py-4 border-b border-[var(--sidebar-border)]">
-              <span className="text-white font-semibold text-sm tracking-tight">HRMS</span>
+              <span className="text-white font-semibold text-sm tracking-tight">SKMG-HR</span>
               <button onClick={() => setMobileOpen(false)} className="text-[var(--sidebar-text)] hover:text-white">
                 <X size={20} />
               </button>
@@ -242,7 +242,7 @@ export default function Sidebar({
             H
           </div>
           <div className="leading-tight">
-            <p className="text-white font-semibold text-sm tracking-tight">HRMS</p>
+            <p className="text-white font-semibold text-sm tracking-tight">SKMG-HR</p>
             <p className="text-[10px] text-[var(--sidebar-text)] uppercase tracking-wider">SKMG Consulting</p>
           </div>
         </div>

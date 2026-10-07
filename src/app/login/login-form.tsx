@@ -58,7 +58,7 @@ export default function LoginForm({ canSetup }: { canSetup: boolean }) {
         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white text-base font-bold shadow-lg shadow-brand-600/30 mb-4">
           H
         </div>
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50 mb-1">HRMS</h1>
+        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50 mb-1">SKMG-HR</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
           {mode === "signin" ? "Sign in to continue" : "Create the first admin account"}
         </p>

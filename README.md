@@ -1,4 +1,4 @@
-# HRMS
+# SKMG-HR
 
 A multi-user Human Resource Management System for Kenyan organizations, built with
 Next.js (App Router) and Supabase (Postgres + Auth + Row-Level Security).

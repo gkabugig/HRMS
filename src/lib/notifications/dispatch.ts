@@ -83,7 +83,7 @@ async function sendOne(admin: SupabaseClient, delivery: DeliveryRow): Promise<"s
     // channel+event_type; if none was authored, templates.ts's built-in
     // fallback uses safe_preview/defaultMessage, never raw internal body.
     title: rendered.title || notification.title,
-    body: rendered.body || notification.safe_preview || "You have a new HRMS notification. Sign in to review it.",
+    body: rendered.body || notification.safe_preview || "You have a new SKMG-HR notification. Sign in to review it.",
     actionUrl: rendered.actionUrl ?? notification.action_url ?? undefined,
     actionLabel: rendered.actionLabel ?? notification.action_label ?? undefined,
   });

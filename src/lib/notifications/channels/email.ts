@@ -36,7 +36,7 @@ export const emailAdapter: NotificationChannelAdapter = {
     }
 
     const actionHtml = input.actionUrl
-      ? `<p><a href="${input.actionUrl}" style="display:inline-block;padding:10px 18px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;">${input.actionLabel ?? "Open HRMS"}</a></p>`
+      ? `<p><a href="${input.actionUrl}" style="display:inline-block;padding:10px 18px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;">${input.actionLabel ?? "Open SKMG-HR"}</a></p>`
       : "";
     const html = `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;"><h2 style="margin-bottom:4px;">${input.title}</h2><p>${input.body}</p>${actionHtml}</div>`;
 
