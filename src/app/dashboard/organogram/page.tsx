@@ -10,6 +10,7 @@ import {
   setPositionActive,
   runOrganisationDataQuality,
 } from "@/lib/org-structure/actions";
+import OrgChart from "./org-chart";
 import { getOrgTree, type OrgTreeNode } from "@/lib/organisation/get-org-tree";
 
 type Employee = {
@@ -38,6 +39,7 @@ function buildForest(employees: Employee[]): EmployeeNode[] {
 }
 
 const TABS = [
+  { key: "chart", label: "Org chart" },
   { key: "hierarchy", label: "Hierarchy" },
   { key: "tree", label: "Reporting tree" },
   { key: "structure", label: "Structure" },
@@ -50,7 +52,7 @@ export default async function OrganogramPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const view = (TABS.find((t) => t.key === params.view)?.key ?? "hierarchy") as (typeof TABS)[number]["key"];
+  const view = (TABS.find((t) => t.key === params.view)?.key ?? "chart") as (typeof TABS)[number]["key"];
   const supabase = await createClient();
 
   const { data: appUser } = await supabase.auth.getUser().then(async ({ data }) => {
@@ -60,11 +62,19 @@ export default async function OrganogramPage({
   const orgId = appUser?.org_id as string | undefined;
   const isAdminOrHr = appUser?.role === "admin" || appUser?.role === "hr";
 
-  const { data: employees } = await supabase
+  let { data: employees } = (await supabase
     .from("employees")
-    .select("id, name, job_title, department, reporting_manager_id")
+    .select("id, name, job_title, department, reporting_manager_id, is_head_of_organisation")
     .eq("status", "Active")
-    .order("name");
+    .order("name")) as { data: (Employee & { is_head_of_organisation?: boolean })[] | null };
+  if (!employees) {
+    // Migration 0136 not applied yet — fall back to the columns that always exist.
+    ({ data: employees } = (await supabase
+      .from("employees")
+      .select("id, name, job_title, department, reporting_manager_id")
+      .eq("status", "Active")
+      .order("name")) as { data: Employee[] | null });
+  }
 
   const forest = buildForest(employees ?? []);
 
@@ -92,6 +102,8 @@ export default async function OrganogramPage({
       </div>
 
       {isAdminOrHr && <DataQualityPanel supabase={supabase} orgId={orgId} />}
+
+      {view === "chart" && <OrgChart people={employees ?? []} />}
 
       {view === "hierarchy" && orgId && <HierarchyView supabase={supabase} orgId={orgId} />}
 
