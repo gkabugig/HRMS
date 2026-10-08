@@ -8,6 +8,7 @@ import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-c
 import { getEmployeeHome } from "@/lib/employee-portal/get-employee-home";
 import EmptyState from "@/components/employee-portal/empty-state";
 import { VerticalBars } from "@/components/charts/charts";
+import HubPanel from "./hub-panel";
 import ChartCard from "../components/chart-card";
 import { RoleHeader, StatCard, StatGrid, QuickLinks } from "../components/role-home";
 
@@ -121,6 +122,8 @@ export default async function EmployeeHomePage() {
           )}
         </ChartCard>
       </div>
+
+      <HubPanel supabase={supabase as never} orgId={ctx.orgId} employeeId={ctx.employeeId} />
 
       <QuickLinks
         links={[

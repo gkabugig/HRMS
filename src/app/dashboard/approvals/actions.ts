@@ -12,6 +12,7 @@ import { decideWorkforcePlanApproval } from "@/lib/positions/workforce-plan-acti
 import { decidePromotionCase } from "@/lib/rewards/promotion-actions";
 import { decideRewardRecommendation } from "@/lib/rewards/review-actions";
 import { decideCompensationChangeRequest } from "@/lib/compensation/change-request-actions";
+import { decideTimesheetApproval } from "@/lib/hub/timesheet-actions";
 
 // Single entry point the inbox calls, regardless of which module opened
 // the request. Most request types only need the generic engine (record the
@@ -64,6 +65,11 @@ export async function decideApproval(stepId: string, decision: "approved" | "rej
 
   if (requestType === "reward_recommendation" && (decision === "approved" || decision === "rejected")) {
     await decideRewardRecommendation(stepId, decision);
+    return;
+  }
+
+  if (requestType === "timesheet") {
+    await decideTimesheetApproval(stepId, decision === "approved" ? "approved" : "rejected");
     return;
   }
 

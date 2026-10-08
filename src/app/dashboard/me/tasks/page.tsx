@@ -11,6 +11,7 @@ import { requireEmployeeContext } from "@/lib/employee-portal/require-employee-c
 import { getMyTasks } from "@/lib/employee-portal/get-my-tasks";
 import EmptyState from "@/components/employee-portal/empty-state";
 import Link from "next/link";
+import Checklist from "./checklist";
 
 export default async function MyTasksPage() {
   const supabase = await createClient();
@@ -44,6 +45,7 @@ export default async function MyTasksPage() {
           </ul>
         )}
       </div>
+      <Checklist supabase={supabase as never} employeeId={ctx.employeeId} />
     </div>
   );
 }

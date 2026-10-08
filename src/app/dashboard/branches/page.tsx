@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ActionForm from "@/components/forms/action-form";
 import { createClient } from "@/lib/supabase/server";
 import { createBranch, deleteBranch } from "./actions";
@@ -15,7 +16,8 @@ export default async function BranchesPage() {
       <div>
         <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Branches</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Locations employees can be assigned to from the Employees page.
+          Locations employees can be assigned to from the Employees page.{" "}
+          <Link href="/dashboard/branches/staffing" className="text-brand-600 underline">Minimum staffing rules</Link>
         </p>
       </div>
 

@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { evaluateGeofence, isValidPoint } from "./geo";
 import { nairobiNow } from "./nairobi-time";
+import { closeOpenBreaks } from "./breaks";
 
 export type SelfClockState = { error?: string; success?: string; warning?: string };
 
@@ -85,6 +86,7 @@ export async function selfClockAction(_prev: SelfClockState, formData: FormData)
         })
         .eq("id", existing.id);
       if (error) return { error: error.message };
+      await closeOpenBreaks(admin as never, employeeId);
     }
 
     revalidatePath("/dashboard/me/attendance");
