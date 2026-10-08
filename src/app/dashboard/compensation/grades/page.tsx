@@ -1,6 +1,9 @@
 // Area 17 §8.4 — grade framework and effective salary bands.
 import { createClient } from "@/lib/supabase/server";
 import { createCompensationGrade, createCompensationBand } from "@/lib/compensation/admin-actions";
+import { setGradeBonusTarget } from "@/lib/compensation/grade-actions";
+import ActionForm from "@/components/forms/action-form";
+import Link from "next/link";
 
 export default async function CompensationGradesPage() {
   const supabase = await createClient();
@@ -15,7 +18,7 @@ export default async function CompensationGradesPage() {
 
   const { data: grades } = await supabase
     .from("compensation_grades")
-    .select("id, code, name, order_rank, compensation_bands(id, currency, min_amount, max_amount, effective_from, effective_to)")
+    .select("id, code, name, order_rank, bonus_target_pct, compensation_bands(id, currency, min_amount, max_amount, effective_from, effective_to)")
     .eq("org_id", appUser.org_id)
     .order("order_rank");
 
@@ -23,7 +26,7 @@ export default async function CompensationGradesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Compensation Grades &amp; Bands</h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Position → Grade → Salary Band → Employee Compensation.</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Position → Grade → Salary Band → Employee Compensation. Then <Link href="/dashboard/compensation/assign-grades" className="text-brand-600 underline">assign employees to grades</Link>.</p>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-4">
@@ -55,6 +58,11 @@ export default async function CompensationGradesPage() {
                   )}
                 </tbody>
               </table>
+              <ActionForm action={setGradeBonusTarget.bind(null, g.id as string)} successMessage="Bonus target saved." resetOnSuccess={false} className="flex flex-wrap items-center gap-2 text-xs mb-3">
+                <label className="text-neutral-500">Bonus target (% of annual salary)</label>
+                <input name="bonus_target_pct" type="number" step="0.5" min="0" max="100" defaultValue={g.bonus_target_pct === null ? "" : String(g.bonus_target_pct)} placeholder="Policy default" className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5 w-32" />
+                <button className="border border-neutral-200 dark:border-neutral-700 rounded px-3 py-1.5 font-medium">Save</button>
+              </ActionForm>
               <form action={createCompensationBand} className="grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs">
                 <input type="hidden" name="grade_id" value={g.id} />
                 <input name="min_amount" type="number" step="0.01" placeholder="Min (KES)" required className="border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1.5" />

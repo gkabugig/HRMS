@@ -36,6 +36,7 @@ export default async function CompensationDashboardPage() {
         </div>
         <div className="flex gap-2 text-xs">
           <Link href="/dashboard/compensation/grades" className="border border-neutral-200 dark:border-neutral-700 rounded px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900">Grades &amp; Bands</Link>
+          <Link href="/dashboard/compensation/assign-grades" className="border border-neutral-200 dark:border-neutral-700 rounded px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900">Assign Grades</Link>
           <Link href="/dashboard/compensation/components" className="border border-neutral-200 dark:border-neutral-700 rounded px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900">Components</Link>
           <Link href="/dashboard/compensation/plans" className="border border-neutral-200 dark:border-neutral-700 rounded px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900">Plans</Link>
           <Link href="/dashboard/compensation/change-requests" className="border border-neutral-200 dark:border-neutral-700 rounded px-3 py-1.5 hover:bg-neutral-50 hover:dark:bg-neutral-900">Change Requests</Link>
