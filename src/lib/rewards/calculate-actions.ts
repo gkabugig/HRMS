@@ -118,7 +118,7 @@ export async function generateRecommendations(cycleId: string, _prev: FormResult
 
       if (!locked.has(`${e.id}:merit`)) {
         if (excluded) {
-          rows.push({ ...base, reward_type: "merit", pool_id: meritPool, status: "Draft", snapshot });
+          rows.push({ ...base, reward_type: "merit", pool_id: meritPool, status: "Draft", calculated_amount: 0, recommended_amount: 0, snapshot });
         } else {
           const m = computeMerit({ salary, rating: perf.rating, position: pos.position, bandMax: band?.max ?? null, policy });
           const flagged = m.exceedsBandMax && !policy.merit.allowAboveBandMax;
@@ -139,7 +139,7 @@ export async function generateRecommendations(cycleId: string, _prev: FormResult
 
       if (!locked.has(`${e.id}:bonus`)) {
         if (excluded) {
-          rows.push({ ...base, reward_type: "bonus", pool_id: bonusPool, status: "Draft", snapshot });
+          rows.push({ ...base, reward_type: "bonus", pool_id: bonusPool, status: "Draft", calculated_amount: 0, recommended_amount: 0, snapshot });
         } else {
           const targetPct = grade?.bonus_target_pct != null ? Number(grade.bonus_target_pct) : policy.bonus.defaultTargetPct;
           const b = computeBonus({
@@ -165,7 +165,7 @@ export async function generateRecommendations(cycleId: string, _prev: FormResult
     }
 
     if (rows.length > 0) {
-      const { error } = await supabase.from("reward_recommendations").insert(rows);
+      const { error } = await supabase.from("reward_recommendations").insert(rows.map((r) => ({ is_exception: false, new_salary: null, pct: null, ...r })));
       if (error) throw new Error(error.message);
     }
     await rewardAudit(supabase, { orgId, actorUserId: userId, event: "recommendations.calculated", recordType: "reward_cycle", recordId: cycleId, after: { rows: rows.length, policyVersion: policyRow.version } });
@@ -245,7 +245,7 @@ export async function calculateScheme(schemeId: string, _prev: FormResult, formD
       });
     }
     if (rows.length === 0) throw new Error("Nothing new to calculate: every employee with results for that period already has a payout recommendation (or is outside the scheme's group).");
-    const { error } = await supabase.from("reward_recommendations").insert(rows);
+    const { error } = await supabase.from("reward_recommendations").insert(rows.map((r) => ({ is_exception: false, new_salary: null, pct: null, ...r })));
     if (error) throw new Error(error.message);
     await rewardAudit(supabase, { orgId, actorUserId: userId, event: "scheme.calculated", recordType: "reward_scheme", recordId: schemeId, after: { period, rows: rows.length } });
     revalidatePath("/dashboard/rewards");
