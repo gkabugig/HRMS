@@ -3,11 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PositionRequestActions from "../../positions/requests/request-actions";
 
-type NamedUser = { id: string; employees: { name: string } | null } | null;
+type NamedUser = { id: string; username?: string | null; employees: { name: string } | null } | null;
 
 function userName(u: unknown): string | null {
   const row = u as NamedUser;
-  return row?.employees?.name ?? null;
+  // Staff with a login but no employee record (e.g. the system administrator) show by username.
+  return row?.employees?.name ?? row?.username ?? null;
 }
 
 const ACTION_LABEL: Record<string, string> = {
@@ -36,7 +37,7 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
   const { data: request } = await supabase
     .from("approval_requests")
     .select(
-      "id, request_type, summary, status, created_at, decided_at, impact_json, requested_by, requester:requested_by(id, employees:employee_id(name)), employees:subject_employee_id(name)"
+      "id, request_type, summary, status, created_at, decided_at, impact_json, requested_by, requester:requested_by(id, username, employees:employee_id(name)), employees:subject_employee_id(name)"
     )
     .eq("id", requestId)
     .maybeSingle();
@@ -45,21 +46,21 @@ export default async function ApprovalRequestDetailPage({ params }: { params: Pr
   const { data: steps } = await supabase
     .from("approval_steps")
     .select(
-      "id, step_order, status, approver_user_id, approver_role, decided_at, comment, due_at, started_at, delegated_from, delegated_to, approver:approver_user_id(id, employees:employee_id(name)), delegate:delegated_to(id, employees:employee_id(name))"
+      "id, step_order, status, approver_user_id, approver_role, decided_at, comment, due_at, started_at, delegated_from, delegated_to, approver:approver_user_id(id, username, employees:employee_id(name)), delegate:delegated_to(id, username, employees:employee_id(name))"
     )
     .eq("approval_request_id", requestId)
     .order("step_order");
 
   const { data: actions } = await supabase
     .from("approval_actions")
-    .select("id, action, reason, created_at, from_status, to_status, actor:actor_user_id(id, employees:employee_id(name))")
+    .select("id, action, reason, created_at, from_status, to_status, actor:actor_user_id(id, username, employees:employee_id(name))")
     .eq("approval_request_id", requestId)
     .order("created_at");
 
   const { data: escalations } = await supabase
     .from("approval_escalations")
     .select(
-      "id, reason, created_at, from:from_approver_id(id, employees:employee_id(name)), to:to_approver_id(id, employees:employee_id(name))"
+      "id, reason, created_at, from:from_approver_id(id, username, employees:employee_id(name)), to:to_approver_id(id, username, employees:employee_id(name))"
     )
     .eq("request_id", requestId)
     .order("created_at");
