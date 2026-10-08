@@ -14,7 +14,7 @@ import { applyCompensationChange } from "@/lib/compensation/apply-change";
 import { bonusWithinDiscretion, computeMerit, roundMoney } from "./engine";
 import { mergePolicy, monthOf, requireRewardHr, requireRewardReviewer, rewardAudit, todayIso, type Db, type RewardContext } from "./context";
 import type { RewardPolicyConfig } from "./config";
-import { checkPoolAlert, fileLetter, notifyRewards } from "./letters";
+import { checkPoolAlert, fileLetter, hrUserIds, notifyRewards } from "./letters";
 import { earningLetter, meritLetter } from "./reward-letter";
 import { DEFAULT_CHAIN, pickWorkflow, resolveStages, type Workflow } from "./approval-chain";
 
@@ -317,6 +317,20 @@ export async function decideRewardRecommendation(stepId: string, decision: "appr
   return { requestId };
 }
 
+// A payroll month counts as closed once its run is approved, processed, paid, closed or locked.
+// A reward approved after that is paid in the next month whose payroll is still open.
+async function firstOpenPayrollPeriod(db: Db, orgId: string, period: string): Promise<string> {
+  let p = period;
+  for (let i = 0; i < 12; i++) {
+    const { data: run } = await db.from("payroll_runs").select("status, locked").eq("org_id", orgId).eq("period", p).maybeSingle();
+    const closed = !!run && (run.locked === true || ["approved", "processed", "paid", "closed"].includes(run.status as string));
+    if (!closed) return p;
+    const [y, m] = p.split("-").map(Number);
+    p = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+  }
+  return p;
+}
+
 // Writes the approved outcome exactly once (reward_transactions.recommendation_id is unique).
 async function commitApproved(db: Db, rec: Rec, orgId: string, actorId: string, approvalRequestId: string) {
   const { data: already } = await db.from("reward_transactions").select("id").eq("recommendation_id", rec.id).maybeSingle();
@@ -349,8 +363,13 @@ async function commitApproved(db: Db, rec: Rec, orgId: string, actorId: string, 
     else await db.from("compensation_change_requests").update({ status: "scheduled" }).eq("id", cr.id);
     await db.from("reward_transactions").insert({ org_id: orgId, recommendation_id: rec.id, employee_id: rec.employee_id, tx_type: "salary_change", amount: Number(rec.new_salary) - Number(rec.current_salary), new_salary: rec.new_salary, effective_date: effective, payroll_status: "pending", change_request_id: cr.id });
   } else {
-    const period = rec.payout_period ?? monthOf(effective > todayIso() ? effective : todayIso());
+    const wanted = rec.payout_period ?? monthOf(effective > todayIso() ? effective : todayIso());
+    const period = await firstOpenPayrollPeriod(db, orgId, wanted);
     await db.from("reward_transactions").insert({ org_id: orgId, recommendation_id: rec.id, employee_id: rec.employee_id, tx_type: "earning", amount: rec.recommended_amount, effective_date: effective, payroll_period: period, payroll_status: "pending" });
+    if (period !== wanted) {
+      await rewardAudit(db, { orgId, actorUserId: actorId, event: "payroll_period.moved", recordType: "reward_recommendation", recordId: rec.id, before: { payrollPeriod: wanted }, after: { payrollPeriod: period }, reason: `Payroll for ${wanted} was already closed, so the payment moves to ${period}.` });
+      await notifyRewards(db, { orgId, userIds: await hrUserIds(db, orgId), type: "REWARD_PAYROLL_MOVED", category: "payroll", title: "A reward moved to the next payroll", message: `${(rec.snapshot as { employeeName?: string } | null)?.employeeName ?? "An employee"}'s ${String(rec.reward_type).replace("_", " ")} will be paid in ${period}, because ${wanted} payroll was already closed.`, entityType: "reward_recommendation", entityId: rec.id, actionUrl: "/dashboard/rewards/history" });
+    }
   }
   await db.from("reward_recommendations").update({ status: "Finalised" }).eq("id", rec.id);
   const [{ data: emp }, { data: org }] = await Promise.all([db.from("employees").select("name").eq("id", rec.employee_id).maybeSingle(), db.from("organizations").select("name").eq("id", orgId).maybeSingle()]);
