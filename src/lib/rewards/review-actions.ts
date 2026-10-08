@@ -143,6 +143,8 @@ async function submitOne(ctx: RewardContext, recId: string) {
   const { data: wfRows } = await ctx.supabase.from("reward_approval_workflows").select("id, name, reward_type, min_amount, max_amount, exceptions_only, stages, due_days").eq("org_id", ctx.orgId).eq("is_active", true);
   const wf = pickWorkflow(((wfRows ?? []) as unknown as Workflow[]).map((w) => ({ ...w, min_amount: Number(w.min_amount), max_amount: w.max_amount === null ? null : Number(w.max_amount) })), { rewardType: rec.reward_type, amount: Number(rec.recommended_amount), isException: rec.is_exception });
   const head = await headUserId(ctx.supabase, ctx.orgId);
+  const needsHead = (wf?.stages ?? DEFAULT_CHAIN.stages).includes("head") || (rec.is_exception && !wf);
+  if (needsHead && !head) throw new Error("This reward needs the head of the organisation to sign it off, but no head of organisation with a login is set up. Mark the head on their employee record and link their login, then submit again.");
   const dueAt = new Date(Date.now() + (wf?.due_days ?? DEFAULT_CHAIN.dueDays) * 86_400_000).toISOString();
   const steps: ApprovalStepInput[] = resolveStages(wf?.stages ?? DEFAULT_CHAIN.stages, { submitterRole: ctx.role, submitterUserId: ctx.userId, headUserId: head, isException: rec.is_exception, hasWorkflow: !!wf }).map((s) => ({ ...s, dueAt }));
 
