@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isInternalUsernameEmail } from "@/lib/auth/username";
+import { normaliseKenyanMsisdn } from "@/lib/branch-ops/rules";
 
 // Area 09 §29 "Mask destinations in administrator screens unless full
 // display is authorized." Only a masked form is ever stored in
@@ -34,6 +35,13 @@ export async function lookupDestination(admin: SupabaseClient, channel: string, 
     // Username-only accounts have a synthetic internal address that can't receive mail.
     if (isInternalUsernameEmail(data.user.email)) return null;
     return data.user.email;
+  }
+  if (channel === "whatsapp") {
+    // The employee record's own phone number, normalised to 2547XXXXXXXX.
+    const { data: au } = await admin.from("app_users").select("employee_id").eq("id", recipientUserId).maybeSingle();
+    if (!au?.employee_id) return null;
+    const { data: emp } = await admin.from("employees").select("phone_number").eq("id", au.employee_id).maybeSingle();
+    return emp?.phone_number ? normaliseKenyanMsisdn(String(emp.phone_number)) : null;
   }
   return null;
 }

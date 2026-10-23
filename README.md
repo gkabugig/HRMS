@@ -178,6 +178,57 @@ deferred to a follow-up build once an LLM API key is available.
   `supabase/migrations/0029_phase3_intelligence_foundation.sql` for the full
   schema and RLS design notes.
 
+## Branch Operations (StaffTrack)
+
+Built for multi-branch retail (first client: Cesscom, 10 branches). Migration
+`0153_branch_operations.sql`.
+
+- **Clocking kiosk** (`/kiosk`, no login) — one Android tablet per branch,
+  paired once with an 8-character code from Branch Operations → Settings. Staff
+  tap their name, enter a 4-digit PIN (salted scrypt; 5 wrong tries locks them
+  out for 15 minutes) and a live front-camera photo is taken on every clock in,
+  lunch out/in and clock out. Times are server Kenya time; the device clock is
+  ignored. The tablet holds a random token in an httpOnly cookie; only its
+  SHA-256 is stored, and "Switch off" revokes it instantly.
+- **Branch Daily Report** (`/dashboard/branch-report`, branch manager or
+  deputy) — structured report with the day's attendance pre-filled from the
+  kiosk, sales, payments, cash (variance computed in the database), stock,
+  expenses, customers, incidents and photo uploads of bank slips/receipts.
+  Late after the deadline (default 22:30). Corrections create a new version;
+  every version is kept. Managers request missed clock times for their staff,
+  approved by an administrator through the shared approvals inbox.
+- **Branch Operations** (`/dashboard/branch-ops`, admin/HR) — all branches for
+  a day, exceptions, who's in now with clock-in photos, report detail, monthly
+  attendance per person with CSV export (days, lateness, absence, leave, net
+  hours, overtime), and settings (deadline, cash variance limit, owners'
+  WhatsApp numbers, photo retention, branch managers, kiosks, PINs).
+- **WhatsApp alerts** — 08:20 late/absent/branch-not-open, 22:00 report
+  reminder to managers, 23:00 owners' summary (Vercel cron, UTC schedules in
+  `vercel.json`); cash-variance and incident alerts on submission. Each alert is
+  recorded once in `branch_ops_alerts`. Clock-in photos older than the
+  retention period are deleted by the 23:00 job.
+
+Writes all go through server actions with the service role after their own
+checks; the new tables have read-only RLS (admin/HR in the org, and the
+branch's own manager/deputy via `runs_branch()`). Storage buckets
+`kiosk-photos` and `branch-report-files` are private, served by signed URLs.
+
+### Setup
+
+1. Apply `supabase/migrations/0153_branch_operations.sql`.
+2. Vercel env vars: `CRON_SECRET` (if not already set),
+   `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`,
+   `WHATSAPP_TEMPLATE_NAME` (an approved Utility template whose body has one
+   parameter, e.g. `SKMG-HR alert: {{1}}`), optional `WHATSAPP_TEMPLATE_LANG`
+   (default `en`). Without the template, Meta only delivers free text within
+   24 hours of the recipient messaging the business number.
+3. In the app: Shifts → create the branch shift (Cesscom: 08:00–22:00, 15 min
+   grace) and assign it; Employees → set each person's branch and phone;
+   Branch Operations → Settings → save the settings (this switches the alerts
+   on), set managers, add a kiosk per branch, set staff PINs.
+4. Vercel Hobby runs each cron once a day at an imprecise minute within the
+   hour; Pro runs them on the minute.
+
 ## Architecture notes
 
 - `src/lib/payroll/calculate.ts` — pure functions for PAYE/NSSF/SHIF/Housing Levy,

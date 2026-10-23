@@ -43,6 +43,18 @@
     {
       "path": "/api/cron/compensation-apply-scheduled",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/branch-ops-morning",
+      "schedule": "20 5 * * *"
+    },
+    {
+      "path": "/api/cron/branch-ops-reminder",
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/branch-ops-summary",
+      "schedule": "0 20 * * *"
     }
   ]
 }

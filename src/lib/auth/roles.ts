@@ -74,6 +74,10 @@ export const ALL_MODULES: NavTab[] = [
   { key: "performance", label: "Performance", href: "/dashboard/performance", icon: "target", group: "Workforce" },
   { key: "ld", label: "L&D", href: "/dashboard/ld", icon: "graduation-cap", group: "Workforce" },
   { key: "shifts", label: "Shifts", href: "/dashboard/shifts", icon: "calendar-clock", group: "Workforce" },
+  // Branch Operations (StaffTrack): owners' view of every branch's kiosk
+  // clocking and daily reports, and the branch manager's report form.
+  { key: "branch-ops", label: "Branch Operations", href: "/dashboard/branch-ops", icon: "building", group: "Workforce" },
+  { key: "branch-report", label: "Branch Daily Report", href: "/dashboard/branch-report", icon: "clipboard-list", group: "Workforce" },
 
   { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: "wallet", group: "Payroll & Compliance" },
   { key: "compliance", label: "Compliance", href: "/dashboard/compliance", icon: "shield-check", group: "Payroll & Compliance" },
@@ -179,9 +183,10 @@ export const ALL_MODULES: NavTab[] = [
 
 export const DEFAULT_VISIBLE_MODULES: Record<UserRole, string[]> = {
   admin: ALL_MODULES.map((m) => m.key),
-  hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings"),
+  hr: ALL_MODULES.map((m) => m.key).filter((k) => k !== "settings" && k !== "branch-report"),
   manager: [
     "dashboard",
+    "branch-report",
     "notifications",
     "approvals",
     "service-requests",

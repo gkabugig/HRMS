@@ -1,6 +1,7 @@
 import type { NotificationChannelAdapter } from "./types";
 import { inAppAdapter } from "./in-app";
 import { emailAdapter } from "./email";
+import { whatsappAdapter } from "./whatsapp";
 
 // Area 09 §31 step 21: SMS/push/WhatsApp adapters only after provider
 // configuration and privacy review — no Kenyan SMS gateway, push
@@ -24,5 +25,6 @@ export const channelAdapters: Record<string, NotificationChannelAdapter> = {
   email: emailAdapter,
   sms: unconfiguredAdapter("sms"),
   push: unconfiguredAdapter("push"),
-  whatsapp: unconfiguredAdapter("whatsapp"),
+  // WhatsApp Business Cloud API; reports not-configured until its env vars are set.
+  whatsapp: whatsappAdapter,
 };

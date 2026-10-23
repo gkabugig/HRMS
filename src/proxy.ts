@@ -30,7 +30,14 @@ export async function proxy(request: NextRequest) {
 
   const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
   // /careers is the public job board and apply form (no sign-in).
-  const isPublicAsset = request.nextUrl.pathname.startsWith("/_next") || request.nextUrl.pathname.startsWith("/careers");
+  // /kiosk is a branch clocking tablet: it has no user login and is
+  // authenticated by its own paired-device cookie (lib/branch-ops/kiosk.ts).
+  const path = request.nextUrl.pathname;
+  // /api/cron/* is called by Vercel Cron with no user session; every cron
+  // route checks the CRON_SECRET bearer token itself, so redirecting it to
+  // /login would only stop the scheduled jobs from running.
+  const isPublicAsset =
+    path.startsWith("/_next") || path.startsWith("/careers") || path === "/kiosk" || path.startsWith("/kiosk/") || path.startsWith("/api/cron/");
 
   if (!user && !isAuthRoute && !isPublicAsset) {
     const url = request.nextUrl.clone();
